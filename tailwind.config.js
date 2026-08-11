@@ -124,6 +124,7 @@ export default {
       fontFamily: {
         sans: 'var(--font-sans)',
         mono: 'var(--font-mono)',
+        heading: 'var(--font-heading)',
       },
       fontSize: {
         'xs': 'var(--text-xs)',
