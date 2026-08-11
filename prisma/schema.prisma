@@ -1,13 +1,84 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+  output          = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Admin
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Item Menu (Bisa Utama atau Ekstra)
+model MenuItem {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Float?   // Hanya untuk ekstra, utama = 0 atau null
+  type        MenuType // UTAMA, EKSTRA
+  cycleDay    Int?     // 1-11, null untuk Ekstra
+  
+  orderItems  OrderItem[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum MenuType {
+  UTAMA
+  EKSTRA
+}
+
+// Header Pesanan Pasien
+model Order {
+  id             String      @id @default(uuid())
+  rmNumber       String      // Identitas pasien
+  patientName    String
+  roomNumber     String
+  classType      String      // VIP A, Kelas 1, dll untuk cek kuota
+  
+  orderDate      DateTime    @default(now())
+  deliveryDate   DateTime    // T+1 untuk Utama, custom untuk Ekstra
+  status         OrderStatus @default(MENUNGGU)
+  
+  items          OrderItem[]
+  
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+enum OrderStatus {
+  MENUNGGU
+  PROSES
+  SELESAI
+}
+
+// Detail Item Pesanan (Keranjang -> Checkout)
+model OrderItem {
+  id          String   @id @default(uuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id])
+  
+  menuItemId  String
+  menuItem    MenuItem @relation(fields: [menuItemId], references: [id])
+  
+  quantity    Int
+  notes       String?
+  mealTime    MealTime // PAGI, SIANG, MALAM (Terutama untuk Paket Utama)
+}
+
+enum MealTime {
+  PAGI
+  SIANG
+  MALAM
+  BEBAS // Untuk Ekstra
 }
