@@ -14,6 +14,9 @@ import Cart from './pages/Patient/Cart';
 import AdminDashboard from './pages/Admin/Dashboard';
 import MenuCycle from './pages/Admin/MenuCycle';
 
+// Showcase Page
+import ComponentsShowcase from './pages/ComponentsShowcase';
+
 function App() {
   return (
     <Routes>
@@ -34,6 +37,9 @@ function App() {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="menu-cycle" element={<MenuCycle />} />
       </Route>
+
+      {/* Components Showcase */}
+      <Route path="/components" element={<ComponentsShowcase />} />
     </Routes>
   );
 }
