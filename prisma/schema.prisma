@@ -6,79 +6,127 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
-// User Admin
-model User {
+// ---------------------------------------------------------
+// 1. DATA MASTER
+// ---------------------------------------------------------
+
+// Tabel Admin: Menyimpan data petugas gizi yang bisa akses Dashboard
+model Admin {
   id        String   @id @default(uuid())
   email     String   @unique
   name      String
   password  String
+  role      String   @default("admin")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// Item Menu (Bisa Utama atau Ekstra)
+// Tabel Siklus Menu: Menyimpan siklus hari ke-1 sampai ke-11
+model MenuCycle {
+  id          Int        @id // 1 sampai 11
+  description String
+  menuItems   MenuItem[]
+}
+
+// Tabel Item Menu: Katalog makanan. (Menu Include & Exclude digabung)
 model MenuItem {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   name        String
-  description String?
-  price       Float?   // Hanya untuk ekstra, utama = 0 atau null
-  type        MenuType // UTAMA, EKSTRA
-  cycleDay    Int?     // 1-11, null untuk Ekstra
+  cycleId     Int
+  cycle       MenuCycle @relation(fields: [cycleId], references: [id])
+  mealTime    MealTime  // Kapan menu ini disajikan (PAGI, SIANG, SORE)
+  isActive    Boolean   @default(true)
   
   orderItems  OrderItem[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-enum MenuType {
-  UTAMA
-  EKSTRA
-}
-
-// Header Pesanan Pasien
-model Order {
-  id             String      @id @default(uuid())
-  rmNumber       String      // Identitas pasien
-  patientName    String
-  roomNumber     String
-  classType      String      // VIP A, Kelas 1, dll untuk cek kuota
-  
-  orderDate      DateTime    @default(now())
-  deliveryDate   DateTime    // T+1 untuk Utama, custom untuk Ekstra
-  status         OrderStatus @default(MENUNGGU)
-  
-  items          OrderItem[]
-  
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-}
-
-enum OrderStatus {
-  MENUNGGU
-  PROSES
-  SELESAI
-}
-
-// Detail Item Pesanan (Keranjang -> Checkout)
-model OrderItem {
-  id          String   @id @default(uuid())
-  orderId     String
-  order       Order    @relation(fields: [orderId], references: [id])
-  
-  menuItemId  String
-  menuItem    MenuItem @relation(fields: [menuItemId], references: [id])
-  
-  quantity    Int
-  notes       String?
-  mealTime    MealTime // PAGI, SIANG, MALAM (Terutama untuk Paket Utama)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 enum MealTime {
   PAGI
   SIANG
   MALAM
-  BEBAS // Untuk Ekstra
+}
+
+// ---------------------------------------------------------
+// 2. DATA TRANSAKSIONAL (PEMESANAN)
+// ---------------------------------------------------------
+
+// Tabel Pasien: Data yang di-fetch dari API SIMRS setelah login No RM
+model Patient {
+  id                String   @id @default(uuid())
+  rmNumber          String   @unique
+  name              String
+  dob               DateTime
+  phone             String?  // Nomor Telepon (PRD 3.1)
+  roomName          String
+  roomClass         String   // VIP_A, Kelas_1, dsb (Untuk penentuan kuota porsi)
+  allergies         String?
+  medicalConditions String?
+  
+  orders            Order[]
+  createdAt         DateTime @default(now())
+}
+
+// Tabel Order (Keranjang / Checkout): 1 Order = 1x Transaksi Checkout Pasien
+model Order {
+  id          String      @id @default(uuid())
+  patientId   String
+  patient     Patient     @relation(fields: [patientId], references: [id])
+  
+  // Data Ruangan & Kelas disimpan (snapshot) di sini 
+  // karena pasien Edelweiss bisa pindah kamar (VIP ke Kelas 1 dsb)
+  roomNumber  String
+  classType   String      // VIP A, Kelas 1, dll (Sangat penting untuk cek kuota)
+  
+  status      OrderStatus @default(CART)
+  notes       String?     // Catatan untuk dapur (1 per order full)
+  
+  createdAt   DateTime    @default(now())
+  checkoutAt  DateTime?
+  
+  items       OrderItem[]
+}
+
+enum OrderStatus {
+  CART
+  CHECKOUT
+}
+
+// Tabel Detail Order (Isi Keranjang): Rincian tiap menu yang dipesan
+model OrderItem {
+  id             String      @id @default(uuid())
+  orderId        String
+  order          Order       @relation(fields: [orderId], references: [id])
+  
+  menuItemId     String
+  menuItem       MenuItem    @relation(fields: [menuItemId], references: [id])
+  
+  type           OrderType   // Menentukan ini jatah gratis (INCLUDE) atau jajan (EXCLUDE)
+  consumer       Consumer    // Menentukan porsi ini dimakan siapa (PASIEN atau PENDAMPING)
+  quantity       Int
+  
+  servingDate    DateTime    // T+1 untuk Include, hari-H untuk Exclude
+  servingTime    String      // Jam spesifik atau string "PAGI"/"SIANG"
+  
+  isDelivered    Boolean     @default(false) // Untuk menandai Exclude sudah diantar (warna hijau di dashboard)
+  billingStatus  BillingStat @default(PENDING) // Status pengiriman tagihan ke API Billing RS
+}
+
+enum OrderType {
+  INCLUDE
+  EXCLUDE
+}
+
+enum Consumer {
+  PASIEN
+  PENDAMPING
+}
+
+enum BillingStat {
+  PENDING
+  SYNCED
+  FAILED
 }
