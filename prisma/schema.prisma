@@ -109,14 +109,14 @@ model OrderItem {
   menuItemId     String?
   menuItem       MenuItem?   @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
   
-  type           OrderType   // Menentukan ini jatah gratis (INCLUDE) atau jajan (EXCLUDE)
+  type           OrderType   // Menentukan ini jatah gratis (INCLUDE) atau Paket Ekstra berbayar (EXCLUDE)
   consumer       Consumer    // Menentukan porsi ini dimakan siapa (PASIEN atau PENDAMPING)
   quantity       Int
   
-  servingDate    DateTime    // T+1 untuk Include, hari-H untuk Exclude
-  servingTime    String      // Jam spesifik atau string "PAGI"/"SIANG"
+  servingDate    DateTime    // T+1 untuk Include, hari-H untuk Paket Ekstra
+  servingTime    String      // Sesi makan ("SIANG" / "SORE" / "PAGI")
   
-  isDelivered    Boolean     @default(false) // Untuk menandai Exclude sudah diantar (warna hijau di dashboard)
+  isDelivered    Boolean     @default(false) // Untuk menandai Paket Ekstra sudah diantar (warna hijau di dashboard)
   billingStatus  BillingStat @default(PENDING) // Status pengiriman tagihan ke API Billing RS
 }
 
