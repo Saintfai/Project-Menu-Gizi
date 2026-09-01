@@ -37,7 +37,7 @@ model MenuItem {
   cycleId     Int
   cycle       MenuCycle @relation(fields: [cycleId], references: [id])
   mealTime    MealTime  // Kapan menu ini disajikan (PAGI, SIANG, SORE)
-  isActive    Boolean   @default(true)
+  paketName   String?   // cth: "PAKET A", "PAKET B"
   
   orderItems  OrderItem[]
   createdAt   DateTime  @default(now())
@@ -47,7 +47,7 @@ model MenuItem {
 enum MealTime {
   PAGI
   SIANG
-  MALAM
+  SORE
 }
 
 // ---------------------------------------------------------
@@ -101,8 +101,13 @@ model OrderItem {
   orderId        String
   order          Order       @relation(fields: [orderId], references: [id])
   
-  menuItemId     String
-  menuItem       MenuItem    @relation(fields: [menuItemId], references: [id])
+  // Snapshot Data (Struk Mati)
+  menuName       String      // Nama makanan yang dicatat permanen saat checkout
+  paketName      String?     // Nama paket (jika ada) yang dicatat permanen
+  
+  // Relasi opsional ke master menu. Jika menu dihapus (hard delete), id ini jadi null, tapi struk tetap aman berkat snapshot di atas.
+  menuItemId     String?
+  menuItem       MenuItem?   @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
   
   type           OrderType   // Menentukan ini jatah gratis (INCLUDE) atau jajan (EXCLUDE)
   consumer       Consumer    // Menentukan porsi ini dimakan siapa (PASIEN atau PENDAMPING)

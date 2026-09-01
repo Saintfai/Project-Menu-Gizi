@@ -37,8 +37,8 @@ Katalog makanan yang tersedia. Semua makanan (baik jatah gratis/Include maupun j
 | `id` | UUID (PK) | ID unik setiap item menu. |
 | `name` | String | Nama makanan (misal: "Nasi Tim Ayam", "Puding Cokelat"). |
 | `cycleId` | Int (FK) | Relasi ke `MenuCycle`. Menandakan menu ini keluar di siklus hari ke-berapa. |
-| `mealTime`| Enum | Jadwal sajian makanan. Pilihan: `PAGI`, `SIANG`, `MALAM`. |
-| `isActive`| Boolean | Status aktif menu (default: `true`). Jika `false`, menu diarsipkan (tidak dihapus) agar riwayat pesanan lama tidak error. |
+| `mealTime`| Enum | Jadwal sajian makanan. Pilihan: `PAGI`, `SIANG`, `SORE`. |
+| `paketName`| String? | Nama pengelompokan paket (opsional). Contoh: "PAKET A", "PAKET B". Digunakan untuk mengelompokkan menu agar rapi seperti pada data Excel. |
 | `createdAt`| DateTime | Waktu saat menu ditambahkan ke sistem. |
 | `updatedAt`| DateTime | Waktu terakhir data menu diubah. |
 
@@ -85,7 +85,9 @@ Tabel Rincian Pesanan. Mewakili setiap makanan individu yang ada di dalam sebuah
 |-------|-----------|------------|
 | `id` | UUID (PK) | ID unik rincian pesanan. |
 | `orderId` | String (FK) | Relasi ke `Order` (Berada di struk yang mana). |
-| `menuItemId`| String (FK) | Relasi ke `MenuItem` (Menu apa yang dibeli). |
+| `menuName`| String | **(Snapshot)** Nama makanan yang dipesan. Mencatat permanen agar aman meski menu dihapus. |
+| `paketName`| String? | **(Snapshot)** Nama paket makanan saat dipesan (jika ada). |
+| `menuItemId`| String? (FK) | Relasi ke `MenuItem`. Bersifat opsional. Jika menu master di-Hard Delete, nilainya menjadi `null` tetapi data struk tetap utuh berkat Snapshot. |
 | `type` | Enum | Penanda: `INCLUDE` (jatah gratis RS) atau `EXCLUDE` (jajan berbayar). |
 | `consumer`| Enum | Penanda siapa yang akan makan: `PASIEN` atau `PENDAMPING`. |
 | `quantity`| Int | Jumlah porsi yang dipesan. |
@@ -99,7 +101,7 @@ Tabel Rincian Pesanan. Mewakili setiap makanan individu yang ada di dalam sebuah
 ## 🏷️ 3. Tipe Enumerasi (Enum)
 Kumpulan nilai tetap yang tidak bisa diisi dengan kata lain (menghindari typo).
 
-- **`MealTime`**: `PAGI`, `SIANG`, `MALAM`
+- **`MealTime`**: `PAGI`, `SIANG`, `SORE`
 - **`OrderStatus`**: `CART`, `CHECKOUT` 
 - **`OrderType`**: `INCLUDE` (Fasilitas Rawat Inap), `EXCLUDE` (Pesanan Luar/A La Carte)
 - **`Consumer`**: `PASIEN`, `PENDAMPING`
