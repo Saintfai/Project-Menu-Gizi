@@ -5,16 +5,18 @@
 **Application Food Ordering & Nutrition Management System (Hospital Dietary System)**
 
   ----------------------------------- -----------------------------------
-  **Dokumen Versi**                   1.3
+  **Dokumen Versi**                   1.4
   **Status**                          Approved / Ready for Development
-                                      --- Pembaruan Aturan Paket Ekstra
-  **Perubahan dari v1.2**             Menghapus konsep menu jajan/a la
-                                      carte bebas. Menetapkan bahwa
-                                      pesanan ekstra murni merupakan
-                                      Pemesanan Paket Ekstra (dari
-                                      siklus menu berjalan) khusus waktu
-                                      Makan Siang (cut-off 10:00 WIB)
-                                      dan Makan Sore (cut-off 14:00 WIB).
+                                      --- Pembaruan Navigasi Admin
+                                      (Dashboard, Siklus, Statistik) &
+                                      Detail UI Rekap Dapur
+  **Perubahan dari v1.3**             Menambahkan modul Statistik pada
+                                      navigasi Admin, menyelaraskan 3
+                                      tab menu Admin (Dashboard, Siklus,
+                                      Statistik), menyempurnakan rincian
+                                      kartu rekap (Pagi, Siang, Malam,
+                                      Ekstra) dan indikator alergi (red
+                                      dot) pada tabel.
   ----------------------------------- -----------------------------------
 
 **1. Ringkasan Produk & Tujuan**
@@ -32,12 +34,15 @@ sakit.
 -   Memangkas proses manual pencatatan menu gizi harian oleh dietisien
     atau pramusaji.
 -   Mencegah kesalahan distribusi makanan dengan menyajikan informasi
-    identitas pasien, lokasi kamar, riwayat alergi, serta catatan khusus
-    per menu.
+    identitas pasien, lokasi kamar, riwayat alergi (dengan indikator
+    visual), serta catatan khusus per menu.
 -   Menyediakan data rekapitulasi kebutuhan porsi/paket gizi secara
-    otomatis dan instan (real-time summary) di dapur gizi.
+    otomatis dan instan (real-time summary 4 kartu: Pagi, Siang, Malam,
+    Ekstra) di dapur gizi.
 -   Menyajikan visualisasi penjadwalan pengantaran yang ringkas dalam
     satu tampilan kolom terintegrasi untuk tim gizi.
+-   Menyajikan modul statistik dan analitik tren konsumsi gizi serta
+    rekapitulasi produksi bagi tim manajemen gizi rumah sakit.
 -   Mencegah pasien memesan menu yang bertentangan dengan kondisi medis
     atau status puasa (NPO) melalui kontrol akses berbasis kondisi
     pasien.
@@ -49,7 +54,7 @@ sakit.
     yang diizinkan.
 -   Tim Gizi / Dapur (Kitchen & Dietary Staff): Memantau pesanan masuk,
     melihat rekap total paket per waktu makan, mengelola konten siklus
-    menu, mengatur akses pemesanan per ruangan, dan mengelola
+    menu, meninjau statistik/analitik konsumsi, dan mengelola
     operasional penyiapan makanan via Dashboard Admin.
 
 **3. Ketentuan & Aturan Bisnis (Business Rules)**
@@ -205,27 +210,44 @@ belanja (cart), bukan transaksi langsung sekali submit.
     menu, komponen menu) melalui Dashboard Admin, tanpa mengubah jumlah
     maupun logika pemetaan siklusnya.
 
-**3.8. Aturan Tampilan Dashboard Admin / Dapur**
+**3.8. Struktur Menu & Navigasi Portal Admin**
 
--   Kolom Tanggal Pengantaran Terintegrasi: Tabel dashboard memiliki 1
-    kolom khusus tanggal & waktu pengantaran yang memuat hingga 2 tipe
-    jadwal sekaligus:
-    -   Jadwal Pengantaran Masakan Utama (Pengantaran Besok / T+1: Pagi,
-        Siang, Sore).
-    -   Jadwal Pengantaran Paket Ekstra (Pengantaran Hari-H: Siang atau
-        Sore).
--   Modul Catatan Berbasis Tombol Pop-up / Modal: Catatan tidak
-    ditampilkan langsung sebagai teks panjang di tabel utama, melainkan
-    dalam bentuk tombol interaktif (misal: \[Lihat Catatan\]). Saat
-    tombol dipencet, sistem menampilkan modal/pop-up yang berisi seluruh
-    catatan dari menu utama maupun paket ekstra yang dipesan pasien
-    tersebut.
--   Status Pengantaran Paket Ekstra: Berlaku khusus untuk pesanan Paket
-    Ekstra (tidak berlaku untuk Paket Utama). Admin Dapur menandai
-    pesanan sebagai selesai diantarkan melalui satu tombol aksi. Tidak
-    ada label status tertulis yang ditampilkan; baris pesanan yang telah
-    selesai diantarkan ditandai secara visual dengan latar warna hijau
-    pada tabel.
+Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
+
+1.  **Dashboard (Rekap Dapur Gizi):**
+    -   Header info: Penanda Siklus Aktif (badge dengan refresh action)
+        dan waktu realtime (Hari, Tanggal, Jam WIB).
+    -   Kartu Ringkasan Real-Time (4 Cards):
+        -   **Makan Pagi:** Total Porsi & Rincian Paket A/B.
+        -   **Makan Siang:** Total Porsi & Rincian Paket A/B.
+        -   **Makan Malam:** Total Porsi & Rincian Paket A/B.
+        -   **Ekstra:** Total Item & Jumlah Jenis Menu.
+    -   Pencarian & Filter: Search bar (Nama Pasien / No. RM / Nomor
+        Kamar) dan Filter Kategori/Status.
+    -   Tabel Detail Rekap Pesanan Terintegrasi:
+        -   Kolom: `NO`, `PASIEN`, `KAMAR`, `MAKAN PAGI`, `MAKAN SIANG`,
+            `MAKAN MALAM`, `MENU TAMBAHAN (EKSTRA)`, `TANGGAL & WAKTU`,
+            `CATATAN`.
+        -   Indikator Alergi: Pasien dengan riwayat alergi memiliki tanda
+            lingkaran merah (🔴) di samping No. RM / Nama Pasien.
+        -   Kolom Tanggal & Waktu: Memuat jadwal T+1 (Paket Utama) dan
+            jadwal Hari-H (Paket Ekstra).
+        -   Kolom Catatan: Tombol ikon dokumen yang membuka pop-up/modal
+            berisi seluruh catatan khusus pesanan pasien.
+        -   Status Pengantaran Paket Ekstra: Aksi penandaan selesai yang
+            mengubah warna baris menjadi hijau.
+    -   Pagination tabel navigasi halaman.
+
+2.  **Siklus (Manajemen 11 Siklus Menu):**
+    -   Kelola daftar paket dan hidangan pada Siklus 1 s.d. 11.
+    -   Pengaturan komponen makanan per waktu makan (Pagi, Siang, Malam).
+
+3.  **Statistik (Laporan & Analitik Gizi):**
+    -   Visualisasi grafik tren pemesanan menu gizi harian, mingguan, dan
+        bulanan.
+    -   Distribusi preferensi paket menu (Paket A vs Paket B vs Ekstra).
+    -   Rekapitulasi porsi per kelas kamar dan per ruangan/bangsal.
+    -   Export data laporan untuk kebutuhan logistik dan audit gizi.
 
 **4. Alur Pengguna (User Flow)**
 
@@ -315,10 +337,10 @@ belanja (cart), bukan transaksi langsung sekali submit.
 +----+-----------------------------------------------------------------+
 
 +----+-----------------------------------------------------------------+
-| *  | **Pantau Rekap Real-time**                                      |
+| *  | **Pantau Rekap Real-time & Filter Data**                        |
 | *2 |                                                                 |
-| ** | Dashboard menampilkan rekap akumulasi porsi/paket per waktu     |
-|    | makan yang diperbarui otomatis.                                 |
+| ** | Dashboard menampilkan rekap 4 kartu ringkasan porsi dan tabel   |
+|    | rincian pasien (dengan alert alergi & catatan modal).           |
 +----+-----------------------------------------------------------------+
 
 +----+-----------------------------------------------------------------+
@@ -337,10 +359,10 @@ belanja (cart), bukan transaksi langsung sekali submit.
 +----+-----------------------------------------------------------------+
 
 +----+-----------------------------------------------------------------+
-| *  | **Kelola Konten Siklus Menu**                                   |
+| *  | **Kelola Konten Siklus Menu & Analitik Statistik**              |
 | *5 |                                                                 |
-| ** | Admin Gizi memperbarui isi menu pada siklus 1--11 sesuai        |
-|    | kebutuhan, tanpa mengubah struktur/jumlah siklus.               |
+| ** | Admin dapat berpindah ke tab Siklus (untuk update menu) atau    |
+|    | tab Statistik (untuk meninjau grafik laporan produksi).         |
 +----+-----------------------------------------------------------------+
 
 +----+-----------------------------------------------------------------+
@@ -419,7 +441,8 @@ belanja (cart), bukan transaksi langsung sekali submit.
                             Paket Ekstra.
 
   Dashboard    **FR-010**   Dashboard Dapur menampilkan real-time summary rekap
-  Admin                     akumulasi jumlah per porsi/paket per waktu makan.
+  Admin                     akumulasi 4 kartu ringkasan (Makan Pagi, Makan
+                            Siang, Makan Malam, dan Paket Ekstra).
 
   Dashboard    **FR-011**   Dashboard Admin menampilkan 1 kolom jadwal
   Admin                     terintegrasi yang memuat Tanggal Pengantaran Menu
@@ -436,6 +459,15 @@ belanja (cart), bukan transaksi langsung sekali submit.
                             telah ditandai selesai berubah warna latar menjadi
                             hijau tanpa label status tertulis. Fitur ini tidak
                             berlaku untuk Paket Utama.
+
+  Dashboard    **FR-021**   Sistem menampilkan indikator visual lingkaran merah
+  Admin                     (🔴) pada data pasien di tabel rekap dashboard jika
+                            pasien memiliki riwayat alergi.
+
+  Statistik    **FR-022**   Sistem menyediakan modul Statistik untuk menyajikan
+                            grafik tren pemesanan menu gizi harian/mingguan,
+                            distribusi porsi per kelas/ruangan, dan laporan
+                            kebutuhan logistik dapur.
 
   Notifikasi   **FR-020**   Sistem tidak menyediakan modul notifikasi
                             (push/email/SMS) pada versi ini, karena aplikasi
