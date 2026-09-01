@@ -48,9 +48,9 @@ export default function AdminLogin() {
   return (
     <div className="min-h-screen relative overflow-hidden bg-slate-50 flex flex-col font-sans text-gray-800">
       
-      {/* Background Ambient Gradients */}
-      <div className="fixed top-0 right-0 w-[350px] h-[350px] bg-blue-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
-      <div className="fixed bottom-0 left-0 w-[350px] h-[350px] bg-emerald-100/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
+      {/* Background Gradients - Adjusted visibility */}
+      <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-blue-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
+      <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-pink-200/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 z-10 relative">
