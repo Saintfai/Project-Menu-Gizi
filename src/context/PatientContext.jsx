@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../utils/supabase';
 
 const PatientContext = createContext(null);
 
@@ -20,14 +21,40 @@ export function PatientProvider({ children }) {
     setLoading(false);
   }, []);
 
-  const loginPatient = (patientData) => {
-    // Saves patient basic verification info
-    const data = {
-      ...patientData,
-      isVerified: patientData.isVerified ?? true,
-    };
-    setPatient(data);
-    sessionStorage.setItem('active_patient_session', JSON.stringify(data));
+  // Async login function hitting Supabase
+  const loginPatient = async (identifier, dob) => {
+    try {
+      const cleanId = identifier.trim();
+      
+      const { data, error } = await supabase
+        .from('Patient')
+        .select('*')
+        .or(`rmNumber.eq.${cleanId},name.eq.${cleanId}`)
+        .eq('dob', dob)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Supabase Login error:', error);
+        throw new Error('Terjadi kesalahan sistem saat mencari data.');
+      }
+
+      if (!data) {
+        throw new Error('Data pasien tidak ditemukan atau tanggal lahir salah.');
+      }
+
+      // Saves patient basic verification info
+      const patientData = {
+        ...data,
+        isVerified: data.isVerified ?? true,
+      };
+      
+      setPatient(patientData);
+      sessionStorage.setItem('active_patient_session', JSON.stringify(patientData));
+      
+      return patientData;
+    } catch (err) {
+      throw err;
+    }
   };
 
   const updatePatientInfo = (updatedFields) => {
