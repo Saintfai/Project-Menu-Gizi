@@ -1,0 +1,290 @@
+:root {
+  /* ==========================================================
+     COLOR PALETTE
+     ========================================================== */
+
+  /* Primary (Blue) - Main #005DA7 */
+  --color-primary-50: #EFF4FF;
+  --color-primary-100: #DBE7FF;
+  --color-primary-200: #B8D0FF;
+  --color-primary-300: #85B1FF;
+  --color-primary-400: #4D8FFF;
+  --color-primary-500: #1B65FF;
+  --color-primary-600: #005DA7; /* Main */
+  --color-primary-700: #004785;
+  --color-primary-800: #003666;
+  --color-primary-900: #0B1C30;
+
+  /* Secondary (Teal) - #006A64 */
+  --color-secondary-50: #E0F2F1;
+  --color-secondary-100: #B2DFDB;
+  --color-secondary-200: #80CBC4;
+  --color-secondary-300: #4DB6AC;
+  --color-secondary-400: #26A69A;
+  --color-secondary-500: #009688;
+  --color-secondary-600: #006A64; /* Main */
+  --color-secondary-700: #004D40;
+  --color-secondary-800: #00332A;
+  --color-secondary-900: #001A15;
+
+  /* Accent (Can be same as secondary for now) */
+  --color-accent-50: var(--color-secondary-50);
+  --color-accent-100: var(--color-secondary-100);
+  --color-accent-200: var(--color-secondary-200);
+  --color-accent-300: var(--color-secondary-300);
+  --color-accent-400: var(--color-secondary-400);
+  --color-accent-500: var(--color-secondary-500);
+  --color-accent-600: var(--color-secondary-600);
+  --color-accent-700: var(--color-secondary-700);
+  --color-accent-800: var(--color-secondary-800);
+  --color-accent-900: var(--color-secondary-900);
+
+  /* Neutral (White to #191C1E) */
+  --color-neutral-0: #FFFFFF;
+  --color-neutral-50: #F9FAFB;
+  --color-neutral-100: #F3F4F6;
+  --color-neutral-200: #E5E7EB;
+  --color-neutral-300: #D1D5DB;
+  --color-neutral-400: #9CA3AF;
+  --color-neutral-500: #6B7280;
+  --color-neutral-600: #4B5563;
+  --color-neutral-700: #374151;
+  --color-neutral-800: #1F2937;
+  --color-neutral-900: #191C1E;
+
+  /* Semantic / Status */
+  --color-success-50: #F0FDF4;
+  --color-success-100: #DCFCE7;
+  --color-success-500: #22C55E;
+  --color-success-600: #16A34A;
+  --color-success-700: #15803D;
+
+  --color-warning-50: #FFFBEB;
+  --color-warning-100: #FEF3C7;
+  --color-warning-500: #F59E0B;
+  --color-warning-600: #D97706;
+  --color-warning-700: #B45309;
+
+  --color-danger-50: #FEF2F2;
+  --color-danger-100: #FEE2E2;
+  --color-danger-500: #EF4444;
+  --color-danger-600: #DC2626;
+  --color-danger-700: #B91C1C;
+  
+  /* Domain Specific (Menunggu, Proses, Selesai) */
+  --color-menunggu-50: var(--color-warning-50);
+  --color-menunggu-100: var(--color-warning-100);
+  --color-menunggu-200: var(--color-warning-200);
+  --color-menunggu-300: var(--color-warning-300);
+  --color-menunggu-400: var(--color-warning-400);
+  --color-menunggu-500: var(--color-warning-500);
+  --color-menunggu-600: var(--color-warning-600);
+  --color-menunggu-700: var(--color-warning-700);
+  --color-menunggu-800: var(--color-warning-800);
+  --color-menunggu-900: var(--color-warning-900);
+
+  --color-proses-50: var(--color-primary-50);
+  --color-proses-100: var(--color-primary-100);
+  --color-proses-200: var(--color-primary-200);
+  --color-proses-300: var(--color-primary-300);
+  --color-proses-400: var(--color-primary-400);
+  --color-proses-500: var(--color-primary-500);
+  --color-proses-600: var(--color-primary-600);
+  --color-proses-700: var(--color-primary-700);
+  --color-proses-800: var(--color-primary-800);
+  --color-proses-900: var(--color-primary-900);
+
+  --color-selesai-50: var(--color-success-50);
+  --color-selesai-100: var(--color-success-100);
+  --color-selesai-200: #BBF7D0;
+  --color-selesai-300: #86EFAC;
+  --color-selesai-400: #4ADE80;
+  --color-selesai-500: var(--color-success-500);
+  --color-selesai-600: var(--color-success-600);
+  --color-selesai-700: var(--color-success-700);
+  --color-selesai-800: #166534;
+  --color-selesai-900: #14532D;
+
+  /* ==========================================================
+     TYPOGRAPHY
+     ========================================================== */
+  --font-sans: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-heading: 'Nunito Sans', sans-serif;
+
+  /* Font sizes (px / rem based) */
+  --text-xs: 12px;     /* Caption */
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;    /* H3 */
+  --text-3xl: 32px;    /* H1 */
+  --text-4xl: 36px;
+  --text-5xl: 48px;
+  --text-6xl: 60px;
+  --text-7xl: 72px;
+  --text-8xl: 96px;
+
+  /* Font Weights */
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+
+  /* Line Heights & Letter Spacing */
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  --tracking-tighter: -0.05em;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+  --tracking-widest: 0.1em;
+
+  /* ==========================================================
+     SPACING (Multiples of 4px)
+     ========================================================== */
+  --space-0: 0px;
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-2-5: 10px;
+  --space-3: 12px;
+  --space-3-5: 14px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-9: 36px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-14: 56px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* ==========================================================
+     UI PRIMITIVES (Radius, Shadows)
+     ========================================================== */
+  --radius-none: 0px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-3xl: 32px;
+  --radius-full: 9999px;
+
+  /* Box Shadows */
+  --shadow-none: none;
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  
+  /* Primary Button Shadow specific */
+  --shadow-primary: 0 4px 14px 0 rgba(0, 93, 167, 0.39);
+
+  /* ==========================================================
+     Z-INDEX
+     ========================================================== */
+  --z-behind: -1;
+  --z-base: 0;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-overlay: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 1080;
+  
+  /* ==========================================================
+     COMPONENT VARIABLES
+     ========================================================== */
+  --page-bg: var(--color-neutral-50);
+  
+  /* Forms */
+  --input-bg: var(--color-neutral-0);
+  --input-border: var(--color-neutral-300);
+  --input-border-focus: var(--color-primary-500);
+  --input-text: var(--color-neutral-900);
+  --input-placeholder: var(--color-neutral-400);
+  --input-radius: var(--radius-md);
+  --input-padding-y: var(--space-2);
+  --input-padding-x: var(--space-3);
+  --input-font-size: var(--text-sm);
+  
+  /* Buttons */
+  --btn-radius: var(--radius-md);
+  --btn-padding-y: var(--space-2);
+  --btn-padding-x: var(--space-4);
+  --btn-font-size: var(--text-sm);
+  --btn-font-weight: var(--font-semibold);
+  
+  --btn-primary-bg: var(--color-primary-600);
+  --btn-primary-hover: var(--color-primary-700);
+  --btn-primary-text: var(--color-neutral-0);
+  
+  --btn-danger-bg: var(--color-danger-600);
+  --btn-danger-hover: var(--color-danger-700);
+  --btn-danger-text: var(--color-neutral-0);
+  
+  --btn-outline-border: var(--color-neutral-300);
+  --btn-outline-hover: var(--color-neutral-50);
+  --btn-outline-text: var(--color-neutral-700);
+  
+  /* Badges */
+  --badge-radius: var(--radius-full);
+  --badge-padding-y: var(--space-1);
+  --badge-padding-x: var(--space-2-5);
+  --badge-font-size: var(--text-xs);
+  --badge-font-weight: var(--font-semibold);
+  
+  --badge-menunggu-text: var(--color-warning-700);
+  --badge-proses-text: var(--color-primary-700);
+  --badge-selesai-text: var(--color-success-700);
+
+  /* Tables */
+  --table-border: var(--color-neutral-200);
+  --table-header-bg: var(--color-neutral-50);
+  --table-header-text: var(--color-neutral-500);
+  --table-row-bg: var(--color-neutral-0);
+  --table-row-alt-bg: var(--color-neutral-0);
+  --table-row-hover-bg: var(--color-neutral-50);
+  --table-text: var(--color-neutral-700);
+  --table-body-font-size: var(--text-sm);
+
+  /* Cards */
+  --card-bg: var(--color-neutral-0);
+  --card-border: var(--color-neutral-200);
+  --card-radius: var(--radius-xl);
+  --card-shadow: var(--shadow-sm);
+  --card-padding: var(--space-6);
+  
+  /* Modals */
+  --modal-bg: var(--color-neutral-0);
+  --modal-overlay: rgba(0, 0, 0, 0.5);
+  --modal-radius: var(--radius-xl);
+  --modal-shadow: var(--shadow-xl);
+  --modal-max-width: 500px;
+  
+  /* Transitions */
+  --transition-fast: 150ms;
+  --transition-normal: 300ms;
+  --transition-slow: 500ms;
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+}
