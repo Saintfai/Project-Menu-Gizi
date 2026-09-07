@@ -1,8 +1,10 @@
 # 📚 Dokumentasi Database - Sistem Menu Gizi RS Edelweiss
 
-Dokumen ini berisi penjelasan lengkap mengenai struktur tabel (Data Dictionary) yang digunakan pada aplikasi pemesanan menu gizi. Skema database dibangun menggunakan **PostgreSQL** dan dikelola melalui **Prisma ORM**.
+Dokumen ini berisi penjelasan lengkap mengenai struktur tabel (Data Dictionary) yang digunakan pada aplikasi pemesanan menu gizi. Skema database dibangun menggunakan **PostgreSQL** (Supabase) dan dikelola melalui **Prisma ORM**.
 
 > **Catatan Autentikasi Admin:** Sesuai PRD v1.6, Dashboard Admin tidak memerlukan tabel akun database (`Admin`). Autentikasi staf dapur menggunakan verifikasi satu password hardcode melalui Environment Variable aplikasi.
+>
+> **Catatan Keranjang Pasien:** Keranjang belanja dikelola sepenuhnya di sisi pengguna via `sessionStorage` (tanpa menulis ke DB saat memilih menu). Data baru masuk ke tabel `Order` saat pasien menekan tombol **Checkout**.
 
 ---
 
@@ -24,10 +26,11 @@ Katalog makanan yang tersedia pada tiap siklus. Semua makanan (baik jatah gratis
 | Kolom | Tipe Data | Keterangan |
 |-------|-----------|------------|
 | `id` | UUID (PK) | ID unik setiap item menu. |
-| `name` | String | Nama makanan (misal: "Nasi Tim Ayam", "Puding Cokelat"). |
+| `name` | String | Nama makanan (misal: "Nasi Tim Ayam", "Chicken Schnitzel"). |
+| `description`| String? | Detail isi menu / lauk pauk (misal: "Rolade tahu, bobor bayam"). |
 | `cycleId` | Int (FK) | Relasi ke `MenuCycle`. Menandakan menu ini keluar di siklus hari ke-berapa (1-11). |
 | `mealTime`| Enum | Jadwal sajian makanan. Pilihan: `PAGI`, `SIANG`, `SORE`. |
-| `paketName`| String? | Nama pengelompokan paket (opsional). Contoh: "PAKET A", "PAKET B". |
+| `paketName`| String? | Nama pengelompokan paket (opsional). Contoh: "Paket A", "Paket B". |
 | `createdAt`| DateTime | Waktu saat menu ditambahkan ke sistem. |
 | `updatedAt`| DateTime | Waktu terakhir data menu diubah. |
 
@@ -54,36 +57,24 @@ Data identitas dan kondisi pasien. Data ini **di-fetch dari API SIMRS** saat log
 | `createdAt`| DateTime | Waktu pertama kali pasien login ke aplikasi. |
 
 ### 2.2. `Order`
-Tabel Induk Pesanan (Keranjang / Checkout). Mewakili satu sesi transaksi pemesanan oleh satu pasien.
+Tabel Pemesanan (Flat Table / Denormalized Transaction). Setiap menu yang dipesan dicatat sebagai 1 baris di tabel ini, dan baris-baris dari satu sesi checkout dikelompokkan menggunakan kode `orderCode` yang sama.
 
 | Kolom | Tipe Data | Keterangan |
 |-------|-----------|------------|
-| `id` | UUID (PK) | ID unik untuk pesanan (Nomor Transaksi). |
-| `patientId`| String (FK) | Relasi ke tabel `Patient` (pemilik pesanan). |
-| `roomNumber`| String | **(Snapshot)** Nomor kamar tempat pesanan ini harus diantar. (Disimpan tersendiri agar riwayat tetap konsisten bila pasien pindah kamar di kemudian hari). |
-| `classType`| String | **(Snapshot)** Kelas kamar saat checkout (VIP A / Non-VIP). Untuk validasi kuota porsi. |
-| `status` | Enum | Status pemesanan: `CART` (masih dalam keranjang, dapat diedit) atau `CHECKOUT` (sudah konfirmasi ke dapur; **final, tidak dapat diedit/dibatalkan**). |
-| `notes` | String? | **Catatan khusus pesanan** (1 kolom per transaksi checkout, mencakup seluruh item dalam pesanan). |
-| `createdAt`| DateTime | Waktu keranjang dibuat. |
-| `checkoutAt`| DateTime? | Waktu pasti kapan tombol checkout ditekan oleh pasien. |
-
-### 2.3. `OrderItem`
-Tabel Rincian Pesanan. Mewakili setiap item hidangan/paket yang ada di dalam sebuah pesanan.
-
-| Kolom | Tipe Data | Keterangan |
-|-------|-----------|------------|
-| `id` | UUID (PK) | ID unik rincian pesanan. |
-| `orderId` | String (FK) | Relasi ke `Order` (nomor pesanan induk). |
-| `menuName`| String | **(Snapshot)** Nama makanan yang dipesan saat checkout. |
-| `paketName`| String? | **(Snapshot)** Nama paket makanan saat dipesan (jika ada). |
-| `menuItemId`| String? (FK) | Relasi ke `MenuItem`. Bersifat opsional (SetNull jika master menu dihapus, data struk tetap aman berkat snapshot). |
-| `type` | Enum | Penanda jenis paket: `INCLUDE` (Paket Utama ranap gratis) atau `EXCLUDE` (Paket Ekstra berbayar). |
-| `consumer`| Enum | Penanda konsumen: `PASIEN` atau `PENDAMPING`. |
-| `quantity`| Int | Jumlah porsi yang dipesan. |
-| `servingDate`| DateTime| Tanggal penyajian/pengantaran makanan (**seluruh pesanan diantarkan besok / T+1**, baik Include maupun Ekstra). |
-| `servingTime`| String | Waktu/sesi makan (`PAGI`, `SIANG`, atau `SORE`). Catatan: Paket Ekstra hanya tersedia untuk `SIANG` dan `SORE`. |
-| `isDelivered`| Boolean | Penanda status pengantaran di dashboard dapur (default: `false`). Menandai selesai mengubah baris menjadi hijau. |
-| `billingStatus`| Enum | Status integrasi tagihan Paket Ekstra ke API Billing SIMRS: `PENDING`, `SYNCED`, atau `FAILED`. |
+| `id` | UUID (PK) | ID unik setiap baris pesanan item. |
+| `orderCode` | String | **Kode Grup Transaksi** (misal: `ORD-20260908-001`). Menyatukan seluruh item yang di-checkout bersamaan oleh pasien. |
+| `patientId` | String (FK) | Relasi ke tabel `Patient` (pemilik pesanan). |
+| `roomNumber` | String | **(Snapshot)** Nomor kamar tempat pesanan ini harus diantar. |
+| `classType` | String | **(Snapshot)** Kelas kamar saat checkout (VIP A / Non-VIP). |
+| `menuName` | String | **(Snapshot)** Nama makanan yang dipesan (misal: "Nasi Uduk"). Tersimpan permanen meski master menu diubah. |
+| `paketName` | String? | **(Snapshot)** Nama paket (misal: "Paket A", "Paket B"). |
+| `mealTime` | Enum (`MealTime`) | Sesi makan (`PAGI`, `SIANG`, atau `SORE`). |
+| `servingDate` | DateTime | Tanggal penyajian/pengantaran makanan (**seluruh pesanan diantarkan besok / T+1**). |
+| `quantity` | Int | Jumlah porsi yang dipesan (default: 1). |
+| `type` | Enum (`OrderType`) | Jenis paket: `INCLUDE` (jatah ranap gratis) atau `EXCLUDE` (Paket Ekstra berbayar). |
+| `consumer` | Enum (`Consumer`) | Penanda konsumen: `PASIEN` atau `PENDAMPING`. |
+| `notes` | String? | **Catatan khusus pesanan** (disimpan per transaksi checkout, mencakup instruksi diet/khusus ke dapur). |
+| `createdAt` | DateTime | Waktu transaksi checkout dicatat ke sistem. |
 
 ---
 
@@ -91,7 +82,5 @@ Tabel Rincian Pesanan. Mewakili setiap item hidangan/paket yang ada di dalam seb
 Kumpulan nilai tetap untuk integritas data:
 
 - **`MealTime`**: `PAGI`, `SIANG`, `SORE`
-- **`OrderStatus`**: `CART` (dapat diedit di keranjang), `CHECKOUT` (terkonfirmasi, final / no edit no cancel)
 - **`OrderType`**: `INCLUDE` (Paket Utama / Ranap Include), `EXCLUDE` (Paket Ekstra / Berbayar)
 - **`Consumer`**: `PASIEN`, `PENDAMPING`
-- **`BillingStat`**: `PENDING` (Menunggu sinkronisasi), `SYNCED` (Berhasil masuk billing SIMRS), `FAILED` (Gagal kirim ke API RS)
