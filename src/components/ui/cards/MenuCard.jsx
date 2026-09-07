@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Utensils } from 'lucide-react';
 import Button from '../buttons/Button';
 import Stepper from '../navigation/Stepper';
 
@@ -8,6 +9,7 @@ export const MenuCard = ({
   image, 
   title, 
   subtitle, 
+  description,
   price, 
   quantity = 0,
   maxQuantity = 2,
@@ -18,25 +20,23 @@ export const MenuCard = ({
   return (
     <div className={`flex flex-col bg-neutral-0 rounded-xl border border-neutral-200 overflow-hidden shadow-sm ${className}`}>
       {/* Image Container */}
-      <div className="w-full h-32 bg-neutral-100 flex-shrink-0">
+      <div className="w-full h-24 sm:h-32 bg-neutral-100 flex-shrink-0">
         {image ? (
           <img src={image} alt={title} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-neutral-400">
-            {/* Placeholder Icon */}
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
+          <div className="w-full h-full flex items-center justify-center text-neutral-400 bg-neutral-200/50">
+            <Utensils className="w-6 h-6 sm:w-8 sm:h-8 opacity-50" />
           </div>
         )}
       </div>
 
       {/* Content */}
-      <div className="p-4 flex flex-col flex-1">
+      <div className="p-3 sm:p-4 flex flex-col flex-1">
         {type === 'paket' ? (
           <>
-            <span className="text-[11px] font-bold text-primary-600 mb-1">{subtitle}</span>
-            <h4 className="font-semibold text-neutral-900 text-sm leading-tight mb-4 line-clamp-2">{title}</h4>
+            <span className="text-[10px] sm:text-[11px] font-bold text-primary-600 mb-0.5 sm:mb-1">{subtitle}</span>
+            <h4 className="font-semibold text-neutral-900 text-xs sm:text-sm leading-snug mb-1 line-clamp-2">{title}</h4>
+            {description && <p className="text-[10px] sm:text-[11px] text-neutral-500 line-clamp-2 mb-3 sm:mb-4">{description}</p>}
             
             <div className="mt-auto">
               <Stepper 
@@ -47,17 +47,17 @@ export const MenuCard = ({
                 className="w-full"
               />
               {quantity >= maxQuantity && (
-                <p className="text-[10px] text-danger-500 mt-1.5 text-center font-medium">Maksimal {maxQuantity} porsi tercapai</p>
+                <p className="text-[9px] sm:text-[10px] text-danger-500 mt-1.5 text-center font-medium">Maksimal {maxQuantity} porsi</p>
               )}
             </div>
           </>
         ) : (
           <>
-            <h4 className="font-semibold text-neutral-900 text-sm leading-tight mb-1 line-clamp-2">{title}</h4>
-            <span className="text-xs font-bold text-primary-600 mb-4">{price}</span>
+            <h4 className="font-semibold text-neutral-900 text-xs sm:text-sm leading-snug mb-1 line-clamp-2">{title}</h4>
+            <span className="text-[11px] sm:text-xs font-bold text-primary-600 mb-3 sm:mb-4">{price}</span>
             
             <div className="mt-auto">
-              <Button variant="soft" fullWidth onClick={onAddClick} className="text-xs py-1.5">
+              <Button variant="soft" fullWidth onClick={onAddClick} className="text-[11px] sm:text-xs py-1 sm:py-1.5">
                 + Tambah
               </Button>
             </div>
