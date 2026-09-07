@@ -5,22 +5,25 @@
 **Application Food Ordering & Nutrition Management System (Hospital Dietary System)**
 
   ----------------------------------- -----------------------------------
-  **Dokumen Versi**                   1.2
+  **Dokumen Versi**                   1.6
   **Status**                          Approved / Ready for Development
-                                      --- Revisi Kelengkapan
-  **Perubahan dari v1.1**             Menambahkan Alur Pengguna, aturan
-                                      onboarding data medis, kontrol
-                                      akses berbasis kondisi pasien,
-                                      sistem keranjang, manajemen siklus
-                                      menu, integrasi eksternal, dan Out
-                                      of Scope.
+                                      --- Penyederhanaan Jadwal
+                                      Pengantaran (Semua Pesanan T+1)
+  **Perubahan dari v1.5**             Seluruh pesanan (Paket Utama
+                                      maupun Paket Ekstra) kini
+                                      diantarkan besok (T+1). Tidak ada
+                                      lagi logika hari-H pada Paket
+                                      Ekstra; cut-off tunggal pukul
+                                      15:00 WIB berlaku untuk semua
+                                      jenis pesanan. Tidak ada pilihan
+                                      tanggal pengiriman bagi pasien.
   ----------------------------------- -----------------------------------
 
 **1. Ringkasan Produk & Tujuan**
 
 Sistem Pemesanan dan Pemantauan Makanan Rumah Sakit adalah solusi
 digital berbasis Web/QR yang memfasilitasi pasien rawat inap dalam
-memesan paket makanan gizi harian serta menu ekstra/jajan secara
+memesan paket makanan gizi harian (Paket Utama) serta Paket Ekstra secara
 mandiri. Sistem ini secara real-time mengonsolidasikan dan menyalurkan
 data pemesanan ke Dashboard Dapur Gizi untuk mempermudah operasional
 produksi, rekapitulasi bahan, dan efisiensi pengiriman makanan di rumah
@@ -31,23 +34,27 @@ sakit.
 -   Memangkas proses manual pencatatan menu gizi harian oleh dietisien
     atau pramusaji.
 -   Mencegah kesalahan distribusi makanan dengan menyajikan informasi
-    identitas pasien, lokasi kamar, riwayat alergi, serta catatan khusus
-    per menu.
+    identitas pasien, lokasi kamar, riwayat alergi (dengan indikator
+    visual), serta catatan khusus per menu.
 -   Menyediakan data rekapitulasi kebutuhan porsi/paket gizi secara
-    otomatis dan instan (real-time summary) di dapur gizi.
+    otomatis dan instan (real-time summary 4 kartu: Pagi, Siang, Malam,
+    Ekstra) di dapur gizi.
 -   Menyajikan visualisasi penjadwalan pengantaran yang ringkas dalam
     satu tampilan kolom terintegrasi untuk tim gizi.
+-   Menyajikan modul statistik dan analitik tren konsumsi gizi serta
+    rekapitulasi produksi bagi tim manajemen gizi rumah sakit.
 -   Mencegah pasien memesan menu yang bertentangan dengan kondisi medis
     atau status puasa (NPO) melalui kontrol akses berbasis kondisi
     pasien.
 
 **2. Target Pengguna (User Personas)**
 
--   Pasien / Penunggu Pasien: Memesan paket makanan harian dan menu
-    ekstra/jajan, sesuai kondisi medis yang diizinkan.
+-   Pasien / Penunggu Pasien: Memesan paket makanan harian (Paket Utama)
+    dan Paket Ekstra (untuk pasien/pendamping), sesuai kondisi medis
+    yang diizinkan.
 -   Tim Gizi / Dapur (Kitchen & Dietary Staff): Memantau pesanan masuk,
     melihat rekap total paket per waktu makan, mengelola konten siklus
-    menu, mengatur akses pemesanan per ruangan, dan mengelola
+    menu, meninjau statistik/analitik konsumsi, dan mengelola
     operasional penyiapan makanan via Dashboard Admin.
 
 **3. Ketentuan & Aturan Bisnis (Business Rules)**
@@ -87,6 +94,8 @@ sakit.
 **3.2. Pemesanan Paket Utama (Ranap Include)**
 
 -   Jadwal Pemesanan: Pesan hari ini (T) untuk penyajian besok (T+1).
+    Tidak ada pilihan tanggal bagi pasien; sistem secara otomatis
+    menetapkan tanggal penyajian sebagai T+1.
 -   Batas Waktu (Cut-Off Time): Pemesanan Paket Utama maksimal pukul
     15:00 WIB. Lewat dari pukul 15:00 WIB, pemesanan paket utama
     ditutup.
@@ -107,23 +116,33 @@ sakit.
     Default yang mengikuti Siklus Menu berjalan pada tanggal tersebut,
     sesuai kelas kamar pasien, sehingga pasien tetap menerima makanan
     tanpa perlu input manual.
--   Ketentuan Catatan Menu Utama & Ekstra:
-    -   Setiap item menu (baik Menu Utama maupun Menu Ekstra) mendukung
-        fasilitas pencatatan khusus.
-    -   Jika pasien memesan 2 porsi pada menu yang sama, sistem
-        menyediakan 1 kolom catatan khusus untuk menu tersebut.
-    -   Jika pasien memesan 2 menu yang berbeda, masing-masing menu
-        memiliki kolom catatan terpisah.
+-   Ketentuan Catatan Pesanan:
+    -   Setiap pesanan (baik Paket Utama maupun Paket Ekstra) memiliki
+        **1 kolom catatan khusus per pesanan**, bukan per item menu
+        atau per porsi.
+    -   Catatan ini berlaku untuk keseluruhan transaksi pemesanan yang
+        dilakukan pasien pada satu sesi checkout.
 
-**3.3. Pemesanan Ekstra / Jajan / A la Carte**
+**3.3. Pemesanan Paket Ekstra (Ranap Exclude / Berbayar)**
 
--   Dapat dipesan kapan saja (tidak dibatasi pukul 15:00 WIB) dan dapat
-    dilakukan berkali-kali.
--   Memiliki inputan Jadwal Waktu Penyajian (tanggal dan jam penyajian
-    yang disesuaikan oleh pasien).
--   Skema Pembayaran: Seluruh tagihan pesanan ekstra otomatis dimasukkan
-    ke dalam Hospital Billing / Tagihan Kamar Pasien melalui integrasi
-    API real-time (lihat Bagian 7).
+Pemesanan Ekstra BUKAN menu jajan/snack/a la carte bebas, melainkan
+pemesanan **Paket Makanan Tambahan (Paket Ekstra)** di luar kuota gratis
+ranap (misal untuk pendamping atau porsi ekstra pasien).
+
+-   **Sumber Menu:** Mengikuti paket menu yang tersedia pada **Siklus Menu
+    berjalan** (Siklus 1--11 sesuai tanggal penyajian).
+-   **Jadwal Pengantaran:** Sama seperti Paket Utama, Paket Ekstra
+    diantarkan **besok (T+1)**. Tidak ada pengantaran hari-H.
+-   **Batasan Waktu Makan (Meal Time):** Paket Ekstra **HANYA** tersedia
+    untuk **Makan Siang** dan **Makan Sore** (Makan Pagi tidak tersedia
+    untuk Paket Ekstra).
+-   **Batas Waktu Pemesanan (Cut-Off Time):** Seluruh pesanan (Paket
+    Utama maupun Paket Ekstra) harus diselesaikan maksimal pukul
+    **15:00 WIB** untuk penyajian besok. Lewat dari pukul 15:00 WIB,
+    pemesanan untuk semua jenis paket ditutup.
+-   **Skema Pembayaran:** Seluruh tagihan Paket Ekstra otomatis
+    dimasukkan ke dalam Hospital Billing / Tagihan Kamar Pasien melalui
+    integrasi API real-time (lihat Bagian 7).
 
 **3.4. Kontrol Akses Pemesanan Berbasis Penempatan QR Code (Proses
 Operasional, di Luar Sistem)**
@@ -149,8 +168,8 @@ melalui proses operasional fisik oleh Admin Gizi.
 
 **3.5. Mekanisme Keranjang (Cart) & Pengeditan Pesanan**
 
-Pemesanan Paket Utama maupun Ekstra menggunakan pola keranjang belanja
-(cart), bukan transaksi langsung sekali submit.
+Pemesanan Paket Utama maupun Paket Ekstra menggunakan pola keranjang
+belanja (cart), bukan transaksi langsung sekali submit.
 
 -   Setiap item menu yang dipilih pasien masuk ke keranjang terlebih
     dahulu, sebelum pasien melakukan checkout untuk mengonfirmasi
@@ -159,12 +178,8 @@ Pemesanan Paket Utama maupun Ekstra menggunakan pola keranjang belanja
     mengubah pilihan menu, jumlah porsi, maupun catatan khusus secara
     bebas.
 -   Setelah checkout, pesanan berpindah status menjadi terkonfirmasi dan
-    diteruskan ke Dashboard Dapur. Pada tahap ini pesanan tidak dapat
-    dibatalkan (no cancel).
--   Pesanan yang sudah checkout tetap dapat diedit (misalnya perubahan
-    menu atau catatan) selama masih memenuhi ketentuan lain yang berlaku
-    (contoh: cut-off time untuk Paket Utama), namun tidak dapat
-    dihapus/dibatalkan seluruhnya.
+    diteruskan ke Dashboard Dapur. Pada tahap ini pesanan **tidak dapat
+    diedit maupun dibatalkan** (no edit, no cancel).
 
 **3.6. Perubahan Status Pasien (Discharge / Pindah Kelas Kamar)**
 
@@ -192,30 +207,66 @@ Pemesanan Paket Utama maupun Ekstra menggunakan pola keranjang belanja
     menu, komponen menu) melalui Dashboard Admin, tanpa mengubah jumlah
     maupun logika pemetaan siklusnya.
 
-**3.8. Aturan Tampilan Dashboard Admin / Dapur**
+**3.9. Autentikasi Dashboard Admin**
 
--   Kolom Tanggal Pengantaran Terintegrasi: Tabel dashboard memiliki 1
-    kolom khusus tanggal & waktu pengantaran yang memuat hingga 2 tipe
-    jadwal sekaligus:
-    -   Jadwal Pengantaran Masakan Utama (Pengantaran Besok / T+1).
-    -   Jadwal & Jam Pengantaran Ekstra/Jajan (Jam & Tanggal spesifik
-        permintaan pasien).
--   Modul Catatan Berbasis Tombol Pop-up / Modal: Catatan tidak
-    ditampilkan langsung sebagai teks panjang di tabel utama, melainkan
-    dalam bentuk tombol interaktif (misal: \[Lihat Catatan\]). Saat
-    tombol dipencet, sistem menampilkan modal/pop-up yang berisi seluruh
-    catatan dari menu utama maupun menu ekstra yang dipesan pasien
-    tersebut.
--   Status Pengantaran Ekstra/Jajan: Berlaku khusus untuk pesanan
-    Ekstra/Jajan (tidak berlaku untuk Paket Utama). Admin Dapur menandai
-    pesanan sebagai selesai diantarkan melalui satu tombol aksi. Tidak
-    ada label status tertulis yang ditampilkan; baris pesanan yang telah
-    selesai diantarkan ditandai secara visual dengan latar warna hijau
-    pada tabel.
+-   Dashboard Admin **tidak memerlukan sistem akun pengguna** (user
+    account management). Tidak ada proses registrasi, manajemen profil,
+    maupun reset password berbasis database untuk admin.
+-   Akses ke Dashboard Admin dilindungi oleh **satu password hardcode**
+    (hardcoded password) yang dikonfigurasi di sisi server/environment
+    variable aplikasi.
+-   Seluruh staf Tim Gizi/Dapur yang mengetahui password tersebut dapat
+    langsung masuk ke Dashboard Admin melalui halaman login sederhana
+    (form input password).
+-   Tidak ada pembedaan peran (role) atau hak akses bertingkat antar
+    pengguna admin; semua yang berhasil login memiliki akses penuh yang
+    sama terhadap seluruh fitur Dashboard Admin.
+-   Penggantian password dilakukan langsung pada konfigurasi
+    server/environment variable oleh pengelola teknis sistem, bukan
+    melalui fitur di dalam aplikasi.
+
+**3.8. Struktur Menu & Navigasi Portal Admin**
+
+Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
+
+1.  **Dashboard (Rekap Dapur Gizi):**
+    -   Header info: Penanda Siklus Aktif (badge dengan refresh action)
+        dan waktu realtime (Hari, Tanggal, Jam WIB).
+    -   Kartu Ringkasan Real-Time (4 Cards):
+        -   **Makan Pagi:** Total Porsi & Rincian Paket A/B.
+        -   **Makan Siang:** Total Porsi & Rincian Paket A/B.
+        -   **Makan Malam:** Total Porsi & Rincian Paket A/B.
+        -   **Ekstra:** Total Item & Jumlah Jenis Menu.
+    -   Pencarian & Filter: Search bar (Nama Pasien / No. RM / Nomor
+        Kamar) dan Filter Kategori/Status.
+    -   Tabel Detail Rekap Pesanan Terintegrasi:
+        -   Kolom: `NO`, `PASIEN`, `KAMAR`, `MAKAN PAGI`, `MAKAN SIANG`,
+            `MAKAN MALAM`, `MENU TAMBAHAN (EKSTRA)`, `TANGGAL & WAKTU`,
+            `CATATAN`.
+        -   Indikator Alergi: Pasien dengan riwayat alergi memiliki tanda
+            lingkaran merah (🔴) di samping No. RM / Nama Pasien.
+        -   Kolom Tanggal & Waktu: Memuat jadwal T+1 untuk seluruh
+            pesanan (Paket Utama maupun Paket Ekstra).
+        -   Kolom Catatan: Tombol ikon dokumen yang membuka pop-up/modal
+            berisi seluruh catatan khusus pesanan pasien.
+        -   Status Pengantaran Paket Ekstra: Aksi penandaan selesai yang
+            mengubah warna baris menjadi hijau.
+    -   Pagination tabel navigasi halaman.
+
+2.  **Siklus (Manajemen 11 Siklus Menu):**
+    -   Kelola daftar paket dan hidangan pada Siklus 1 s.d. 11.
+    -   Pengaturan komponen makanan per waktu makan (Pagi, Siang, Malam).
+
+3.  **Statistik (Laporan & Analitik Gizi):**
+    -   Visualisasi grafik tren pemesanan menu gizi harian, mingguan, dan
+        bulanan.
+    -   Distribusi preferensi paket menu (Paket A vs Paket B vs Ekstra).
+    -   Rekapitulasi porsi per kelas kamar dan per ruangan/bangsal.
+    -   Export data laporan untuk kebutuhan logistik dan audit gizi.
 
 **4. Alur Pengguna (User Flow)**
 
-**4.1. Alur Pasien --- Pemesanan Paket Utama & Ekstra**
+**4.1. Alur Pasien --- Pemesanan Paket Utama & Paket Ekstra**
 
   -----------------------------------------------------------------------
   **Catatan:** *Tidak ada langkah pengecekan status akses di dalam
@@ -259,9 +310,10 @@ Pemesanan Paket Utama maupun Ekstra menggunakan pola keranjang belanja
 +----+-----------------------------------------------------------------+
 | *  | **Pilih Menu & Masukkan ke Keranjang**                          |
 | *5 |                                                                 |
-| ** | Pasien memilih Menu Paket Utama (sesuai siklus menu & kuota     |
-|    | kelas kamar) dan/atau Menu Ekstra/Jajan beserta catatan khusus; |
-|    | setiap pilihan masuk ke keranjang.                              |
+| ** | Pasien memilih Menu Paket Utama dan/atau Paket Ekstra (Siang    |
+|    | atau Sore) sesuai siklus menu T+1 dan kuota kelas kamar,        |
+|    | beserta catatan khusus. Semua pesanan akan diantarkan besok     |
+|    | (T+1); setiap pilihan masuk ke keranjang.                       |
 +----+-----------------------------------------------------------------+
 
 +----+-----------------------------------------------------------------+
@@ -274,17 +326,18 @@ Pemesanan Paket Utama maupun Ekstra menggunakan pola keranjang belanja
 +----+-----------------------------------------------------------------+
 | *  | **Checkout**                                                    |
 | *7 |                                                                 |
-| ** | Pasien menyelesaikan pemesanan. Untuk Paket Utama, sistem       |
-|    | memvalidasi cut-off time (15:00 WIB) dan batas 1x transaksi per |
-|    | hari. Pesanan yang sudah checkout tidak dapat dibatalkan, namun |
-|    | masih dapat diedit sesuai ketentuan yang berlaku.               |
+| ** | Pasien menyelesaikan pemesanan. Sistem memvalidasi cut-off      |
+|    | time tunggal pukul 15:00 WIB untuk semua jenis pesanan          |
+|    | (Paket Utama dan Paket Ekstra). Semua pesanan diantarkan        |
+|    | besok (T+1). Pesanan yang sudah checkout **tidak dapat diedit   |
+|    | maupun dibatalkan**.                                            |
 +----+-----------------------------------------------------------------+
 
 +----+-----------------------------------------------------------------+
 | *  | **Sinkronisasi Real-time ke Dapur & Billing**                   |
 | *8 |                                                                 |
 | ** | Pesanan tersinkronisasi ke Dashboard Dapur (\< 3 detik) dan,    |
-|    | khusus menu Ekstra, tercatat ke sistem Billing Rumah Sakit      |
+|    | khusus Paket Ekstra, tercatat ke sistem Billing Rumah Sakit     |
 |    | melalui API real-time.                                          |
 +----+-----------------------------------------------------------------+
 
@@ -293,37 +346,39 @@ Pemesanan Paket Utama maupun Ekstra menggunakan pola keranjang belanja
 +----+-----------------------------------------------------------------+
 | *  | **Login Dashboard Admin**                                       |
 | *1 |                                                                 |
-| ** | Staf gizi/dapur masuk ke Dashboard Admin sesuai peran (role)    |
-|    | masing-masing.                                                  |
+| ** | Staf gizi/dapur membuka halaman login Admin dan memasukkan      |
+|    | password hardcode. Tidak diperlukan akun pengguna; satu         |
+|    | password berlaku untuk semua staf yang diizinkan mengakses      |
+|    | Dashboard Admin.                                                |
 +----+-----------------------------------------------------------------+
 
 +----+-----------------------------------------------------------------+
-| *  | **Pantau Rekap Real-time**                                      |
+| *  | **Pantau Rekap Real-time & Filter Data**                        |
 | *2 |                                                                 |
-| ** | Dashboard menampilkan rekap akumulasi porsi/paket per waktu     |
-|    | makan yang diperbarui otomatis.                                 |
+| ** | Dashboard menampilkan rekap 4 kartu ringkasan porsi dan tabel   |
+|    | rincian pasien (dengan alert alergi & catatan modal).           |
 +----+-----------------------------------------------------------------+
 
 +----+-----------------------------------------------------------------+
 | *  | **Tinjau Jadwal Pengantaran & Catatan**                         |
 | *3 |                                                                 |
-| ** | Admin melihat kolom jadwal pengantaran terintegrasi (Paket      |
-|    | Utama T+1 dan Ekstra sesuai jadwal pasien) serta membuka modal  |
-|    | catatan bila diperlukan.                                        |
+| ** | Admin melihat kolom jadwal pengantaran (semua pesanan untuk     |
+|    | T+1: Paket Utama dan Paket Ekstra Siang/Sore) serta membuka     |
+|    | modal catatan bila diperlukan.                                  |
 +----+-----------------------------------------------------------------+
 
 +----+-----------------------------------------------------------------+
-| *  | **Tandai Pesanan Ekstra Selesai**                               |
+| *  | **Tandai Pesanan Paket Ekstra Selesai**                         |
 | *4 |                                                                 |
-| ** | Setelah pesanan Ekstra/Jajan diantarkan, Admin menandainya      |
-|    | selesai dengan satu klik; baris pesanan berubah warna hijau.    |
+| ** | Setelah Paket Ekstra diantarkan, Admin menandainya selesai      |
+|    | dengan satu klik; baris pesanan berubah warna hijau.            |
 +----+-----------------------------------------------------------------+
 
 +----+-----------------------------------------------------------------+
-| *  | **Kelola Konten Siklus Menu**                                   |
+| *  | **Kelola Konten Siklus Menu & Analitik Statistik**              |
 | *5 |                                                                 |
-| ** | Admin Gizi memperbarui isi menu pada siklus 1--11 sesuai        |
-|    | kebutuhan, tanpa mengubah struktur/jumlah siklus.               |
+| ** | Admin dapat berpindah ke tab Siklus (untuk update menu) atau    |
+|    | tab Statistik (untuk meninjau grafik laporan produksi).         |
 +----+-----------------------------------------------------------------+
 
 +----+-----------------------------------------------------------------+
@@ -371,10 +426,11 @@ Pemesanan Paket Utama maupun Ekstra menggunakan pola keranjang belanja
                             kamar: VIP A ke atas (Pagi 2, Siang 2, Malam 2) dan
                             VIP B ke bawah (Pagi 2, Siang 1, Malam 1).
 
-  Pemesanan    **FR-007**   Sistem menyediakan fasilitas input catatan baik
-                            pada Menu Utama maupun Menu Ekstra. Menyediakan 1
-                            catatan jika porsi sama, dan catatan terpisah jika
-                            menu berbeda.
+  Pemesanan    **FR-007**   Sistem menyediakan 1 kolom catatan khusus per
+                            pesanan (bukan per item menu atau per porsi).
+                            Catatan berlaku untuk keseluruhan transaksi
+                            dalam satu sesi checkout, baik untuk Paket
+                            Utama maupun Paket Ekstra.
 
   Pemesanan    **FR-014**   Sistem menetapkan Menu Default otomatis mengikuti
                             siklus menu berjalan dan kelas kamar pasien,
@@ -383,38 +439,52 @@ Pemesanan Paket Utama maupun Ekstra menggunakan pola keranjang belanja
 
   Pemesanan    **FR-016**   Sistem menerapkan mekanisme keranjang (cart): item
                             pemesanan dapat diedit bebas sebelum checkout;
-                            setelah checkout, pesanan tidak dapat dibatalkan
-                            namun tetap dapat diedit sesuai ketentuan yang
-                            berlaku.
+                            setelah checkout, pesanan tidak dapat diedit
+                            maupun dibatalkan (no edit, no cancel).
 
-  Ekstra /     **FR-008**   Sistem memfasilitasi pemesanan menu ekstra/luar
-  Jajan                     ranap kapan saja dengan inputan jadwal penyajian
-                            (tanggal & jam).
+  Paket        **FR-008**   Sistem memfasilitasi pemesanan Paket Ekstra (dari
+  Ekstra                    katalog siklus menu berjalan) untuk waktu Makan
+                            Siang dan Makan Sore, dengan pengantaran besok
+                            (T+1). Cut-off berlaku sama dengan Paket Utama
+                            yaitu pukul 15:00 WIB. Tidak ada menu jajan/a la
+                            carte bebas dan tidak ada Paket Ekstra untuk
+                            Makan Pagi.
 
-  Billing      **FR-009**   Sistem mencatatkan seluruh transaksi menu ekstra ke
-                            skema tagihan kamar pasien (hospital billing).
+  Billing      **FR-009**   Sistem mencatatkan seluruh transaksi Paket Ekstra
+                            ke skema tagihan kamar pasien (hospital billing).
 
   Billing      **FR-017**   Sistem terintegrasi dengan API Billing Rumah Sakit
                             secara real-time untuk mencatat setiap transaksi
-                            menu ekstra.
+                            Paket Ekstra.
 
   Dashboard    **FR-010**   Dashboard Dapur menampilkan real-time summary rekap
-  Admin                     akumulasi jumlah per porsi/paket per waktu makan.
+  Admin                     akumulasi 4 kartu ringkasan (Makan Pagi, Makan
+                            Siang, Makan Malam, dan Paket Ekstra).
 
   Dashboard    **FR-011**   Dashboard Admin menampilkan 1 kolom jadwal
   Admin                     terintegrasi yang memuat Tanggal Pengantaran Menu
-                            Utama (T+1) dan Tanggal/Jam Pengantaran Ekstra.
+                            Utama (T+1) dan Pengantaran Paket Ekstra
+                            (Siang/Sore).
 
   Dashboard    **FR-012**   Dashboard Admin menyajikan kolom Catatan berupa
   Admin                     tombol aksi yang saat diklik membuka modal/pop-up
                             berisi rincian seluruh catatan menu (Utama &
-                            Ekstra).
+                            Paket Ekstra).
 
   Dashboard    **FR-019**   Dashboard Admin menyediakan tombol aksi "Selesai"
-  Admin                     khusus pada baris pesanan Ekstra/Jajan; baris yang
+  Admin                     khusus pada baris pesanan Paket Ekstra; baris yang
                             telah ditandai selesai berubah warna latar menjadi
                             hijau tanpa label status tertulis. Fitur ini tidak
                             berlaku untuk Paket Utama.
+
+  Dashboard    **FR-021**   Sistem menampilkan indikator visual lingkaran merah
+  Admin                     (🔴) pada data pasien di tabel rekap dashboard jika
+                            pasien memiliki riwayat alergi.
+
+  Statistik    **FR-022**   Sistem menyediakan modul Statistik untuk menyajikan
+                            grafik tren pemesanan menu gizi harian/mingguan,
+                            distribusi porsi per kelas/ruangan, dan laporan
+                            kebutuhan logistik dapur.
 
   Notifikasi   **FR-020**   Sistem tidak menyediakan modul notifikasi
                             (push/email/SMS) pada versi ini, karena aplikasi
@@ -431,16 +501,19 @@ Pemesanan Paket Utama maupun Ekstra menggunakan pola keranjang belanja
     digunakan oleh pasien rawat inap. Antarmuka admin dapur menyajikan
     modal catatan yang mudah diakses tanpa merusak tata letak tabel.
 -   Reliability: Sistem mampu menangani akses bersamaan pada jam-jam
-    mendekati cut-off time (pukul 13:00--15:00 WIB) tanpa downtime.
+    mendekati cut-off time (pukul 09:30--10:00, 13:30--15:00 WIB) tanpa
+    downtime.
 -   Security & Privacy: Keamanan data pasien (identitas, alergi, kondisi
     medis) menjadi tanggung jawab API terintegrasi yang disediakan oleh
     pihak internal rumah sakit (di luar cakupan pengembangan aplikasi
     ini). Aplikasi memastikan data yang diterima dari API tersebut hanya
     diteruskan/ditampilkan sesuai kebutuhan (allergy & kondisi relevan)
     dan tidak disimpan berlebih di luar kebutuhan fungsional.
--   Role-based Access (Admin): Seluruh staf Tim Gizi/Dapur menggunakan
-    level akses yang sama pada Dashboard Admin (tidak ada pembagian
-    peran/permission bertingkat pada versi ini).
+-   Autentikasi Admin (Hardcoded Password): Akses Dashboard Admin
+    dilindungi oleh satu password hardcode yang dikonfigurasi via
+    environment variable. Tidak ada sistem manajemen akun, registrasi,
+    atau role bertingkat; seluruh staf Tim Gizi/Dapur yang mengetahui
+    password memiliki hak akses yang sama (lihat Bagian 3.9).
 
 **7. Integrasi & Ketergantungan Eksternal**
 
@@ -452,8 +525,8 @@ tersedia di lingkungan rumah sakit.
     dan kondisi/diagnosa pasien yang ditampilkan pada halaman
     onboarding. Aplikasi ini mengonsumsi (consume) data dari API
     tersebut, bukan menjadi sumber data utama (source of truth).
--   API Billing Rumah Sakit: Digunakan untuk mencatatkan transaksi menu
-    Ekstra/Jajan ke tagihan kamar pasien secara real-time. Aplikasi ini
+-   API Billing Rumah Sakit: Digunakan untuk mencatatkan transaksi Paket
+    Ekstra ke tagihan kamar pasien secara real-time. Aplikasi ini
     tidak membangun sistem pembayaran sendiri.
 -   Keamanan data (enkripsi, autentikasi, audit akses) pada pertukaran
     data dengan kedua API di atas berada pada tanggung jawab tim/pihak
@@ -466,21 +539,29 @@ tersedia di lingkungan rumah sakit.
     operasional dan fisik, melalui ada/tidaknya penempelan QR Code oleh
     Admin Gizi di ruangan pasien (lihat Bagian 3.4), bukan fitur yang
     dibangun dalam aplikasi.
--   Sistem pembayaran/payment gateway: transaksi Ekstra hanya diteruskan
-    ke sistem Hospital Billing eksisting melalui API, tidak ada modul
-    pembayaran yang dibangun dalam aplikasi ini.
+-   Sistem pembayaran/payment gateway: transaksi Paket Ekstra hanya
+    diteruskan ke sistem Hospital Billing eksisting melalui API, tidak
+    ada modul pembayaran yang dibangun dalam aplikasi ini.
+-   Menu jajan bebas / camilan / a la carte di luar siklus gizi: tidak
+    disediakan; pemesanan ekstra murni merupakan Paket Ekstra dari siklus
+    berjalan.
 -   Modul notifikasi (push notification, email, SMS, reminder cut-off
     time): tidak termasuk dalam cakupan karena aplikasi berbasis website
     murni.
--   Fitur pembatalan (cancel) pesanan yang sudah checkout: hanya
-    tersedia fitur edit, bukan pembatalan.
+-   Fitur edit atau pembatalan (cancel) pesanan yang sudah checkout:
+    pesanan yang telah dikonfirmasi bersifat final dan tidak dapat
+    diubah maupun dibatalkan.
+-   Sistem manajemen akun admin (registrasi, profil, reset password
+    berbasis database): autentikasi admin murni menggunakan hardcoded
+    password via environment variable (lihat Bagian 3.9).
 -   Role/permission bertingkat pada Dashboard Admin: seluruh staf
     gizi/dapur menggunakan hak akses yang sama.
 -   Status tracking bertahap (diterima → disiapkan → dikirim) untuk
-    Paket Utama: status tracking hanya berlaku untuk pesanan
-    Ekstra/Jajan (indikator selesai berwarna hijau).
+    Paket Utama: status tracking hanya berlaku untuk pesanan Paket Ekstra
+    (indikator selesai berwarna hijau).
 -   Aplikasi mobile native (iOS/Android): aplikasi diakses melalui
     browser (web) via scan QR Code.
 -   Fitur di luar pemesanan makanan pada aplikasi pasien (misalnya chat
     dengan dietisien, riwayat medis lengkap, dsb.): aplikasi pasien
     murni difokuskan untuk fungsi pemesanan makanan.
+
