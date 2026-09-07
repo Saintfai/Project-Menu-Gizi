@@ -22,6 +22,7 @@ model MenuCycle {
 model MenuItem {
   id          String    @id @default(uuid())
   name        String
+  description String?   // Deskripsi menu / detail lauk
   cycleId     Int
   cycle       MenuCycle @relation(fields: [cycleId], references: [id])
   mealTime    MealTime  // Kapan menu ini disajikan (PAGI, SIANG, SORE)
