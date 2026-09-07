@@ -11,17 +11,6 @@ datasource db {
 // 1. DATA MASTER
 // ---------------------------------------------------------
 
-// Tabel Admin: Menyimpan data petugas gizi yang bisa akses Dashboard
-model Admin {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String
-  password  String
-  role      String   @default("admin")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
 // Tabel Siklus Menu: Menyimpan siklus hari ke-1 sampai ke-11
 model MenuCycle {
   id          Int        @id // 1 sampai 11
@@ -112,8 +101,8 @@ model OrderItem {
   consumer       Consumer    // Menentukan porsi ini dimakan siapa (PASIEN atau PENDAMPING)
   quantity       Int
   
-  servingDate    DateTime    // T+1 untuk Include, hari-H untuk Paket Ekstra
-  servingTime    String      // Sesi makan ("SIANG" / "SORE" / "PAGI")
+  servingDate    DateTime    // Seluruh pesanan diantarkan besok (T+1), baik Include maupun Ekstra
+  servingTime    String      // Sesi makan ("SIANG" / "SORE" / "PAGI") - Catatan: Ekstra hanya SIANG & SORE
   
   isDelivered    Boolean     @default(false) // Untuk menandai Paket Ekstra sudah diantar (warna hijau di dashboard)
   billingStatus  BillingStat @default(PENDING) // Status pengiriman tagihan ke API Billing RS

@@ -2,43 +2,32 @@
 
 Dokumen ini berisi penjelasan lengkap mengenai struktur tabel (Data Dictionary) yang digunakan pada aplikasi pemesanan menu gizi. Skema database dibangun menggunakan **PostgreSQL** dan dikelola melalui **Prisma ORM**.
 
+> **Catatan Autentikasi Admin:** Sesuai PRD v1.6, Dashboard Admin tidak memerlukan tabel akun database (`Admin`). Autentikasi staf dapur menggunakan verifikasi satu password hardcode melalui Environment Variable aplikasi.
+
 ---
 
 ## 🏗️ 1. Tabel Master Data
 
-Tabel-tabel ini berisi data dasar yang jarang berubah, dikelola langsung oleh Admin Gizi.
+Tabel-tabel ini berisi data dasar yang dikelola oleh Admin Gizi untuk konten siklus menu.
 
-### 1.1. `Admin`
-Menyimpan data akun petugas gizi/dapur yang memiliki hak akses untuk masuk ke Dashboard Admin.
-
-| Kolom | Tipe Data | Keterangan |
-|-------|-----------|------------|
-| `id` | UUID (PK) | ID unik untuk setiap akun admin. |
-| `email` | String (Unique)| Alamat email / username untuk login. |
-| `name` | String | Nama lengkap petugas/admin. |
-| `password`| String | Kata sandi (terenkripsi) untuk otentikasi. |
-| `role` | String | Peran admin (default: `admin`). Saat ini semua staf dapur punya level akses yang sama (PRD 6). |
-| `createdAt`| DateTime | Waktu saat akun dibuat. |
-| `updatedAt`| DateTime | Waktu saat data akun terakhir diubah. |
-
-### 1.2. `MenuCycle`
-Menyimpan data Siklus Menu (11 hari). Sesuai PRD, penentuan menu per hari bergantung pada tanggal berjalan (tanggal 1-10, 11-20, 21-30, khusus 31 ke siklus 11).
+### 1.1. `MenuCycle`
+Menyimpan data Siklus Menu (11 hari). Sesuai PRD, penentuan menu per hari bergantung pada tanggal berjalan (tanggal 1-10, 11-20, 21-30 berulang ke siklus 1-10, khusus tanggal 31 ke siklus 11).
 
 | Kolom | Tipe Data | Keterangan |
 |-------|-----------|------------|
-| `id` | Int (PK) | Nomor siklus menu (hanya boleh bernilai 1 sampai 11). |
-| `description`| String | Penjelasan singkat siklus (misal: "Siklus Menu Minggu Pertama"). |
+| `id` | Int (PK) | Nomor siklus menu (bernilai 1 sampai 11). |
+| `description`| String | Penjelasan singkat siklus (misal: "Siklus Menu 1"). |
 
-### 1.3. `MenuItem`
-Katalog makanan yang tersedia. Semua makanan (baik jatah gratis/Include maupun jajan/Exclude) digabung di tabel ini.
+### 1.2. `MenuItem`
+Katalog makanan yang tersedia pada tiap siklus. Semua makanan (baik jatah gratis/Include maupun Paket Ekstra/Exclude) dikelola di tabel ini.
 
 | Kolom | Tipe Data | Keterangan |
 |-------|-----------|------------|
 | `id` | UUID (PK) | ID unik setiap item menu. |
 | `name` | String | Nama makanan (misal: "Nasi Tim Ayam", "Puding Cokelat"). |
-| `cycleId` | Int (FK) | Relasi ke `MenuCycle`. Menandakan menu ini keluar di siklus hari ke-berapa. |
+| `cycleId` | Int (FK) | Relasi ke `MenuCycle`. Menandakan menu ini keluar di siklus hari ke-berapa (1-11). |
 | `mealTime`| Enum | Jadwal sajian makanan. Pilihan: `PAGI`, `SIANG`, `SORE`. |
-| `paketName`| String? | Nama pengelompokan paket (opsional). Contoh: "PAKET A", "PAKET B". Digunakan untuk mengelompokkan menu agar rapi seperti pada data Excel. |
+| `paketName`| String? | Nama pengelompokan paket (opsional). Contoh: "PAKET A", "PAKET B". |
 | `createdAt`| DateTime | Waktu saat menu ditambahkan ke sistem. |
 | `updatedAt`| DateTime | Waktu terakhir data menu diubah. |
 
@@ -49,7 +38,7 @@ Katalog makanan yang tersedia. Semua makanan (baik jatah gratis/Include maupun j
 Tabel-tabel ini menyimpan data operasional harian yang dinamis, seperti data pasien masuk dan pesanan mereka.
 
 ### 2.1. `Patient`
-Data identitas dan kondisi pasien. Data ini **di-fetch dari API SIMRS** saat login menggunakan No. RM, kemudian disimpan ke sistem ini sebagai referensi pesanan.
+Data identitas dan kondisi pasien. Data ini **di-fetch dari API SIMRS** saat login/onboarding menggunakan No. RM (atau Nama + Tgl Lahir), kemudian disimpan/disinkronkan ke sistem ini sebagai referensi pemesanan.
 
 | Kolom | Tipe Data | Keterangan |
 |-------|-----------|------------|
@@ -59,50 +48,50 @@ Data identitas dan kondisi pasien. Data ini **di-fetch dari API SIMRS** saat log
 | `dob` | DateTime | Tanggal lahir pasien (digunakan untuk validasi login alternatif). |
 | `phone` | String? | Nomor telepon pasien atau keluarga pendamping (opsional). |
 | `roomName`| String | Nama/nomor kamar pasien yang ditarik dari SIMRS. |
-| `roomClass`| String | Kelas kamar saat login (misal: VIP A, Kelas 1). Sangat penting untuk menghitung kuota porsi harian. |
+| `roomClass`| String | Kelas kamar saat login (misal: VIP A, Kelas 1). Sangat penting untuk validasi kuota porsi harian. |
 | `allergies`| String? | Catatan riwayat alergi yang dikonfirmasi pasien (PRD FR-002). |
-| `medicalConditions`| String?| Penyakit atau kondisi medis khusus yang berdampak pada larangan makanan. |
+| `medicalConditions`| String?| Penyakit atau kondisi medis khusus yang berdampak pada pembatasan diet. |
 | `createdAt`| DateTime | Waktu pertama kali pasien login ke aplikasi. |
 
 ### 2.2. `Order`
-Tabel Induk Pesanan (Keranjang). Mewakili satu kali proses *checkout* oleh satu pasien. Konsepnya seperti "Kepala Struk" kasir.
+Tabel Induk Pesanan (Keranjang / Checkout). Mewakili satu sesi transaksi pemesanan oleh satu pasien.
 
 | Kolom | Tipe Data | Keterangan |
 |-------|-----------|------------|
-| `id` | UUID (PK) | ID unik untuk pesanan (Nomor Struk). |
+| `id` | UUID (PK) | ID unik untuk pesanan (Nomor Transaksi). |
 | `patientId`| String (FK) | Relasi ke tabel `Patient` (pemilik pesanan). |
-| `roomNumber`| String | **(Snapshot)** Nomor kamar tempat pesanan ini harus diantar. (Disimpan tersendiri agar riwayat tidak berubah bila pasien pindah kamar besoknya). |
-| `classType`| String | **(Snapshot)** Kelas kamar saat checkout (VIP/Non-VIP). Untuk validasi kuota porsi. |
-| `status` | Enum | Status pemesanan: `CART` (masih pilih-pilih) atau `CHECKOUT` (sudah konfirmasi ke dapur). |
-| `notes` | String? | Catatan instruksi khusus untuk dapur (berlaku untuk 1 pesanan utuh). |
+| `roomNumber`| String | **(Snapshot)** Nomor kamar tempat pesanan ini harus diantar. (Disimpan tersendiri agar riwayat tetap konsisten bila pasien pindah kamar di kemudian hari). |
+| `classType`| String | **(Snapshot)** Kelas kamar saat checkout (VIP A / Non-VIP). Untuk validasi kuota porsi. |
+| `status` | Enum | Status pemesanan: `CART` (masih dalam keranjang, dapat diedit) atau `CHECKOUT` (sudah konfirmasi ke dapur; **final, tidak dapat diedit/dibatalkan**). |
+| `notes` | String? | **Catatan khusus pesanan** (1 kolom per transaksi checkout, mencakup seluruh item dalam pesanan). |
 | `createdAt`| DateTime | Waktu keranjang dibuat. |
-| `checkoutAt`| DateTime? | Waktu pasti (Timestamp) kapan tombol checkout ditekan oleh pasien. |
+| `checkoutAt`| DateTime? | Waktu pasti kapan tombol checkout ditekan oleh pasien. |
 
 ### 2.3. `OrderItem`
-Tabel Rincian Pesanan. Mewakili setiap makanan individu yang ada di dalam sebuah keranjang/struk.
+Tabel Rincian Pesanan. Mewakili setiap item hidangan/paket yang ada di dalam sebuah pesanan.
 
 | Kolom | Tipe Data | Keterangan |
 |-------|-----------|------------|
 | `id` | UUID (PK) | ID unik rincian pesanan. |
-| `orderId` | String (FK) | Relasi ke `Order` (Berada di struk yang mana). |
-| `menuName`| String | **(Snapshot)** Nama makanan yang dipesan. Mencatat permanen agar aman meski menu dihapus. |
+| `orderId` | String (FK) | Relasi ke `Order` (nomor pesanan induk). |
+| `menuName`| String | **(Snapshot)** Nama makanan yang dipesan saat checkout. |
 | `paketName`| String? | **(Snapshot)** Nama paket makanan saat dipesan (jika ada). |
-| `menuItemId`| String? (FK) | Relasi ke `MenuItem`. Bersifat opsional. Jika menu master di-Hard Delete, nilainya menjadi `null` tetapi data struk tetap utuh berkat Snapshot. |
-| `type` | Enum | Penanda: `INCLUDE` (jatah gratis RS) atau `EXCLUDE` (jajan berbayar). |
-| `consumer`| Enum | Penanda siapa yang akan makan: `PASIEN` atau `PENDAMPING`. |
+| `menuItemId`| String? (FK) | Relasi ke `MenuItem`. Bersifat opsional (SetNull jika master menu dihapus, data struk tetap aman berkat snapshot). |
+| `type` | Enum | Penanda jenis paket: `INCLUDE` (Paket Utama ranap gratis) atau `EXCLUDE` (Paket Ekstra berbayar). |
+| `consumer`| Enum | Penanda konsumen: `PASIEN` atau `PENDAMPING`. |
 | `quantity`| Int | Jumlah porsi yang dipesan. |
-| `servingDate`| DateTime| Tanggal makanan harus diantar (H+1 untuk Include, Hari H untuk Exclude). |
-| `servingTime`| String | Jam/waktu spesifik pengantaran. |
-| `isDelivered`| Boolean | Tombol centang penyelesaian pengantaran di dashboard dapur (default: `false`). |
-| `billingStatus`| Enum | Status integrasi tagihan menu Ekstra ke API Billing SIMRS: `PENDING`, `SYNCED`, atau `FAILED`. |
+| `servingDate`| DateTime| Tanggal penyajian/pengantaran makanan (**seluruh pesanan diantarkan besok / T+1**, baik Include maupun Ekstra). |
+| `servingTime`| String | Waktu/sesi makan (`PAGI`, `SIANG`, atau `SORE`). Catatan: Paket Ekstra hanya tersedia untuk `SIANG` dan `SORE`. |
+| `isDelivered`| Boolean | Penanda status pengantaran di dashboard dapur (default: `false`). Menandai selesai mengubah baris menjadi hijau. |
+| `billingStatus`| Enum | Status integrasi tagihan Paket Ekstra ke API Billing SIMRS: `PENDING`, `SYNCED`, atau `FAILED`. |
 
 ---
 
 ## 🏷️ 3. Tipe Enumerasi (Enum)
-Kumpulan nilai tetap yang tidak bisa diisi dengan kata lain (menghindari typo).
+Kumpulan nilai tetap untuk integritas data:
 
 - **`MealTime`**: `PAGI`, `SIANG`, `SORE`
-- **`OrderStatus`**: `CART`, `CHECKOUT` 
-- **`OrderType`**: `INCLUDE` (Fasilitas Rawat Inap), `EXCLUDE` (Pesanan Luar/A La Carte)
+- **`OrderStatus`**: `CART` (dapat diedit di keranjang), `CHECKOUT` (terkonfirmasi, final / no edit no cancel)
+- **`OrderType`**: `INCLUDE` (Paket Utama / Ranap Include), `EXCLUDE` (Paket Ekstra / Berbayar)
 - **`Consumer`**: `PASIEN`, `PENDAMPING`
-- **`BillingStat`**: `PENDING` (Menunggu dikirim), `SYNCED` (Berhasil masuk tagihan), `FAILED` (Gagal ke API RS)
+- **`BillingStat`**: `PENDING` (Menunggu sinkronisasi), `SYNCED` (Berhasil masuk billing SIMRS), `FAILED` (Gagal kirim ke API RS)
