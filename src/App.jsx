@@ -56,7 +56,8 @@ function App() {
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<Navigate to="/admin/dashboard" replace />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
-                <Route path="menu-cycle" element={<MenuCycle />} />
+                <Route path="siklus" element={<MenuCycle />} />
+                <Route path="menu-cycle" element={<Navigate to="/admin/siklus" replace />} />
               </Route>
             </Route>
 
