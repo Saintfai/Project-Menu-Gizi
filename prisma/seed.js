@@ -152,7 +152,21 @@ const MENU_CYCLES_DATA = [
   {
     id: 8,
     description: 'Siklus Menu 8',
-    items: [], // Data belum tersedia dari dokumen RS
+    items: [
+      // Sarapan / Breakfast (PAGI)
+      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Nasi Uduk', description: 'Cond: telur dadar iris, abon, tempe orek' },
+      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Tim Ayam', description: 'Nasi tim dengan isian ayam suwir dan telur rebus disajikan dengan kuah kaldu' },
+      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek' },
+      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Cream Soup + Crouton', description: 'Soup creamy dengan isian sayuran dan smoked beef disajikan dengan roti panggang' },
+      // Makan Siang / Lunch (SIANG)
+      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Ikan Tumis Wijen', description: 'Rolade tahu, bobor bayam' },
+      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Chicken Schnitzel', description: 'Disajikan dengan french fries, mashed potato, nasi' },
+      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Misoa Kuah Baso', description: 'Misoa disajikan dengan bakso dan ayam suwir' },
+      // Makan Sore / Dinner (SORE)
+      { mealTime: 'SORE', paketName: 'Paket A', name: 'Dadar Telur', description: 'Tempe kecap, tumis labu siam, wortel' },
+      { mealTime: 'SORE', paketName: 'Paket B', name: 'Tomyum', description: 'Miesoa kuah tomyum disajikan dengan udang' },
+      { mealTime: 'SORE', paketName: 'Paket C', name: 'Mashed Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed' },
+    ],
   },
   {
     id: 9,
@@ -216,12 +230,16 @@ const MENU_CYCLES_DATA = [
 async function main() {
   console.log('🚀 Memulai proses seeding database Menu Gizi...\n');
 
-  // 1. Pastikan kolom description pada MenuItem ada di PostgreSQL
+  // 1. Pastikan kolom description pada MenuItem ada di PostgreSQL & izin akses Supabase diberikan
   try {
     await pool.query('ALTER TABLE "MenuItem" ADD COLUMN IF NOT EXISTS "description" TEXT;');
-    console.log('✅ Verifikasi struktur tabel MenuItem (kolom description) berhasil.');
+    await pool.query('GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;');
+    await pool.query('GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;');
+    await pool.query('ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;');
+    await pool.query('ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;');
+    console.log('✅ Verifikasi struktur tabel & izin akses Supabase berhasil.');
   } catch (err) {
-    console.warn('⚠️ Catatan DDL check:', err.message);
+    console.warn('⚠️ Catatan DDL / Permissions check:', err.message);
   }
 
   // 2. Seeding Patient Master Data (Testing / Dummy)
@@ -271,13 +289,99 @@ async function main() {
         })),
       });
       totalItemsSeeded += created.count;
-      console.log(`📦 [Siklus ${id}] ${description} -> ${created.count} menu item berhasil di-seed.`);
     } else {
       console.log(`📦 [Siklus ${id}] ${description} -> (0 menu item / data kosong).`);
     }
   }
 
-  console.log(`\n🎉 SEEDING SELESAI! Total ${MENU_CYCLES_DATA.length} Siklus dan ${totalItemsSeeded} Menu Item telah tersimpan di database.`);
+  // 4. Seeding Sample Orders untuk 1 Pasien (Pagi, Siang, Sore + Ekstra Sore)
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+
+  const sampleOrderCode = 'ORD-' + tomorrow.toISOString().slice(0, 10).replace(/-/g, '') + '-001';
+
+  // Hapus order contoh lama jika sudah ada dengan orderCode ini
+  await prisma.order.deleteMany({
+    where: { orderCode: sampleOrderCode },
+  });
+
+  const sampleOrdersData = [
+    // 1. Sarapan (PAGI) - Include
+    {
+      orderCode: sampleOrderCode,
+      patientId: patient.id,
+      roomNumber: patient.roomName,
+      classType: patient.roomClass,
+      menuName: 'Nasi Uduk',
+      paketName: 'Paket A',
+      mealTime: 'PAGI',
+      servingDate: tomorrow,
+      quantity: 2, // VIP A: 2 porsi pagi
+      type: 'INCLUDE',
+      consumer: 'PASIEN',
+      notes: 'Porsi hangat, jangan terlalu asin',
+    },
+    // 2. Makan Siang (SIANG) - Include
+    {
+      orderCode: sampleOrderCode,
+      patientId: patient.id,
+      roomNumber: patient.roomName,
+      classType: patient.roomClass,
+      menuName: 'Chicken Schnitzel',
+      paketName: 'Paket B',
+      mealTime: 'SIANG',
+      servingDate: tomorrow,
+      quantity: 1,
+      type: 'INCLUDE',
+      consumer: 'PASIEN',
+      notes: 'Porsi hangat, jangan terlalu asin',
+    },
+    // 3. Makan Sore (SORE) - Include
+    {
+      orderCode: sampleOrderCode,
+      patientId: patient.id,
+      roomNumber: patient.roomName,
+      classType: patient.roomClass,
+      menuName: 'Dadar Telur',
+      paketName: 'Paket A',
+      mealTime: 'SORE',
+      servingDate: tomorrow,
+      quantity: 1,
+      type: 'INCLUDE',
+      consumer: 'PASIEN',
+      notes: 'Porsi hangat, jangan terlalu asin',
+    },
+    // 4. Makan Sore (SORE) - Paket Ekstra (EXCLUDE / Berbayar)
+    {
+      orderCode: sampleOrderCode,
+      patientId: patient.id,
+      roomNumber: patient.roomName,
+      classType: patient.roomClass,
+      menuName: 'Tomyum',
+      paketName: 'Paket B',
+      mealTime: 'SORE',
+      servingDate: tomorrow,
+      quantity: 1,
+      type: 'EXCLUDE',
+      consumer: 'PENDAMPING',
+      notes: 'Porsi hangat, jangan terlalu asin',
+    },
+  ];
+
+  await prisma.order.createMany({
+    data: sampleOrdersData,
+  });
+
+  console.log(`\n📋 Seeded Sample Order untuk Pasien ${patient.name} (${patient.rmNumber}):`);
+  console.log(`   Order Code: ${sampleOrderCode}`);
+  console.log(`   - Pagi   : Paket A (Nasi Uduk) - 2x [INCLUDE]`);
+  console.log(`   - Siang  : Paket B (Chicken Schnitzel) - 1x [INCLUDE]`);
+  console.log(`   - Sore   : Paket A (Dadar Telur) - 1x [INCLUDE]`);
+  console.log(`   - Sore   : Paket B (Tomyum) - 1x [EXCLUDE/EKSTRA]`);
+  console.log(`   - Catatan: "Porsi hangat, jangan terlalu asin"`);
+
+  console.log(`\n🎉 SEEDING SELESAI! Total ${MENU_CYCLES_DATA.length} Siklus, ${totalItemsSeeded} Menu Item, dan sample pesanan telah tersimpan di database.`);
 }
 
 main()

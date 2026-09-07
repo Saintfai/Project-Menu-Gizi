@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 
 // Providers
 import { AuthProvider } from './context/AuthContext';
@@ -32,6 +33,7 @@ function App() {
     <AuthProvider>
       <PatientProvider>
         <CartProvider>
+          <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
           <Routes>
             {/* ================= PUBLIC PATIENT ================= */}
             {/* Direct QR scan or RM search */}
