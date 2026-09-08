@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Utensils } from 'lucide-react';
-import Button from '../buttons/Button';
 import Stepper from '../navigation/Stepper';
 
 export const MenuCard = ({ 
@@ -13,12 +12,12 @@ export const MenuCard = ({
   price, 
   quantity = 0,
   maxQuantity = 2,
+  sessionMaxQuantity,
   onQuantityChange,
-  onAddClick,
   className = '' 
 }) => {
   return (
-    <div className={`flex flex-col bg-neutral-0 rounded-xl border border-neutral-200 overflow-hidden shadow-sm ${className}`}>
+    <div className={`flex flex-col bg-neutral-0 rounded-xl border border-neutral-200 overflow-hidden shadow-sm h-full ${className}`}>
       {/* Image Container */}
       <div className="w-full h-24 sm:h-32 bg-neutral-100 flex-shrink-0">
         {image ? (
@@ -46,20 +45,30 @@ export const MenuCard = ({
                 onChange={onQuantityChange} 
                 className="w-full"
               />
-              {quantity >= maxQuantity && (
-                <p className="text-[9px] sm:text-[10px] text-danger-500 mt-1.5 text-center font-medium">Maksimal {maxQuantity} porsi</p>
-              )}
+              <div className="h-4 sm:h-5 mt-1 sm:mt-1.5 flex items-start justify-center text-center">
+                {quantity >= maxQuantity && maxQuantity !== Infinity && (
+                  <p className="text-[9px] sm:text-[10px] text-danger-500 font-medium leading-none">
+                    {maxQuantity === 0 ? `Kuota ${sessionMaxQuantity || ''} porsi terpenuhi` : `Maksimal ${maxQuantity} porsi`}
+                  </p>
+                )}
+              </div>
             </div>
           </>
         ) : (
           <>
+            {subtitle && <span className="text-[10px] sm:text-[11px] font-bold text-primary-600 mb-0.5 sm:mb-1">{subtitle}</span>}
             <h4 className="font-semibold text-neutral-900 text-xs sm:text-sm leading-snug mb-1 line-clamp-2">{title}</h4>
+            {description && <p className="text-[10px] sm:text-[11px] text-neutral-500 line-clamp-2 mb-1.5 sm:mb-2">{description}</p>}
             <span className="text-[11px] sm:text-xs font-bold text-primary-600 mb-3 sm:mb-4">{price}</span>
             
             <div className="mt-auto">
-              <Button variant="soft" fullWidth onClick={onAddClick} className="text-[11px] sm:text-xs py-1 sm:py-1.5">
-                + Tambah
-              </Button>
+              <Stepper 
+                value={quantity} 
+                min={0} 
+                max={Infinity} 
+                onChange={onQuantityChange} 
+                className="w-full"
+              />
             </div>
           </>
         )}
@@ -76,8 +85,8 @@ MenuCard.propTypes = {
   price: PropTypes.string,
   quantity: PropTypes.number,
   maxQuantity: PropTypes.number,
+  sessionMaxQuantity: PropTypes.number,
   onQuantityChange: PropTypes.func,
-  onAddClick: PropTypes.func,
   className: PropTypes.string,
 };
 

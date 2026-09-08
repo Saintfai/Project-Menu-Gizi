@@ -75,7 +75,7 @@ export default function Onboarding() {
         />
       </div>
 
-      <div className="flex-1 flex flex-col px-6 py-6 z-10 relative pb-8 w-full max-w-[400px] mx-auto">
+      <div className="flex flex-col px-6 py-6 z-10 relative pb-8 w-full max-w-[400px] mx-auto">
         
         {/* Title Section */}
         <div className="flex items-start gap-3 mb-6 mt-2">
@@ -171,13 +171,13 @@ export default function Onboarding() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
           onClick={() => navigate('/menu')}
-          className="w-full bg-[#00529B] hover:bg-[#004280] text-white py-3.5 rounded-xl font-bold text-sm transition-all active:scale-[0.98] shadow-lg shadow-blue-900/20 border-none outline-none mt-auto"
+          className="w-full bg-[#00529B] hover:bg-[#004280] text-white py-3.5 rounded-xl font-bold text-sm transition-all active:scale-[0.98] shadow-lg shadow-blue-900/20 border-none outline-none"
         >
           Lanjut ke Pilih Menu
         </motion.button>
         
         {/* Page Footer */}
-        <div className="mt-8 pt-4 text-center flex flex-col gap-1 opacity-70">
+        <div className="mt-5 pt-4 text-center flex flex-col gap-1 opacity-70">
           <p className="text-[10px] text-slate-500">© 2026 RS Edelweiss. All Rights Reserved.</p>
           <p className="text-[10px] text-slate-400">Sistem Pemesanan Menu Gizi Pasien Rawat Inap</p>
         </div>

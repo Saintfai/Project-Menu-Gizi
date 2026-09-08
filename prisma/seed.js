@@ -249,7 +249,7 @@ async function main() {
       name: 'Andi Pratama',
       dob: new Date('2003-02-01T00:00:00Z'),
       phone: '081234567890',
-      roomName: 'Mawar 101',
+      roomName: 'LAVENDER 1 - 1.1',
       roomClass: 'VIP A',
       allergies: 'Tidak Ada',
       medicalConditions: 'Tidak Ada',
@@ -259,7 +259,7 @@ async function main() {
       name: 'Budi Santoso',
       dob: new Date('1980-05-15T00:00:00Z'),
       phone: '081111111111',
-      roomName: 'Melati 201',
+      roomName: 'LILY 2 - 2.1',
       roomClass: 'VIP C',
       allergies: 'Seafood, Kacang',
       medicalConditions: 'Hipertensi',
@@ -269,7 +269,7 @@ async function main() {
       name: 'Siti Aminah',
       dob: new Date('1995-10-20T00:00:00Z'),
       phone: '082222222222',
-      roomName: 'Anggrek 305',
+      roomName: 'LILAC 3 - 3.5',
       roomClass: 'VIP B',
       allergies: 'Telur, Susu Sapi',
       medicalConditions: 'Diabetes',
@@ -294,6 +294,8 @@ async function main() {
     seededPatients[p.rmNumber] = patientRecord;
     console.log(`✅ Seeded Patient: ${patientRecord.name} (${patientRecord.rmNumber}) - Kamar: ${patientRecord.roomName}`);
   }
+
+  const patient = seededPatients['RM-12345'];
 
   // 3. Seeding Menu Cycles & Menu Items
   let totalItemsSeeded = 0;
