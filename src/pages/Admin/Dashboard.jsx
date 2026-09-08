@@ -118,11 +118,13 @@ export default function Dashboard() {
       const query = searchQuery.toLowerCase().trim();
       const matchesSearch =
         !query ||
-        row.pasienRM.toLowerCase().includes(query) ||
-        row.kamar.toLowerCase().includes(query) ||
-        row.makanPagi.toLowerCase().includes(query) ||
-        row.makanSiang.toLowerCase().includes(query) ||
-        row.makanMalam.toLowerCase().includes(query);
+        (row.rmNumber && row.rmNumber.toLowerCase().includes(query)) ||
+        (row.patientName && row.patientName.toLowerCase().includes(query)) ||
+        (row.pasienRM && row.pasienRM.toLowerCase().includes(query)) ||
+        (row.kamar && row.kamar.toLowerCase().includes(query)) ||
+        (row.makanPagi && row.makanPagi.toLowerCase().includes(query)) ||
+        (row.makanSiang && row.makanSiang.toLowerCase().includes(query)) ||
+        (row.makanMalam && row.makanMalam.toLowerCase().includes(query));
 
       if (!matchesSearch) return false;
 

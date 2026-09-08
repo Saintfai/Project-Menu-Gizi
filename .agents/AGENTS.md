@@ -238,13 +238,13 @@ Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
     -   Pencarian & Filter: Search bar (Nama Pasien / No. RM / Nomor
         Kamar) dan Filter Kategori/Status.
     -   Tabel Detail Rekap Pesanan Terintegrasi:
-        -   Kolom: `NO`, `PASIEN`, `KAMAR`, `MAKAN PAGI`, `MAKAN SIANG`,
+        -   Kolom: `NO`, `NO. RM`, `PASIEN`, `KAMAR`, `MAKAN PAGI`, `MAKAN SIANG`,
             `MAKAN MALAM`, `TANGGAL & WAKTU`, `CATATAN` (Kolom menu tambahan dilebur ke dalam kolom makan).
         -   Format Pemisah Kolom Makan:
             -   Garis Miring (`/`): Memisahkan porsi Pasien dan Penunggu (contoh: `Paket A / Paket B` atau jika sama `Paket A 2x`).
             -   Garis Tegak (`|`): Memisahkan Paket Utama dengan Paket Ekstra (contoh: `Paket A 2x | Paket B` atau `Paket A / Paket B | Paket A`).
         -   Indikator Alergi: Pasien dengan riwayat alergi memiliki tanda
-            lingkaran merah (🔴) di samping No. RM / Nama Pasien.
+            lingkaran merah (🔴) di samping Nama Pasien.
         -   Kolom Tanggal & Waktu: Memuat jadwal T+1 untuk seluruh
             pesanan (Paket Utama maupun Paket Ekstra).
         -   Kolom Catatan: Tombol ikon dokumen yang membuka pop-up/modal

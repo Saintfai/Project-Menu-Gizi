@@ -24,6 +24,7 @@ import Cart from './pages/Patient/Cart';
 import AdminLogin from './pages/Admin/Login';
 import AdminDashboard from './pages/Admin/Dashboard';
 import MenuCycle from './pages/Admin/MenuCycle';
+import Statistics from './pages/Admin/Statistics';
 
 // Showcase Page
 import ComponentsShowcase from './pages/ComponentsShowcase';
@@ -60,6 +61,9 @@ function App() {
                 <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="siklus" element={<MenuCycle />} />
                 <Route path="menu-cycle" element={<Navigate to="/admin/siklus" replace />} />
+                <Route path="statistik" element={<Statistics />} />
+                <Route path="statistics" element={<Navigate to="/admin/statistik" replace />} />
+                <Route path="laporan" element={<Navigate to="/admin/statistik" replace />} />
               </Route>
             </Route>
 

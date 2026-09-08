@@ -40,6 +40,7 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
           <thead className="text-xs text-neutral-500 uppercase bg-primary-50 border-b border-neutral-200">
             <tr>
               <th className="px-4 py-3.5 font-semibold">NO</th>
+              <th className="px-4 py-3.5 font-semibold">NO. RM</th>
               <th className="px-4 py-3.5 font-semibold">PASIEN</th>
               <th className="px-4 py-3.5 font-semibold">KAMAR</th>
               <th className="px-4 py-3.5 font-semibold">MAKAN PAGI</th>
@@ -52,61 +53,69 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
           <tbody className="divide-y divide-neutral-100">
             {data.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-xs text-neutral-400">
+                <td colSpan={9} className="px-4 py-10 text-center text-xs text-neutral-400">
                   Belum ada data pesanan masuk.
                 </td>
               </tr>
             ) : (
-              data.map((row, index) => (
-                <tr key={row.id || index} className="hover:bg-neutral-50 transition-colors">
-                  <td className="px-4 py-4 text-neutral-900">{index + 1}</td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-1.5 font-semibold text-neutral-900">
-                      {row.hasAllergy && (
-                        <div className="w-4 h-4 rounded-full bg-neutral-300 flex items-center justify-center flex-shrink-0" title={row.allergyNote || 'Riwayat Alergi'}>
-                          <div className="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></div>
-                        </div>
-                      )}
-                      {row.pasienRM}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 text-xs font-medium text-neutral-600">
-                    {row.kamar}
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="text-xs">
-                      {renderMealCell(row.makanPagi)}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="text-xs">
-                      {renderMealCell(row.makanSiang)}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="text-xs">
-                      {renderMealCell(row.makanMalam)}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-1.5 font-semibold text-xs text-neutral-800">
-                      <div className="w-1.5 h-1.5 bg-primary-600 rounded-full flex-shrink-0"></div>
-                      <span>{row.tanggalBesok || row.tanggalWaktuPengantaran}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 text-center">
-                    <button 
-                      onClick={() => row.hasCatatan && onNoteClick && onNoteClick(row)}
-                      className={`p-1.5 rounded-md transition-colors ${row.hasCatatan ? 'text-primary-600 bg-primary-50 hover:bg-primary-100 cursor-pointer' : 'text-neutral-300 cursor-default'}`}
-                      disabled={!row.hasCatatan}
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </button>
-                  </td>
-                </tr>
-              ))
+              data.map((row, index) => {
+                const displayRm = row.rmNumber || (row.pasienRM?.match(/\(([^)]+)\)/)?.[1]) || (row.pasienRM?.startsWith('RM') ? row.pasienRM : '-');
+                const displayName = row.patientName || row.pasienRM?.replace(/\s*\([^)]*\)/, '') || row.pasienRM || '-';
+
+                return (
+                  <tr key={row.id || index} className="hover:bg-neutral-50 transition-colors">
+                    <td className="px-4 py-4 text-neutral-900">{index + 1}</td>
+                    <td className="px-4 py-4 text-xs font-semibold text-primary-700">
+                      {displayRm}
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-1.5 font-semibold text-neutral-900">
+                        {row.hasAllergy && (
+                          <div className="w-4 h-4 rounded-full bg-neutral-300 flex items-center justify-center flex-shrink-0" title={row.allergyNote || 'Riwayat Alergi'}>
+                            <div className="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></div>
+                          </div>
+                        )}
+                        <span>{displayName}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-xs font-medium text-neutral-600">
+                      {row.kamar}
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="text-xs">
+                        {renderMealCell(row.makanPagi)}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="text-xs">
+                        {renderMealCell(row.makanSiang)}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="text-xs">
+                        {renderMealCell(row.makanMalam)}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-1.5 font-semibold text-xs text-neutral-800">
+                        <div className="w-1.5 h-1.5 bg-primary-600 rounded-full flex-shrink-0"></div>
+                        <span>{row.tanggalBesok || row.tanggalWaktuPengantaran}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-center">
+                      <button 
+                        onClick={() => row.hasCatatan && onNoteClick && onNoteClick(row)}
+                        className={`p-1.5 rounded-md transition-colors ${row.hasCatatan ? 'text-primary-600 bg-primary-50 hover:bg-primary-100 cursor-pointer' : 'text-neutral-300 cursor-default'}`}
+                        disabled={!row.hasCatatan}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

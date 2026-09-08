@@ -26,6 +26,14 @@ export async function getOrders(options = {}) {
     query = query.eq('servingDate', options.servingDate);
   }
 
+  if (options.startDate) {
+    query = query.gte('servingDate', options.startDate);
+  }
+
+  if (options.endDate) {
+    query = query.lte('servingDate', options.endDate);
+  }
+
   if (options.orderCode) {
     query = query.eq('orderCode', options.orderCode);
   }
