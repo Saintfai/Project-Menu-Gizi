@@ -1,36 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import { UtensilsCrossed, ShoppingCart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { UtensilsCrossed, ShoppingCart, ShoppingBag } from 'lucide-react';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import PatientIdentityCard from '../../components/ui/cards/PatientIdentityCard';
 import Alert from '../../components/ui/feedback/Alert';
 import Accordion from '../../components/ui/data-display/Accordion';
 import MenuCard from '../../components/ui/cards/MenuCard';
 import SearchBar from '../../components/ui/forms/SearchBar';
+import IncludeModal from '../../components/ui/modals/IncludeModal';
+import ExcludeModal from '../../components/ui/modals/ExcludeModal';
 import { usePatient } from '../../context/PatientContext';
 import { supabase } from '../../utils/supabase';
 
 export default function MenuPortal() {
-  const { patient } = usePatient();
+  const { patient, logoutPatient } = usePatient();
+  const navigate = useNavigate();
   
   // Local state for fetching menus
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [includeModalOpen, setIncludeModalOpen] = useState(false);
+  const [excludeModalOpen, setExcludeModalOpen] = useState(false);
+  const [selectedCardId, setSelectedCardId] = useState(null);
 
   // Local state for steppers
+  // quantities format: { [itemId]: ['PASIEN', 'PENDAMPING', ...] }
   const [quantities, setQuantities] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
+
 
   // Mock patient if context is empty for UI testing
   const displayPatient = patient || {
     name: 'Budi Santoso',
     rmNumber: 'RM-1223',
-    roomName: 'Kamar 402',
-    roomClass: 'VIP_A'
+    roomName: 'LAVENDER 1 - 1.1',
+    roomClass: 'VIP A'
   };
 
   const roomClassLower = displayPatient.roomClass?.toLowerCase() || '';
-  const isVip = roomClassLower.includes('vip a');
+  // VIP A, Junior Suite, and Suite get 2 portions for all meals
+  const isVip = roomClassLower.includes('vip a') || roomClassLower.includes('suite');
   // VIP gets 2 portions for Pagi, Siang, Malam. Others get 2 Pagi, 1 Siang, 1 Malam.
   const maxQtyPagi = 2;
   const maxQtySiang = isVip ? 2 : 1;
@@ -65,15 +75,71 @@ export default function MenuPortal() {
     fetchMenus();
   }, []);
 
-  const handleQuantityChange = (id, val) => {
-    setQuantities(prev => ({ ...prev, [id]: val }));
+  const handleQuantityChange = (item, val, sessionMaxQty) => {
+    const currentQtyArr = quantities[item.id] || [];
+    const currentQty = currentQtyArr.length;
+
+    if (val > currentQty) {
+      // User clicked '+'
+      if (sessionMaxQty > 1) {
+        // Kuota lebih dari 1, tampilkan modal untuk memilih siapa pengonsumsinya
+        setIncludeModalOpen(true);
+        setSelectedCardId(item.id);
+      } else {
+        // Kuota hanya 1, otomatis assign ke PASIEN
+        setQuantities(prev => ({
+          ...prev,
+          [item.id]: [...(prev[item.id] || []), 'PASIEN']
+        }));
+      }
+    } else if (val < currentQty) {
+      // User clicked '-', hapus elemen terakhir
+      setQuantities(prev => {
+        const arr = prev[item.id] || [];
+        return {
+          ...prev,
+          [item.id]: arr.slice(0, -1)
+        };
+      });
+    }
+  };
+
+  const handleIncludeModalSave = (consumerRole) => {
+    const itemId = selectedCardId;
+    setQuantities(prev => ({
+      ...prev,
+      [itemId]: [...(prev[itemId] || []), consumerRole]
+    }));
+    
+    // Tutup modal
+    setIncludeModalOpen(false);
+    setSelectedCardId(null);
+  };
+
+  const openEkstraModal = (item) => {
+    setExcludeModalOpen(true);
+    setSelectedCardId(item.id);
+  };
+
+  const handleExcludeModalSave = (newQuantity) => {
+    const itemId = `ekstra_${selectedCardId}`;
+    
+    // Convert the absolute quantity to an array of 'EKSTRA' strings to maintain state shape
+    const newArr = Array(newQuantity).fill('EKSTRA');
+    
+    setQuantities(prev => ({
+      ...prev,
+      [itemId]: newArr
+    }));
+
+    setExcludeModalOpen(false);
+    setSelectedCardId(null);
   };
 
   // Grouping the menus
   const menuPagi = menuItems.filter(item => item.mealTime?.toUpperCase() === 'PAGI');
   const menuSiang = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SIANG');
   const menuMalam = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SORE' || item.mealTime?.toUpperCase() === 'MALAM');
-  const menuEkstra = menuItems; // Semua menu dari siklus ini tersedia untuk ekstra
 
   // Filtered menus for Ekstra Search
   const filteredEkstraSiang = menuSiang.filter(item => 
@@ -92,13 +158,13 @@ export default function MenuPortal() {
     if (error) return <div className="p-3 text-sm text-danger-500 italic bg-red-50 rounded-lg border border-red-100 mt-2">Gagal memuat menu.</div>;
     if (items.length === 0) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Data menu belum tersedia.</div>;
 
-    const totalUsedQty = items.reduce((sum, item) => sum + (quantities[item.id] || 0), 0);
+    const totalUsedQty = items.reduce((sum, item) => sum + (quantities[item.id]?.length || 0), 0);
     const remainingQty = maxSessionQty - totalUsedQty;
 
     return (
       <div className="flex sm:grid sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-3 lg:gap-4 overflow-x-auto pb-4 pt-2 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {items.map(item => {
-          const currentQty = quantities[item.id] || 0;
+          const currentQty = quantities[item.id]?.length || 0;
           const dynamicMaxQty = currentQty + remainingQty;
 
           return (
@@ -113,7 +179,7 @@ export default function MenuPortal() {
                   quantity={currentQty}
                   maxQuantity={dynamicMaxQty}
                   sessionMaxQuantity={maxSessionQty}
-                  onQuantityChange={(val) => handleQuantityChange(item.id, val)}
+                  onQuantityChange={(val) => handleQuantityChange(item, val, maxSessionQty)}
                   image={item.image || item.imageUrl}
                 />
               </div>
@@ -132,29 +198,35 @@ export default function MenuPortal() {
 
     return (
       <div className="flex sm:grid sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-3 lg:gap-4 overflow-x-auto pb-4 pt-2 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {items.map(item => (
-          <div key={`ekstra-wrap-${item.id}`} className="min-w-[160px] w-[45vw] sm:w-auto sm:min-w-0 snap-start shrink-0 flex">
-            <div className="w-full">
-              <MenuCard 
-                key={`ekstra-card-${item.id}`}
-                type="paket"
-                subtitle={item.paketName || 'Paket'}
-                title={item.name}
-                description={item.description}
-                quantity={quantities[`ekstra_${item.id}`] || 0}
-                maxQuantity={Infinity}
-                onQuantityChange={(val) => handleQuantityChange(`ekstra_${item.id}`, val)}
-                image={item.image || item.imageUrl}
-              />
+        {items.map(item => {
+          const itemId = `ekstra_${item.id}`;
+          const currentQty = quantities[itemId]?.length || 0;
+
+          return (
+            <div key={`ekstra-wrap-${item.id}`} className="min-w-[160px] w-[45vw] sm:w-auto sm:min-w-0 snap-start shrink-0 flex">
+              <div className="w-full">
+                  <MenuCard 
+                    key={`ekstra-card-${item.id}`}
+                    type="extra"
+                    subtitle={item.paketName || 'Paket'}
+                    title={item.name}
+                    description={item.description}
+                    price="Rp 15.000"
+                    onAddClick={() => openEkstraModal(item)}
+                    image={item.image || item.imageUrl}
+                  />
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   };
 
+  const totalItems = Object.values(quantities).reduce((sum, arr) => sum + (arr ? arr.length : 0), 0);
+
   return (
-    <div className="min-h-screen relative bg-slate-50 flex flex-col font-sans text-neutral-900 pt-[60px]">
+    <div className="min-h-screen relative bg-slate-50 flex flex-col font-sans text-neutral-900 pt-[60px] pb-24">
       
       {/* Background Gradients */}
       <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-blue-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
@@ -169,11 +241,15 @@ export default function MenuPortal() {
               <span className="text-[10px] text-gray-500 font-normal">Kesehatan Anda, Prioritas Kami</span>
             </div>
           }
+          onLogout={() => {
+            logoutPatient();
+            navigate('/');
+          }}
         />
       </div>
 
-      {/* Main Content Container - 100% Responsive Width */}
-      <div className="flex-1 flex flex-col px-4 md:px-8 lg:px-12 py-6 z-10 relative pb-8 w-full space-y-6 md:space-y-8">
+      {/* Main Content Container - Centered */}
+      <div className="flex-1 flex flex-col px-4 py-6 z-10 relative pb-8 w-full max-w-4xl mx-auto space-y-6 md:space-y-8">
         
         {/* Patient Profile Card */}
         <PatientIdentityCard 
@@ -274,6 +350,53 @@ export default function MenuPortal() {
         </div>
 
       </div>
+
+      {/* Modals */}
+      <IncludeModal 
+        isOpen={includeModalOpen}
+        onClose={() => {
+          setIncludeModalOpen(false);
+          setSelectedCardId(null);
+        }}
+        itemData={selectedCardId ? menuItems.find(m => m.id === selectedCardId) : null}
+        onSave={handleIncludeModalSave}
+      />
+
+      <ExcludeModal 
+        isOpen={excludeModalOpen}
+        onClose={() => {
+          setExcludeModalOpen(false);
+          setSelectedCardId(null);
+        }}
+        itemData={selectedCardId ? menuItems.find(m => m.id === selectedCardId) : null}
+        initialQuantity={selectedCardId ? (quantities[`ekstra_${selectedCardId}`]?.length || 0) : 0}
+        onSave={handleExcludeModalSave}
+      />
+
+      {/* Floating Cart Banner */}
+      {totalItems > 0 && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-4xl bg-[#004e8c] text-white rounded-2xl shadow-xl z-40 p-3 md:px-6 md:py-4 flex items-center justify-between animate-in slide-in-from-bottom-5">
+          <div className="flex items-center gap-3">
+            <div className="relative ml-1">
+              <ShoppingBag size={24} className="text-white opacity-90" />
+              <span className="absolute -top-2.5 -right-2.5 bg-danger-600 text-white text-[10px] font-bold w-[22px] h-[22px] flex items-center justify-center rounded-full border-2 border-[#004e8c]">
+                {totalItems}
+              </span>
+            </div>
+            <div className="flex flex-col ml-1">
+              <span className="font-bold text-base leading-tight">{totalItems} Item</span>
+              <span className="text-xs text-white/80 font-normal mt-0.5">Item terpilih</span>
+            </div>
+          </div>
+          
+          <button className="bg-white text-[#004e8c] font-bold px-4 py-2 rounded-[10px] text-sm hover:bg-neutral-50 transition-colors flex items-center gap-1.5 border-0 outline-none shadow-none">
+            Lanjut ke Ringkasan
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
