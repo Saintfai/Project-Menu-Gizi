@@ -87,6 +87,19 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
         >
           Siklus
         </NavLink>
+
+        <NavLink
+          to="/admin/statistik"
+          className={({ isActive }) =>
+            `text-sm sm:text-base transition-colors duration-150 py-1 ${
+              isActive
+                ? 'font-bold text-primary-700 border-b-2 border-primary-700'
+                : 'font-medium text-neutral-600 hover:text-neutral-900'
+            }`
+          }
+        >
+          Statistik
+        </NavLink>
       </nav>
 
       {/* Right: Realtime Date & Time Info */}

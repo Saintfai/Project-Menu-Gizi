@@ -32,50 +32,32 @@ export const NoteDetailContent = ({ data }) => {
         )}
       </div>
 
-      {/* Meal Notes */}
+      {/* Order Level Special Note (PRD 3.2 / FR-007) */}
+      <div className="bg-amber-50/70 border border-amber-200 p-3 rounded-lg text-amber-900">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1 flex items-center gap-1.5">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Catatan Khusus Pesanan
+        </div>
+        <div className="text-xs font-medium text-neutral-800">
+          {data.notes || data.catatan || 'Tidak ada catatan khusus.'}
+        </div>
+      </div>
+
+      {/* Rincian Menu */}
       <div className="divide-y divide-neutral-100 text-sm">
-        {/* Makan Pagi */}
-        <div className="py-3 flex gap-4">
-          <div className="w-1/3">
-            <div className="font-bold text-primary-700 text-xs mb-0.5">Makan Pagi</div>
-            <div className="text-[10px] text-neutral-500 leading-tight">{data.menuPagiText || '-'}</div>
-          </div>
-          <div className="w-2/3 text-xs text-neutral-700">{data.notePagi || '-'}</div>
+        <div className="py-2.5 flex justify-between items-center text-xs">
+          <span className="font-bold text-primary-700">Makan Pagi:</span>
+          <span className="text-neutral-700 font-medium">{data.makanPagi || data.menuPagiText || '-'}</span>
         </div>
-        
-        {/* Makan Siang */}
-        <div className="py-3 flex gap-4">
-          <div className="w-1/3">
-            <div className="font-bold text-primary-700 text-xs mb-0.5">Makan Siang</div>
-            <div className="text-[10px] text-neutral-500 leading-tight">{data.menuSiangText || '-'}</div>
-          </div>
-          <div className="w-2/3 text-xs text-neutral-700">{data.noteSiang || '-'}</div>
+        <div className="py-2.5 flex justify-between items-center text-xs">
+          <span className="font-bold text-primary-700">Makan Siang:</span>
+          <span className="text-neutral-700 font-medium">{data.makanSiang || data.menuSiangText || '-'}</span>
         </div>
-
-        {/* Makan Malam */}
-        <div className="py-3 flex gap-4">
-          <div className="w-1/3">
-            <div className="font-bold text-primary-700 text-xs mb-0.5">Makan Malam</div>
-            <div className="text-[10px] text-neutral-500 leading-tight">{data.menuMalamText || '-'}</div>
-          </div>
-          <div className="w-2/3 text-xs text-neutral-700">{data.noteMalam || '-'}</div>
-        </div>
-
-        {/* Menu Tambahan */}
-        <div className="py-3 flex gap-4 items-start">
-          <div className="w-1/3">
-            <div className="font-bold text-primary-700 text-xs mb-0.5">Menu Tambahan</div>
-            <div className="text-[10px] text-neutral-500 leading-tight">{data.menuTambahanText || '-'}</div>
-          </div>
-          <div className="w-2/3 text-xs text-neutral-700 flex justify-between items-start">
-            <span>{data.noteTambahan || '-'}</span>
-            {data.statusTambahan === 'Sudah Dikirim' && (
-              <span className="flex items-center gap-1 text-[10px] font-bold text-success-700 bg-success-50 border border-success-200 px-2 py-0.5 rounded ml-2 flex-shrink-0">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                Sudah Dikirim
-              </span>
-            )}
-          </div>
+        <div className="py-2.5 flex justify-between items-center text-xs">
+          <span className="font-bold text-primary-700">Makan Malam:</span>
+          <span className="text-neutral-700 font-medium">{data.makanMalam || data.menuMalamText || '-'}</span>
         </div>
       </div>
     </div>
