@@ -5,18 +5,17 @@
 **Application Food Ordering & Nutrition Management System (Hospital Dietary System)**
 
   ----------------------------------- -----------------------------------
-  **Dokumen Versi**                   1.6
+  **Dokumen Versi**                   1.7
   **Status**                          Approved / Ready for Development
-                                      --- Penyederhanaan Jadwal
-                                      Pengantaran (Semua Pesanan T+1)
-  **Perubahan dari v1.5**             Seluruh pesanan (Paket Utama
-                                      maupun Paket Ekstra) kini
-                                      diantarkan besok (T+1). Tidak ada
-                                      lagi logika hari-H pada Paket
-                                      Ekstra; cut-off tunggal pukul
-                                      15:00 WIB berlaku untuk semua
-                                      jenis pesanan. Tidak ada pilihan
-                                      tanggal pengiriman bagi pasien.
+                                      --- Penghapusan Aksi Selesai
+                                      (Pengantaran Otomatis Sesuai Jadwal)
+  **Perubahan dari v1.6**             Penghapusan fitur tombol aksi
+                                      "Tandai Selesai" dan status tracking
+                                      manual pada Paket Ekstra. Seluruh
+                                      pesanan (Paket Utama maupun Paket
+                                      Ekstra) langsung diproduksi dan
+                                      didistribusikan mengikuti jadwal
+                                      penyajian T+1 operasional dapur gizi.
   ----------------------------------- -----------------------------------
 
 **1. Ringkasan Produk & Tujuan**
@@ -191,9 +190,8 @@ belanja (cart), bukan transaksi langsung sekali submit.
 
 -   Discharge (pasien pulang): Akun/akses pemesanan pasien dinonaktifkan
     secara manual oleh Admin Gizi setelah menerima status pulang dari
-    sistem eksisting rumah sakit. Pesanan yang belum diantarkan pada
-    tanggal berjalan tetap menjadi bagian rekap dapur sampai ditandai
-    selesai atau dibatalkan manual oleh Admin.
+    sistem eksisting rumah sakit. Pesanan yang terdaftar pada tanggal
+    berjalan tetap tercatat dalam rekap dapur sesuai jadwal pengantarannya.
 -   Pindah Kelas Kamar: Kuota porsi Paket Utama menyesuaikan otomatis ke
     kelas kamar terbaru pada pemesanan berikutnya (T+1), berdasarkan
     data kamar terkini dari sistem eksisting. Pesanan yang sudah
@@ -368,22 +366,15 @@ Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
 +----+-----------------------------------------------------------------+
 
 +----+-----------------------------------------------------------------+
-| *  | **Tandai Pesanan Paket Ekstra Selesai**                         |
-| *4 |                                                                 |
-| ** | Setelah Paket Ekstra diantarkan, Admin menandainya selesai      |
-|    | dengan satu klik; baris pesanan berubah warna hijau.            |
-+----+-----------------------------------------------------------------+
-
-+----+-----------------------------------------------------------------+
 | *  | **Kelola Konten Siklus Menu & Analitik Statistik**              |
-| *5 |                                                                 |
+| *4 |                                                                 |
 | ** | Admin dapat berpindah ke tab Siklus (untuk update menu) atau    |
 |    | tab Statistik (untuk meninjau grafik laporan produksi).         |
 +----+-----------------------------------------------------------------+
 
 +----+-----------------------------------------------------------------+
 | *  | **Kelola Penempatan QR Code per Ruangan (di Luar Sistem)**      |
-| *6 |                                                                 |
+| *5 |                                                                 |
 | ** | Admin Gizi menempel atau melepas QR Code fisik di ruangan       |
 |    | sesuai kondisi terbaru pasien --- proses operasional manual,    |
 |    | tidak melalui fitur di dalam sistem.                            |
@@ -471,12 +462,6 @@ Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
                             berisi rincian seluruh catatan menu (Utama &
                             Paket Ekstra).
 
-  Dashboard    **FR-019**   Dashboard Admin menyediakan tombol aksi "Selesai"
-  Admin                     khusus pada baris pesanan Paket Ekstra; baris yang
-                            telah ditandai selesai berubah warna latar menjadi
-                            hijau tanpa label status tertulis. Fitur ini tidak
-                            berlaku untuk Paket Utama.
-
   Dashboard    **FR-021**   Sistem menampilkan indikator visual lingkaran merah
   Admin                     (🔴) pada data pasien di tabel rekap dashboard jika
                             pasien memiliki riwayat alergi.
@@ -556,9 +541,10 @@ tersedia di lingkungan rumah sakit.
     password via environment variable (lihat Bagian 3.9).
 -   Role/permission bertingkat pada Dashboard Admin: seluruh staf
     gizi/dapur menggunakan hak akses yang sama.
--   Status tracking bertahap (diterima → disiapkan → dikirim) untuk
-    Paket Utama: status tracking hanya berlaku untuk pesanan Paket Ekstra
-    (indikator selesai berwarna hijau).
+-   Status tracking bertahap (diterima → disiapkan → dikirim) maupun
+    fitur aksi manual tandai selesai: sistem tidak memerlukan tracking
+    status pengantaran; seluruh pesanan diproduksi dan diantarkan
+    langsung sesuai jadwal penyajian T+1 dapur gizi.
 -   Aplikasi mobile native (iOS/Android): aplikasi diakses melalui
     browser (web) via scan QR Code.
 -   Fitur di luar pemesanan makanan pada aplikasi pasien (misalnya chat
