@@ -8,7 +8,6 @@ import Accordion from '../../components/ui/data-display/Accordion';
 import MenuCard from '../../components/ui/cards/MenuCard';
 import SearchBar from '../../components/ui/forms/SearchBar';
 import IncludeModal from '../../components/ui/modals/IncludeModal';
-import ExcludeModal from '../../components/ui/modals/ExcludeModal';
 import { usePatient } from '../../context/PatientContext';
 import { supabase } from '../../utils/supabase';
 
@@ -21,7 +20,6 @@ export default function MenuPortal() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [includeModalOpen, setIncludeModalOpen] = useState(false);
-  const [excludeModalOpen, setExcludeModalOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState(null);
 
   // Local state for steppers
@@ -116,24 +114,24 @@ export default function MenuPortal() {
     setSelectedCardId(null);
   };
 
-  const openEkstraModal = (item) => {
-    setExcludeModalOpen(true);
-    setSelectedCardId(item.id);
-  };
-
-  const handleExcludeModalSave = (newQuantity) => {
-    const itemId = `ekstra_${selectedCardId}`;
+  const handleEkstraQuantityChange = (item, val) => {
+    const itemId = `ekstra_${item.id}`;
+    const currentQty = quantities[itemId]?.length || 0;
     
-    // Convert the absolute quantity to an array of 'EKSTRA' strings to maintain state shape
-    const newArr = Array(newQuantity).fill('EKSTRA');
-    
-    setQuantities(prev => ({
-      ...prev,
-      [itemId]: newArr
-    }));
-
-    setExcludeModalOpen(false);
-    setSelectedCardId(null);
+    if (val > currentQty) {
+      setQuantities(prev => ({
+        ...prev,
+        [itemId]: [...(prev[itemId] || []), 'EKSTRA']
+      }));
+    } else if (val < currentQty) {
+      setQuantities(prev => {
+        const arr = prev[itemId] || [];
+        return {
+          ...prev,
+          [itemId]: arr.slice(0, -1)
+        };
+      });
+    }
   };
 
   // Grouping the menus
@@ -212,7 +210,8 @@ export default function MenuPortal() {
                     title={item.name}
                     description={item.description}
                     price="Rp 15.000"
-                    onAddClick={() => openEkstraModal(item)}
+                    quantity={currentQty}
+                    onQuantityChange={(val) => handleEkstraQuantityChange(item, val)}
                     image={item.image || item.imageUrl}
                   />
               </div>
@@ -360,17 +359,6 @@ export default function MenuPortal() {
         }}
         itemData={selectedCardId ? menuItems.find(m => m.id === selectedCardId) : null}
         onSave={handleIncludeModalSave}
-      />
-
-      <ExcludeModal 
-        isOpen={excludeModalOpen}
-        onClose={() => {
-          setExcludeModalOpen(false);
-          setSelectedCardId(null);
-        }}
-        itemData={selectedCardId ? menuItems.find(m => m.id === selectedCardId) : null}
-        initialQuantity={selectedCardId ? (quantities[`ekstra_${selectedCardId}`]?.length || 0) : 0}
-        onSave={handleExcludeModalSave}
       />
 
       {/* Floating Cart Banner */}

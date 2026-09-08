@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Utensils } from 'lucide-react';
-import Button from '../buttons/Button';
 import Stepper from '../navigation/Stepper';
 
 export const MenuCard = ({ 
@@ -15,7 +14,6 @@ export const MenuCard = ({
   maxQuantity = 2,
   sessionMaxQuantity,
   onQuantityChange,
-  onAddClick,
   className = '' 
 }) => {
   return (
@@ -64,9 +62,13 @@ export const MenuCard = ({
             <span className="text-[11px] sm:text-xs font-bold text-primary-600 mb-3 sm:mb-4">{price}</span>
             
             <div className="mt-auto">
-              <Button variant="soft" fullWidth onClick={onAddClick} className="text-[11px] sm:text-xs py-1 sm:py-1.5">
-                + Tambah
-              </Button>
+              <Stepper 
+                value={quantity} 
+                min={0} 
+                max={Infinity} 
+                onChange={onQuantityChange} 
+                className="w-full"
+              />
             </div>
           </>
         )}
@@ -85,7 +87,6 @@ MenuCard.propTypes = {
   maxQuantity: PropTypes.number,
   sessionMaxQuantity: PropTypes.number,
   onQuantityChange: PropTypes.func,
-  onAddClick: PropTypes.func,
   className: PropTypes.string,
 };
 
