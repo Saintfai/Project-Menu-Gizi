@@ -19,6 +19,7 @@ export default function MenuPortal() {
 
   // Local state for steppers
   const [quantities, setQuantities] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Mock patient if context is empty for UI testing
   const displayPatient = patient || {
@@ -28,7 +29,8 @@ export default function MenuPortal() {
     roomClass: 'VIP_A'
   };
 
-  const isVip = displayPatient.roomClass?.includes('VIP');
+  const roomClassLower = displayPatient.roomClass?.toLowerCase() || '';
+  const isVip = roomClassLower.includes('vip a');
   // VIP gets 2 portions for Pagi, Siang, Malam. Others get 2 Pagi, 1 Siang, 1 Malam.
   const maxQtyPagi = 2;
   const maxQtySiang = isVip ? 2 : 1;
@@ -68,33 +70,84 @@ export default function MenuPortal() {
   };
 
   // Grouping the menus
-  const isEkstra = (item) => item.paketName?.toLowerCase().includes('ekstra') || item.name?.toLowerCase().includes('ekstra');
+  const menuPagi = menuItems.filter(item => item.mealTime?.toUpperCase() === 'PAGI');
+  const menuSiang = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SIANG');
+  const menuMalam = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SORE' || item.mealTime?.toUpperCase() === 'MALAM');
+  const menuEkstra = menuItems; // Semua menu dari siklus ini tersedia untuk ekstra
+
+  // Filtered menus for Ekstra Search
+  const filteredEkstraSiang = menuSiang.filter(item => 
+    item.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    item.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   
-  const menuPagi = menuItems.filter(item => item.mealTime?.toUpperCase() === 'PAGI' && !isEkstra(item));
-  const menuSiang = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SIANG' && !isEkstra(item));
-  const menuMalam = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SORE' && !isEkstra(item));
-  const menuEkstra = menuItems.filter(item => isEkstra(item));
+  const filteredEkstraMalam = menuMalam.filter(item => 
+    item.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    item.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   // Helper to render Menu Utama cards in a 2-column mobile grid
-  const renderMenuGrid = (items, maxQty) => {
+  const renderMenuGrid = (items, maxSessionQty) => {
     if (loading) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Memuat menu...</div>;
     if (error) return <div className="p-3 text-sm text-danger-500 italic bg-red-50 rounded-lg border border-red-100 mt-2">Gagal memuat menu.</div>;
     if (items.length === 0) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Data menu belum tersedia.</div>;
 
+    const totalUsedQty = items.reduce((sum, item) => sum + (quantities[item.id] || 0), 0);
+    const remainingQty = maxSessionQty - totalUsedQty;
+
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-3 lg:gap-4 mt-3">
+      <div className="flex sm:grid sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-3 lg:gap-4 overflow-x-auto pb-4 pt-2 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        {items.map(item => {
+          const currentQty = quantities[item.id] || 0;
+          const dynamicMaxQty = currentQty + remainingQty;
+
+          return (
+            <div key={`wrap-${item.id}`} className="min-w-[160px] w-[45vw] sm:w-auto sm:min-w-0 snap-start shrink-0 flex">
+              <div className="w-full">
+                <MenuCard 
+                  key={item.id}
+                  type="paket"
+                  subtitle={item.paketName || 'Paket'}
+                  title={item.name}
+                  description={item.description}
+                  quantity={currentQty}
+                  maxQuantity={dynamicMaxQty}
+                  sessionMaxQuantity={maxSessionQty}
+                  onQuantityChange={(val) => handleQuantityChange(item.id, val)}
+                  image={item.image || item.imageUrl}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // Helper to render Ekstra cards with 'ekstra_' prefix
+  const renderEkstraGrid = (items) => {
+    if (loading) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Memuat menu ekstra...</div>;
+    if (error) return <div className="p-3 text-sm text-danger-500 italic bg-red-50 rounded-lg border border-red-100 mt-2">Gagal memuat menu.</div>;
+    if (items.length === 0) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Data menu ekstra belum tersedia.</div>;
+
+    return (
+      <div className="flex sm:grid sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-3 lg:gap-4 overflow-x-auto pb-4 pt-2 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {items.map(item => (
-          <MenuCard 
-            key={item.id}
-            type="paket"
-            subtitle={item.paketName || 'Paket'}
-            title={item.name}
-            description={item.description}
-            quantity={quantities[item.id] || 0}
-            maxQuantity={maxQty}
-            onQuantityChange={(val) => handleQuantityChange(item.id, val)}
-            image={item.image || item.imageUrl}
-          />
+          <div key={`ekstra-wrap-${item.id}`} className="min-w-[160px] w-[45vw] sm:w-auto sm:min-w-0 snap-start shrink-0 flex">
+            <div className="w-full">
+              <MenuCard 
+                key={`ekstra-card-${item.id}`}
+                type="paket"
+                subtitle={item.paketName || 'Paket'}
+                title={item.name}
+                description={item.description}
+                quantity={quantities[`ekstra_${item.id}`] || 0}
+                maxQuantity={Infinity}
+                onQuantityChange={(val) => handleQuantityChange(`ekstra_${item.id}`, val)}
+                image={item.image || item.imageUrl}
+              />
+            </div>
+          </div>
         ))}
       </div>
     );
@@ -127,7 +180,7 @@ export default function MenuPortal() {
           name={displayPatient.name}
           rmNumber={displayPatient.rmNumber?.replace('RM-', '') || '1223'}
           room={displayPatient.roomName?.replace('Kamar ', '') || '402'}
-          isVip={isVip}
+          roomClass={displayPatient.roomClass}
         />
 
         {/* Warning Banner */}
@@ -191,31 +244,33 @@ export default function MenuPortal() {
             <h2 className="text-lg md:text-xl font-bold text-neutral-900">Ekstra</h2>
           </div>
 
-          <SearchBar />
+          <SearchBar 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
 
-          {loading ? (
-            <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100">Memuat menu ekstra...</div>
-          ) : menuEkstra.length === 0 ? (
-            <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100">Data menu ekstra belum tersedia.</div>
-          ) : (
-            <div className="flex sm:grid sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-3 lg:gap-4 overflow-x-auto pb-4 pt-2 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              {menuEkstra.map(item => (
-                <div key={item.id} className="min-w-[240px] w-[75vw] sm:w-auto sm:min-w-0 snap-start">
-                  <MenuCard 
-                    key={item.id}
-                    type="paket"
-                    subtitle={item.paketName || 'Ekstra'}
-                    title={item.name}
-                    description={item.description}
-                    quantity={quantities[item.id] || 0}
-                    maxQuantity={10}
-                    onQuantityChange={(val) => handleQuantityChange(item.id, val)}
-                    image={item.image || item.imageUrl}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+          <Accordion 
+            title="Makan Siang" 
+            defaultExpanded={true}
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            }
+          >
+            {renderEkstraGrid(filteredEkstraSiang)}
+          </Accordion>
+
+          <Accordion 
+            title="Makan Malam" 
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            }
+          >
+            {renderEkstraGrid(filteredEkstraMalam)}
+          </Accordion>
         </div>
 
       </div>
