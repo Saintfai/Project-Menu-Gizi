@@ -6,7 +6,7 @@ export const PatientIdentityCard = ({
   name, 
   rmNumber, 
   room, 
-  isVip = false, 
+  roomClass, 
   className = '' 
 }) => {
   return (
@@ -29,9 +29,9 @@ export const PatientIdentityCard = ({
               RM-{rmNumber}
             </p>
           </div>
-          {isVip && (
+          {roomClass && (
             <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-warning-100 text-warning-800 uppercase tracking-wide">
-              VIP Status
+              {roomClass}
             </span>
           )}
         </div>
@@ -47,7 +47,7 @@ PatientIdentityCard.propTypes = {
   name: PropTypes.string.isRequired,
   rmNumber: PropTypes.string.isRequired,
   room: PropTypes.string.isRequired,
-  isVip: PropTypes.bool,
+  roomClass: PropTypes.string,
   className: PropTypes.string,
 };
 

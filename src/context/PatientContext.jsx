@@ -24,28 +24,40 @@ export function PatientProvider({ children }) {
   // Async login function hitting Supabase
   const loginPatient = async (identifier, dob) => {
     try {
-      const cleanId = identifier.trim();
-      
       const { data, error } = await supabase
         .from('Patient')
         .select('*')
-        .or(`rmNumber.eq.${cleanId},name.eq.${cleanId}`)
-        .eq('dob', dob)
-        .maybeSingle();
+        .eq('dob', dob);
 
       if (error) {
         console.error('Supabase Login error:', error);
         throw new Error('Terjadi kesalahan sistem saat mencari data.');
       }
 
-      if (!data) {
+      if (!data || data.length === 0) {
+        throw new Error('Data pasien tidak ditemukan atau tanggal lahir salah.');
+      }
+
+      // 1. Normalisasi input user: Hapus SEMUA spasi dan ubah ke huruf kecil
+      const normalizedInput = identifier.replace(/\s+/g, '').toLowerCase();
+
+      // 2. Cari pasien yang cocok (No RM atau Nama) secara fleksibel
+      const matchedPatient = data.find((p) => {
+        const normRM = (p.rmNumber || '').replace(/\s+/g, '').toLowerCase();
+        const normName = (p.name || '').replace(/\s+/g, '').toLowerCase();
+        
+        // Bisa cocok dengan RM persis, Nama persis, atau Nama yang mengandung input (jika user hanya ketik nama depan)
+        return normRM === normalizedInput || normName === normalizedInput || normName.includes(normalizedInput);
+      });
+
+      if (!matchedPatient) {
         throw new Error('Data pasien tidak ditemukan atau tanggal lahir salah.');
       }
 
       // Saves patient basic verification info
       const patientData = {
-        ...data,
-        isVerified: data.isVerified ?? true,
+        ...matchedPatient,
+        isVerified: matchedPatient.isVerified ?? true,
       };
       
       setPatient(patientData);

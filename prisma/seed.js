@@ -245,19 +245,51 @@ async function main() {
   // 2. Seeding Patient Master Data (Testing / Dummy)
   const patient = await prisma.patient.upsert({
     where: { rmNumber: 'RM-12345' },
-    update: {},
+    update: { roomClass: 'VIP A', name: 'Andi Pratama', roomName: 'LAVENDER 1 - 1.1' },
     create: {
       rmNumber: 'RM-12345',
-      name: 'pasien',
+      name: 'Andi Pratama',
       dob: new Date('2003-02-01T00:00:00Z'),
       phone: '081234567890',
-      roomName: 'Mawar 101',
-      roomClass: 'VIP_A',
+      roomName: 'LAVENDER 1 - 1.1',
+      roomClass: 'VIP A',
       allergies: 'Tidak Ada',
       medicalConditions: 'Tidak Ada',
     },
   });
   console.log(`✅ Seeded Patient: ${patient.name} (${patient.rmNumber})`);
+
+  const patient2 = await prisma.patient.upsert({
+    where: { rmNumber: 'RM-11111' },
+    update: { roomClass: 'VIP C', roomName: 'LILY 2 - 2.1' },
+    create: {
+      rmNumber: 'RM-11111',
+      name: 'Budi Santoso',
+      dob: new Date('1980-05-15T00:00:00Z'),
+      phone: '081111111111',
+      roomName: 'LILY 2 - 2.1',
+      roomClass: 'VIP C',
+      allergies: 'Seafood, Kacang',
+      medicalConditions: 'Hipertensi',
+    },
+  });
+  console.log(`✅ Seeded Patient: ${patient2.name} (${patient2.rmNumber})`);
+
+  const patient3 = await prisma.patient.upsert({
+    where: { rmNumber: 'RM-22222' },
+    update: { roomClass: 'VIP B', roomName: 'LILAC 3 - 3.5' },
+    create: {
+      rmNumber: 'RM-22222',
+      name: 'Siti Aminah',
+      dob: new Date('1995-10-20T00:00:00Z'),
+      phone: '082222222222',
+      roomName: 'LILAC 3 - 3.5',
+      roomClass: 'VIP B',
+      allergies: 'Telur, Susu Sapi',
+      medicalConditions: 'Diabetes',
+    },
+  });
+  console.log(`✅ Seeded Patient: ${patient3.name} (${patient3.rmNumber})`);
 
   // 3. Seeding Menu Cycles & Menu Items
   let totalItemsSeeded = 0;

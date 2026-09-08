@@ -13,7 +13,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import HeaderMobile from '../../components/ui/layout/HeaderMobile';
+
 import { usePatient } from '../../context/PatientContext';
 
 // --- Data Arrays ---
@@ -152,23 +152,12 @@ export default function PatientLogin() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-slate-50 flex flex-col font-sans text-gray-800 pt-[60px]">
+    <div className="min-h-screen relative overflow-hidden bg-slate-50 flex flex-col font-sans text-gray-800">
       
       {/* Background Gradients */}
       <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-blue-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
       <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-pink-200/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
 
-      {/* Fixed Header */}
-      <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-gray-100">
-        <HeaderMobile 
-          title={
-            <div className="flex flex-col">
-              <span>Menu Gizi</span>
-              <span className="text-[10px] text-gray-500 font-normal">Kesehatan Anda, Prioritas Kami</span>
-            </div>
-          }
-        />
-      </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-4 z-10 relative pb-12">
