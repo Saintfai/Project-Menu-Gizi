@@ -2,11 +2,35 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
-  // Helper to format meal string/array nicely
-  const formatMeal = (meal) => {
-    if (!meal) return '-';
-    if (Array.isArray(meal)) return meal.join(' ');
-    return meal;
+  // Helper to format meal string nicely with PRD delimiters
+  const renderMealCell = (mealStr) => {
+    if (!mealStr || mealStr === '-') {
+      return <span className="text-neutral-400 font-normal">-</span>;
+    }
+
+    if (typeof mealStr !== 'string') {
+      return <span>{String(mealStr)}</span>;
+    }
+
+    // Split by '|' (Include vs Exclude)
+    if (mealStr.includes('|')) {
+      const [includePart, excludePart] = mealStr.split('|').map((s) => s.trim());
+      return (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {includePart && (
+            <span className="font-semibold text-primary-700">{includePart}</span>
+          )}
+          <span className="text-neutral-300 font-bold px-0.5">|</span>
+          {excludePart && (
+            <span className="font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[11px] border border-emerald-200/60">
+              {excludePart}
+            </span>
+          )}
+        </div>
+      );
+    }
+
+    return <span className="font-semibold text-primary-700">{mealStr}</span>;
   };
 
   return (
@@ -39,7 +63,7 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-1.5 font-semibold text-neutral-900">
                       {row.hasAllergy && (
-                        <div className="w-4 h-4 rounded-full bg-neutral-300 flex items-center justify-center flex-shrink-0">
+                        <div className="w-4 h-4 rounded-full bg-neutral-300 flex items-center justify-center flex-shrink-0" title={row.allergyNote || 'Riwayat Alergi'}>
                           <div className="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></div>
                         </div>
                       )}
@@ -50,30 +74,24 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
                     {row.kamar}
                   </td>
                   <td className="px-4 py-4">
-                    <div className="text-primary-600 text-xs font-semibold">
-                      {formatMeal(row.makanPagi)}
+                    <div className="text-xs">
+                      {renderMealCell(row.makanPagi)}
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <div className="text-primary-600 text-xs font-semibold">
-                      {formatMeal(row.makanSiang)}
+                    <div className="text-xs">
+                      {renderMealCell(row.makanSiang)}
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <div className="text-primary-600 text-xs font-semibold">
-                      {formatMeal(row.makanMalam)}
+                    <div className="text-xs">
+                      {renderMealCell(row.makanMalam)}
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <div className="flex flex-col gap-1 text-[10px]">
-                      <div className="flex items-center gap-1.5 font-bold text-primary-700">
-                        <div className="w-0.5 h-3 bg-primary-600 rounded-full"></div>
-                        {row.tanggalWaktuPesanan}
-                      </div>
-                      <div className="flex items-center gap-1.5 font-medium text-neutral-400">
-                        <div className="w-0.5 h-3 bg-neutral-300 rounded-full"></div>
-                        {row.tanggalWaktuPengantaran}
-                      </div>
+                    <div className="flex items-center gap-1.5 font-semibold text-xs text-neutral-800">
+                      <div className="w-1.5 h-1.5 bg-primary-600 rounded-full flex-shrink-0"></div>
+                      <span>{row.tanggalBesok || row.tanggalWaktuPengantaran}</span>
                     </div>
                   </td>
                   <td className="px-4 py-4 text-center">
