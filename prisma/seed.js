@@ -243,21 +243,57 @@ async function main() {
   }
 
   // 2. Seeding Patient Master Data (Testing / Dummy)
-  const patient = await prisma.patient.upsert({
-    where: { rmNumber: 'RM-12345' },
-    update: {},
-    create: {
+  const patientsData = [
+    {
       rmNumber: 'RM-12345',
-      name: 'pasien',
+      name: 'Andi Pratama',
       dob: new Date('2003-02-01T00:00:00Z'),
       phone: '081234567890',
       roomName: 'Mawar 101',
-      roomClass: 'VIP_A',
+      roomClass: 'VIP A',
       allergies: 'Tidak Ada',
       medicalConditions: 'Tidak Ada',
     },
-  });
-  console.log(`✅ Seeded Patient: ${patient.name} (${patient.rmNumber})`);
+    {
+      rmNumber: 'RM-11111',
+      name: 'Budi Santoso',
+      dob: new Date('1980-05-15T00:00:00Z'),
+      phone: '081111111111',
+      roomName: 'Melati 201',
+      roomClass: 'VIP C',
+      allergies: 'Seafood, Kacang',
+      medicalConditions: 'Hipertensi',
+    },
+    {
+      rmNumber: 'RM-22222',
+      name: 'Siti Aminah',
+      dob: new Date('1995-10-20T00:00:00Z'),
+      phone: '082222222222',
+      roomName: 'Anggrek 305',
+      roomClass: 'VIP B',
+      allergies: 'Telur, Susu Sapi',
+      medicalConditions: 'Diabetes',
+    },
+  ];
+
+  const seededPatients = {};
+  for (const p of patientsData) {
+    const patientRecord = await prisma.patient.upsert({
+      where: { rmNumber: p.rmNumber },
+      update: {
+        name: p.name,
+        dob: p.dob,
+        phone: p.phone,
+        roomName: p.roomName,
+        roomClass: p.roomClass,
+        allergies: p.allergies,
+        medicalConditions: p.medicalConditions,
+      },
+      create: p,
+    });
+    seededPatients[p.rmNumber] = patientRecord;
+    console.log(`✅ Seeded Patient: ${patientRecord.name} (${patientRecord.rmNumber}) - Kamar: ${patientRecord.roomName}`);
+  }
 
   // 3. Seeding Menu Cycles & Menu Items
   let totalItemsSeeded = 0;
@@ -294,94 +330,366 @@ async function main() {
     }
   }
 
-  // 4. Seeding Sample Orders untuk 1 Pasien (Pagi, Siang, Sore + Ekstra Sore)
+  // 4. Seeding Orders untuk Pasien-Pasien (Penyajian Besok / T+1)
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   tomorrow.setHours(0, 0, 0, 0);
 
-  const sampleOrderCode = 'ORD-' + tomorrow.toISOString().slice(0, 10).replace(/-/g, '') + '-001';
+  const dayOfMonth = tomorrow.getDate();
+  const activeCycleId = dayOfMonth === 31 ? 11 : ((dayOfMonth % 10) === 0 ? 10 : (dayOfMonth % 10));
+  const activeCycleData = MENU_CYCLES_DATA.find((c) => c.id === activeCycleId) || MENU_CYCLES_DATA[0];
 
-  // Hapus order contoh lama jika sudah ada dengan orderCode ini
+  const getMenuItem = (mealTime, paketLetter) => {
+    const found = activeCycleData.items.find(
+      (it) => it.mealTime === mealTime && (it.paketName || '').toUpperCase().includes(paketLetter.toUpperCase())
+    );
+    return found || { name: `Menu ${paketLetter}`, paketName: `Paket ${paketLetter}` };
+  };
+
+  const dateCode = tomorrow.toISOString().slice(0, 10).replace(/-/g, '');
+
+  const orderCode1 = `ORD-${dateCode}-001`;
+  const orderCode2 = `ORD-${dateCode}-002`;
+  const orderCode3 = `ORD-${dateCode}-003`;
+
+  // Hapus order sebelumnya untuk tanggal ini & legacy test code agar tidak duplikasi
   await prisma.order.deleteMany({
-    where: { orderCode: sampleOrderCode },
+    where: {
+      orderCode: {
+        in: [orderCode1, orderCode2, orderCode3, 'ORD-20260907-001'],
+      },
+    },
   });
 
-  const sampleOrdersData = [
-    // 1. Sarapan (PAGI) - Include
-    {
-      orderCode: sampleOrderCode,
-      patientId: patient.id,
-      roomNumber: patient.roomName,
-      classType: patient.roomClass,
-      menuName: 'Nasi Uduk',
-      paketName: 'Paket A',
-      mealTime: 'PAGI',
-      servingDate: tomorrow,
-      quantity: 2, // VIP A: 2 porsi pagi
-      type: 'INCLUDE',
-      consumer: 'PASIEN',
-      notes: 'Porsi hangat, jangan terlalu asin',
-    },
-    // 2. Makan Siang (SIANG) - Include
-    {
-      orderCode: sampleOrderCode,
-      patientId: patient.id,
-      roomNumber: patient.roomName,
-      classType: patient.roomClass,
-      menuName: 'Chicken Schnitzel',
-      paketName: 'Paket B',
-      mealTime: 'SIANG',
-      servingDate: tomorrow,
-      quantity: 1,
-      type: 'INCLUDE',
-      consumer: 'PASIEN',
-      notes: 'Porsi hangat, jangan terlalu asin',
-    },
-    // 3. Makan Sore (SORE) - Include
-    {
-      orderCode: sampleOrderCode,
-      patientId: patient.id,
-      roomNumber: patient.roomName,
-      classType: patient.roomClass,
-      menuName: 'Dadar Telur',
-      paketName: 'Paket A',
-      mealTime: 'SORE',
-      servingDate: tomorrow,
-      quantity: 1,
-      type: 'INCLUDE',
-      consumer: 'PASIEN',
-      notes: 'Porsi hangat, jangan terlalu asin',
-    },
-    // 4. Makan Sore (SORE) - Paket Ekstra (EXCLUDE / Berbayar)
-    {
-      orderCode: sampleOrderCode,
-      patientId: patient.id,
-      roomNumber: patient.roomName,
-      classType: patient.roomClass,
-      menuName: 'Tomyum',
-      paketName: 'Paket B',
-      mealTime: 'SORE',
-      servingDate: tomorrow,
-      quantity: 1,
-      type: 'EXCLUDE',
-      consumer: 'PENDAMPING',
-      notes: 'Porsi hangat, jangan terlalu asin',
-    },
-  ];
+  const p1 = seededPatients['RM-12345'];
+  const p2 = seededPatients['RM-11111'];
+  const p3 = seededPatients['RM-22222'];
 
-  await prisma.order.createMany({
-    data: sampleOrdersData,
-  });
+  const allOrdersData = [];
 
-  console.log(`\n📋 Seeded Sample Order untuk Pasien ${patient.name} (${patient.rmNumber}):`);
-  console.log(`   Order Code: ${sampleOrderCode}`);
-  console.log(`   - Pagi   : Paket A (Nasi Uduk) - 2x [INCLUDE]`);
-  console.log(`   - Siang  : Paket B (Chicken Schnitzel) - 1x [INCLUDE]`);
-  console.log(`   - Sore   : Paket A (Dadar Telur) - 1x [INCLUDE]`);
-  console.log(`   - Sore   : Paket B (Tomyum) - 1x [EXCLUDE/EKSTRA]`);
-  console.log(`   - Catatan: "Porsi hangat, jangan terlalu asin"`);
+  // -------------------------------------------------------------
+  // PESANAN 1: Andi Pratama (VIP A)
+  // Memiliki 3 KATEGORI dalam 1 Pesanan:
+  // 1. PASIEN (INCLUDE)
+  // 2. PENUNGGU (INCLUDE)
+  // 3. EKSTRA (EXCLUDE)
+  // -------------------------------------------------------------
+  if (p1) {
+    const pagiA = getMenuItem('PAGI', 'A');
+    const pagiB = getMenuItem('PAGI', 'B');
+    const siangA = getMenuItem('SIANG', 'A');
+    const siangB = getMenuItem('SIANG', 'B');
+    const siangC = getMenuItem('SIANG', 'C');
+    const soreA = getMenuItem('SORE', 'A');
+    const soreB = getMenuItem('SORE', 'B');
 
-  console.log(`\n🎉 SEEDING SELESAI! Total ${MENU_CYCLES_DATA.length} Siklus, ${totalItemsSeeded} Menu Item, dan sample pesanan telah tersimpan di database.`);
+    allOrdersData.push(
+      // Makan Pagi: Pasien (Paket A) + Penunggu (Paket B) [INCLUDE]
+      {
+        orderCode: orderCode1,
+        patientId: p1.id,
+        roomNumber: p1.roomName,
+        classType: p1.roomClass,
+        menuName: pagiA.name,
+        paketName: pagiA.paketName || 'Paket A',
+        mealTime: 'PAGI',
+        servingDate: tomorrow,
+        quantity: 1,
+        type: 'INCLUDE',
+        consumer: 'PASIEN',
+        notes: 'Porsi hangat, tolong jangan terlalu asin untuk makanan pasien.',
+      },
+      {
+        orderCode: orderCode1,
+        patientId: p1.id,
+        roomNumber: p1.roomName,
+        classType: p1.roomClass,
+        menuName: pagiB.name,
+        paketName: pagiB.paketName || 'Paket B',
+        mealTime: 'PAGI',
+        servingDate: tomorrow,
+        quantity: 1,
+        type: 'INCLUDE',
+        consumer: 'PENDAMPING',
+        notes: 'Porsi hangat, tolong jangan terlalu asin untuk makanan pasien.',
+      },
+      // Makan Siang: LENGKAP 3 KATEGORI (Pasien + Penunggu + Ekstra)
+      // Category 1: PASIEN (INCLUDE)
+      {
+        orderCode: orderCode1,
+        patientId: p1.id,
+        roomNumber: p1.roomName,
+        classType: p1.roomClass,
+        menuName: siangA.name,
+        paketName: siangA.paketName || 'Paket A',
+        mealTime: 'SIANG',
+        servingDate: tomorrow,
+        quantity: 1,
+        type: 'INCLUDE',
+        consumer: 'PASIEN',
+        notes: 'Porsi hangat, tolong jangan terlalu asin untuk makanan pasien.',
+      },
+      // Category 2: PENUNGGU (INCLUDE)
+      {
+        orderCode: orderCode1,
+        patientId: p1.id,
+        roomNumber: p1.roomName,
+        classType: p1.roomClass,
+        menuName: siangB.name,
+        paketName: siangB.paketName || 'Paket B',
+        mealTime: 'SIANG',
+        servingDate: tomorrow,
+        quantity: 1,
+        type: 'INCLUDE',
+        consumer: 'PENDAMPING',
+        notes: 'Porsi hangat, tolong jangan terlalu asin untuk makanan pasien.',
+      },
+      // Category 3: EKSTRA (EXCLUDE / Berbayar)
+      {
+        orderCode: orderCode1,
+        patientId: p1.id,
+        roomNumber: p1.roomName,
+        classType: p1.roomClass,
+        menuName: siangC.name,
+        paketName: siangC.paketName || 'Paket C',
+        mealTime: 'SIANG',
+        servingDate: tomorrow,
+        quantity: 1,
+        type: 'EXCLUDE',
+        consumer: 'PENDAMPING',
+        notes: 'Porsi hangat, tolong jangan terlalu asin untuk makanan pasien.',
+      },
+      // Makan Sore: Pasien + Penunggu (Paket A 2x) & Ekstra (Paket B)
+      {
+        orderCode: orderCode1,
+        patientId: p1.id,
+        roomNumber: p1.roomName,
+        classType: p1.roomClass,
+        menuName: soreA.name,
+        paketName: soreA.paketName || 'Paket A',
+        mealTime: 'SORE',
+        servingDate: tomorrow,
+        quantity: 1,
+        type: 'INCLUDE',
+        consumer: 'PASIEN',
+        notes: 'Porsi hangat, tolong jangan terlalu asin untuk makanan pasien.',
+      },
+      {
+        orderCode: orderCode1,
+        patientId: p1.id,
+        roomNumber: p1.roomName,
+        classType: p1.roomClass,
+        menuName: soreA.name,
+        paketName: soreA.paketName || 'Paket A',
+        mealTime: 'SORE',
+        servingDate: tomorrow,
+        quantity: 1,
+        type: 'INCLUDE',
+        consumer: 'PENDAMPING',
+        notes: 'Porsi hangat, tolong jangan terlalu asin untuk makanan pasien.',
+      },
+      {
+        orderCode: orderCode1,
+        patientId: p1.id,
+        roomNumber: p1.roomName,
+        classType: p1.roomClass,
+        menuName: soreB.name,
+        paketName: soreB.paketName || 'Paket B',
+        mealTime: 'SORE',
+        servingDate: tomorrow,
+        quantity: 1,
+        type: 'EXCLUDE',
+        consumer: 'PENDAMPING',
+        notes: 'Porsi hangat, tolong jangan terlalu asin untuk makanan pasien.',
+      }
+    );
+  }
+
+  // -------------------------------------------------------------
+  // PESANAN 2: Budi Santoso (VIP C / Kelas 1)
+  // Memiliki Alergi: Seafood, Kacang
+  // -------------------------------------------------------------
+  if (p2) {
+    const pagiB = getMenuItem('PAGI', 'B');
+    const pagiD = getMenuItem('PAGI', 'D');
+    const siangA = getMenuItem('SIANG', 'A');
+    const soreA = getMenuItem('SORE', 'A');
+    const soreC = getMenuItem('SORE', 'C');
+
+    allOrdersData.push(
+      // Pagi: Pasien (Paket B) & Penunggu (Paket D)
+      {
+        orderCode: orderCode2,
+        patientId: p2.id,
+        roomNumber: p2.roomName,
+        classType: p2.roomClass,
+        menuName: pagiB.name,
+        paketName: pagiB.paketName || 'Paket B',
+        mealTime: 'PAGI',
+        servingDate: tomorrow,
+        quantity: 1,
+        type: 'INCLUDE',
+        consumer: 'PASIEN',
+        notes: 'Pasien memiliki riwayat alergi seafood dan kacang. Mohon diperhatikan.',
+      },
+      {
+        orderCode: orderCode2,
+        patientId: p2.id,
+        roomNumber: p2.roomName,
+        classType: p2.roomClass,
+        menuName: pagiD.name,
+        paketName: pagiD.paketName || 'Paket D',
+        mealTime: 'PAGI',
+        servingDate: tomorrow,
+        quantity: 1,
+        type: 'INCLUDE',
+        consumer: 'PENDAMPING',
+        notes: 'Pasien memiliki riwayat alergi seafood dan kacang. Mohon diperhatikan.',
+      },
+      // Siang: Pasien (Paket A)
+      {
+        orderCode: orderCode2,
+        patientId: p2.id,
+        roomNumber: p2.roomName,
+        classType: p2.roomClass,
+        menuName: siangA.name,
+        paketName: siangA.paketName || 'Paket A',
+        mealTime: 'SIANG',
+        servingDate: tomorrow,
+        quantity: 1,
+        type: 'INCLUDE',
+        consumer: 'PASIEN',
+        notes: 'Pasien memiliki riwayat alergi seafood dan kacang. Mohon diperhatikan.',
+      },
+      // Sore: Pasien (Paket A) + Ekstra (Paket C)
+      {
+        orderCode: orderCode2,
+        patientId: p2.id,
+        roomNumber: p2.roomName,
+        classType: p2.roomClass,
+        menuName: soreA.name,
+        paketName: soreA.paketName || 'Paket A',
+        mealTime: 'SORE',
+        servingDate: tomorrow,
+        quantity: 1,
+        type: 'INCLUDE',
+        consumer: 'PASIEN',
+        notes: 'Pasien memiliki riwayat alergi seafood dan kacang. Mohon diperhatikan.',
+      },
+      {
+        orderCode: orderCode2,
+        patientId: p2.id,
+        roomNumber: p2.roomName,
+        classType: p2.roomClass,
+        menuName: soreC.name,
+        paketName: soreC.paketName || 'Paket C',
+        mealTime: 'SORE',
+        servingDate: tomorrow,
+        quantity: 1,
+        type: 'EXCLUDE',
+        consumer: 'PENDAMPING',
+        notes: 'Pasien memiliki riwayat alergi seafood dan kacang. Mohon diperhatikan.',
+      }
+    );
+  }
+
+  // -------------------------------------------------------------
+  // PESANAN 3: Siti Aminah (VIP B)
+  // Memiliki Alergi: Telur, Susu Sapi
+  // -------------------------------------------------------------
+  if (p3) {
+    const pagiA = getMenuItem('PAGI', 'A');
+    const siangB = getMenuItem('SIANG', 'B');
+    const siangA = getMenuItem('SIANG', 'A');
+    const soreA = getMenuItem('SORE', 'A');
+
+    allOrdersData.push(
+      // Pagi: Pasien + Penunggu (Paket A 2x)
+      {
+        orderCode: orderCode3,
+        patientId: p3.id,
+        roomNumber: p3.roomName,
+        classType: p3.roomClass,
+        menuName: pagiA.name,
+        paketName: pagiA.paketName || 'Paket A',
+        mealTime: 'PAGI',
+        servingDate: tomorrow,
+        quantity: 2,
+        type: 'INCLUDE',
+        consumer: 'PASIEN',
+        notes: 'Diet DM (Diabetes Melitus), bebas olahan telur dan susu sapi.',
+      },
+      // Siang: Pasien (Paket B) + Ekstra (Paket A)
+      {
+        orderCode: orderCode3,
+        patientId: p3.id,
+        roomNumber: p3.roomName,
+        classType: p3.roomClass,
+        menuName: siangB.name,
+        paketName: siangB.paketName || 'Paket B',
+        mealTime: 'SIANG',
+        servingDate: tomorrow,
+        quantity: 1,
+        type: 'INCLUDE',
+        consumer: 'PASIEN',
+        notes: 'Diet DM (Diabetes Melitus), bebas olahan telur dan susu sapi.',
+      },
+      {
+        orderCode: orderCode3,
+        patientId: p3.id,
+        roomNumber: p3.roomName,
+        classType: p3.roomClass,
+        menuName: siangA.name,
+        paketName: siangA.paketName || 'Paket A',
+        mealTime: 'SIANG',
+        servingDate: tomorrow,
+        quantity: 1,
+        type: 'EXCLUDE',
+        consumer: 'PENDAMPING',
+        notes: 'Diet DM (Diabetes Melitus), bebas olahan telur dan susu sapi.',
+      },
+      // Sore: Pasien (Paket A)
+      {
+        orderCode: orderCode3,
+        patientId: p3.id,
+        roomNumber: p3.roomName,
+        classType: p3.roomClass,
+        menuName: soreA.name,
+        paketName: soreA.paketName || 'Paket A',
+        mealTime: 'SORE',
+        servingDate: tomorrow,
+        quantity: 1,
+        type: 'INCLUDE',
+        consumer: 'PASIEN',
+        notes: 'Diet DM (Diabetes Melitus), bebas olahan telur dan susu sapi.',
+      }
+    );
+  }
+
+  if (allOrdersData.length > 0) {
+    await prisma.order.createMany({
+      data: allOrdersData,
+    });
+  }
+
+  console.log(`\n📋 Seeded Orders untuk Penyajian T+1 (Siklus ${activeCycleId} - ${tomorrow.toISOString().slice(0, 10)}):`);
+  console.log(`   1. [${orderCode1}] ${p1?.name} (${p1?.rmNumber}) - Kamar ${p1?.roomName} [VIP A]`);
+  console.log(`      - Pagi : Paket A (Pasien) / Paket B (Penunggu)`);
+  console.log(`      - Siang: ⭐ 3 KATEGORI -> Paket A (Pasien) / Paket B (Penunggu) | Paket C (Ekstra)`);
+  console.log(`      - Sore : Paket A 2x (Pasien & Penunggu) | Paket B (Ekstra)`);
+  console.log(`      - Note : "Porsi hangat, tolong jangan terlalu asin untuk makanan pasien."`);
+
+  console.log(`   2. [${orderCode2}] ${p2?.name} (${p2?.rmNumber}) - Kamar ${p2?.roomName} [🔴 Alergi: Seafood, Kacang]`);
+  console.log(`      - Pagi : Paket B / Paket D`);
+  console.log(`      - Siang: Paket A`);
+  console.log(`      - Sore : Paket A | Paket C (Ekstra)`);
+
+  console.log(`   3. [${orderCode3}] ${p3?.name} (${p3?.rmNumber}) - Kamar ${p3?.roomName} [🔴 Alergi: Telur, Susu Sapi]`);
+  console.log(`      - Pagi : Paket A 2x`);
+  console.log(`      - Siang: Paket B | Paket A (Ekstra)`);
+  console.log(`      - Sore : Paket A`);
+
+  console.log(`\n🎉 SEEDING SELESAI! Total ${MENU_CYCLES_DATA.length} Siklus, ${totalItemsSeeded} Menu Item, dan ${allOrdersData.length} item pesanan tersimpan di database.`);
 }
 
 main()
