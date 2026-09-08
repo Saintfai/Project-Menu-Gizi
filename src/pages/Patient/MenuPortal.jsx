@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { UtensilsCrossed, ShoppingCart, ShoppingBag } from 'lucide-react';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import PatientIdentityCard from '../../components/ui/cards/PatientIdentityCard';
@@ -14,6 +14,7 @@ import { supabase } from '../../utils/supabase';
 export default function MenuPortal() {
   const { patient, logoutPatient } = usePatient();
   const navigate = useNavigate();
+  const location = useLocation();
   
   // Local state for fetching menus
   const [menuItems, setMenuItems] = useState([]);
@@ -24,7 +25,10 @@ export default function MenuPortal() {
 
   // Local state for steppers
   // quantities format: { [itemId]: ['PASIEN', 'PENDAMPING', ...] }
-  const [quantities, setQuantities] = useState({});
+  const [quantities, setQuantities] = useState(() => {
+    // Restore quantities when coming back from Cart
+    return location.state?.restoredQuantities || {};
+  });
   const [searchQuery, setSearchQuery] = useState('');
 
 
@@ -377,7 +381,10 @@ export default function MenuPortal() {
             </div>
           </div>
           
-          <button className="bg-white text-[#004e8c] font-bold px-4 py-2 rounded-[10px] text-sm hover:bg-neutral-50 transition-colors flex items-center gap-1.5 border-0 outline-none shadow-none">
+          <button 
+            onClick={() => navigate('/cart', { state: { quantities, menuItems } })}
+            className="bg-white text-[#004e8c] font-bold px-4 py-2 rounded-[10px] text-sm hover:bg-neutral-50 transition-colors flex items-center gap-1.5 border-0 outline-none shadow-none"
+          >
             Lanjut ke Ringkasan
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 18l6-6-6-6" />
