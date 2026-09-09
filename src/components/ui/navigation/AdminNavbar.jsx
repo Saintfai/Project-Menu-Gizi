@@ -39,7 +39,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
 
   return (
     <header
-      className={`relative flex items-center justify-between px-4 sm:px-8 py-3 bg-neutral-0 border-b border-neutral-100 shadow-sm ${className}`}
+      className={`no-print print:hidden relative flex items-center justify-between px-4 sm:px-8 py-3 bg-neutral-0 border-b border-neutral-100 shadow-sm ${className}`}
     >
       {/* Left: Brand Logo & Title */}
       <div className="flex items-center">

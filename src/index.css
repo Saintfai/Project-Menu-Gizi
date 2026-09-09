@@ -214,7 +214,6 @@ table {
   border-collapse: collapse;
   border-spacing: 0;
   font-size: var(--table-body-font-size);
-  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 thead {
@@ -777,5 +776,125 @@ tbody tr:nth-child(even):hover {
 @keyframes tooltipFadeIn {
   from { opacity: 0; transform: translate(-50%, -90%); }
   to { opacity: 1; transform: translate(-50%, -100%); }
+}
+
+/* ============================================================
+ * PRINT MEDIA STYLES (OFFICIAL HOSPITAL REPORT)
+ * ============================================================ */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm 10mm 12mm;
+  }
+
+  /* Reset all animations, transitions, and forced opacity */
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Reset layout and backgrounds */
+  html, body, #root, main {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    min-height: auto !important;
+    font-size: 9pt !important;
+    line-height: 1.35 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide screen-only and interactive elements */
+  nav, 
+  header, 
+  footer, 
+  button, 
+  input, 
+  select, 
+  .no-print,
+  .toaster,
+  [role="status"],
+  .running-text-container {
+    display: none !important;
+  }
+
+  /* Display print-only elements */
+  .print-only,
+  .print\:block {
+    display: block !important;
+  }
+
+  /* Ensure table elements are fully visible and properly formatted (Compact & Sharp) */
+  table {
+    display: table !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    font-size: 8.5pt !important;
+    line-height: 1.25 !important;
+    margin-top: 4px !important;
+    margin-bottom: 6px !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  thead th {
+    display: table-cell !important;
+    font-size: 8pt !important;
+    font-weight: 700 !important;
+    color: #111827 !important;
+    background-color: #f3f4f6 !important;
+    padding: 3px 5px !important;
+    border: 1px solid #9ca3af !important;
+    letter-spacing: normal !important;
+    text-transform: uppercase !important;
+    white-space: normal !important;
+  }
+
+  tbody {
+    display: table-row-group !important;
+  }
+
+  tr {
+    display: table-row !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  tbody td {
+    display: table-cell !important;
+    font-size: 8pt !important;
+    font-weight: 400 !important;
+    color: #1f2937 !important;
+    padding: 2.5px 5px !important;
+    border: 1px solid #d1d5db !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.25 !important;
+  }
+
+  /* Prevent awkward page break issues */
+  .print-avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Reset card styling for clean paper print */
+  .card, .shadow-xs, .shadow-sm, .shadow-md, .shadow-lg {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+  }
 }
 
