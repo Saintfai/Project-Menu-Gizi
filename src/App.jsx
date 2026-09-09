@@ -51,19 +51,19 @@ function App() {
             </Route>
 
             {/* ================= PUBLIC ADMIN ================= */}
-            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/menu/admin/login" element={<AdminLogin />} />
 
             {/* ================= PROTECTED ADMIN ================= */}
             {/* Requires dietary staff authentication */}
             <Route element={<AdminRoute />}>
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="/menu/admin" element={<AdminLayout />}>
+                <Route index element={<Navigate to="/menu/admin/dashboard" replace />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="siklus" element={<MenuCycle />} />
-                <Route path="menu-cycle" element={<Navigate to="/admin/siklus" replace />} />
+                <Route path="menu-cycle" element={<Navigate to="/menu/admin/siklus" replace />} />
                 <Route path="statistik" element={<Statistics />} />
-                <Route path="statistics" element={<Navigate to="/admin/statistik" replace />} />
-                <Route path="laporan" element={<Navigate to="/admin/statistik" replace />} />
+                <Route path="statistics" element={<Navigate to="/menu/admin/statistik" replace />} />
+                <Route path="laporan" element={<Navigate to="/menu/admin/statistik" replace />} />
               </Route>
             </Route>
 

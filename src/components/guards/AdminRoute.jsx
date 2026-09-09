@@ -19,7 +19,7 @@ export default function AdminRoute() {
   }
 
   if (!isAuthenticated || !admin) {
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to="/menu/admin/login" replace />;
   }
 
   return <Outlet />;
