@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag, Loader2 } from 'lucide-react';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import { usePatient } from '../../context/PatientContext';
+import { createOrders } from '../../services/orderService';
 
 // Time schedule labels
 const MEAL_SCHEDULE = {
@@ -16,7 +17,16 @@ export default function Cart() {
   const navigate = useNavigate();
   const location = useLocation();
   const { patient, logoutPatient } = usePatient();
-  const [note, setNote] = useState('');
+  const [note, setNote] = useState(() => {
+    return sessionStorage.getItem('patient_cart_note') || '';
+  });
+  const [showModal, setShowModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Save note to sessionStorage whenever it changes
+  React.useEffect(() => {
+    sessionStorage.setItem('patient_cart_note', note);
+  }, [note]);
 
   // Retrieve data passed from MenuPortal
   const { quantities = {}, menuItems = [] } = location.state || {};
@@ -181,11 +191,118 @@ export default function Cart() {
     );
   };
 
-  const handleConfirm = () => {
-    // TODO: Submit order to backend
-    console.log('Order confirmed:', { orderData, note });
-    alert('Pesanan berhasil dikirim!');
-    navigate('/menu');
+  const handleConfirm = async () => {
+    setIsSubmitting(true);
+    try {
+      const orderItemsToInsert = [];
+      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      const randomStr = Math.floor(1000 + Math.random() * 9000);
+      const orderCode = `ORD-${dateStr}-${randomStr}`;
+
+      const servingDate = new Date();
+      servingDate.setDate(servingDate.getDate() + 1);
+      servingDate.setHours(0, 0, 0, 0);
+
+      // Helper function to generate UUID (fallback for mobile/HTTP environments)
+      const generateUUID = () => {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+          return crypto.randomUUID();
+        }
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          const r = Math.random() * 16 | 0;
+          const v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+      };
+
+      const addItems = (type, consumer, mealTimeKey, itemsArr) => {
+        itemsArr.forEach(entry => {
+          orderItemsToInsert.push({
+            id: generateUUID(),
+            orderCode,
+            patientId: patient.id,
+            roomNumber: patient.roomName,
+            classType: patient.roomClass,
+            menuName: entry.item.name,
+            paketName: entry.paketName || null,
+            mealTime: mealTimeKey,
+            servingDate: servingDate.toISOString(),
+            quantity: entry.qty,
+            type: type,
+            consumer: consumer,
+            notes: note || null
+          });
+        });
+      };
+
+      const roomClassLower = patient.roomClass?.toLowerCase() || '';
+      const isVip = roomClassLower.includes('vip a') || roomClassLower.includes('suite');
+
+      ['PAGI', 'SIANG', 'MALAM'].forEach(key => {
+        const dbMealTime = key === 'MALAM' ? 'SORE' : key;
+        const pasienItems = orderData.pasien[key] || [];
+        const pendampingItems = orderData.pendamping[key] || [];
+        
+        const totalOrdered = pasienItems.reduce((sum, entry) => sum + entry.qty, 0) + 
+                             pendampingItems.reduce((sum, entry) => sum + entry.qty, 0);
+
+        if (totalOrdered === 0) {
+          // If the user ordered 0 portions for this session, add a Default Menu
+          let quota = 1;
+          if (key === 'PAGI') quota = 2;
+          if (key === 'SIANG') quota = isVip ? 2 : 1;
+          if (key === 'MALAM') quota = isVip ? 2 : 1;
+
+          orderItemsToInsert.push({
+            id: generateUUID(),
+            orderCode,
+            patientId: patient.id,
+            roomNumber: patient.roomName,
+            classType: patient.roomClass,
+            menuName: "Menu Default (Ditentukan Ahli Gizi)",
+            paketName: "Paket Default",
+            mealTime: dbMealTime,
+            servingDate: servingDate.toISOString(),
+            quantity: quota,
+            type: 'INCLUDE',
+            consumer: 'PASIEN',
+            notes: note || null
+          });
+        } else {
+          if (pasienItems.length > 0) addItems('INCLUDE', 'PASIEN', dbMealTime, pasienItems);
+          if (pendampingItems.length > 0) addItems('INCLUDE', 'PENDAMPING', dbMealTime, pendampingItems);
+        }
+      });
+
+      ['SIANG', 'MALAM'].forEach(key => {
+        const dbMealTime = key === 'MALAM' ? 'SORE' : key;
+        if (orderData.ekstra[key]) addItems('EXCLUDE', 'PASIEN', dbMealTime, orderData.ekstra[key]);
+      });
+
+      await createOrders(orderItemsToInsert);
+
+      // Clear the saved note upon successful submission
+      sessionStorage.removeItem('patient_cart_note');
+
+      // Create summary for receipt based on exactly what was inserted
+      const summaryMap = {};
+      orderItemsToInsert.forEach(entry => {
+         const keyName = entry.paketName || entry.menuName;
+         if (!summaryMap[keyName]) {
+           summaryMap[keyName] = { name: keyName, qty: 0 };
+         }
+         summaryMap[keyName].qty += entry.quantity;
+      });
+      const summary = Object.values(summaryMap);
+
+      navigate('/order-success', { state: { summary } });
+    } catch (error) {
+      alert(`Terjadi kesalahan saat menyimpan pesanan: ${error.message || 'Silakan coba lagi.'}`);
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+      setShowModal(false);
+    }
   };
 
   return (
@@ -293,7 +410,7 @@ export default function Cart() {
         {/* Confirm Button - Inline Scrollable */}
         <div className="mt-8">
           <button
-            onClick={handleConfirm}
+            onClick={() => setShowModal(true)}
             className="w-full bg-[#004e8c] text-white font-bold py-3.5 rounded-2xl text-sm hover:bg-[#003d6f] active:scale-[0.98] transition-all flex items-center justify-center gap-2 border-none outline-none"
           >
             <Send size={18} className="rotate-45" />
@@ -302,6 +419,50 @@ export default function Cart() {
         </div>
 
       </div>
+
+      {/* Confirmation Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-[2px]">
+          <div className="bg-white w-full max-w-[320px] rounded-[24px] p-6 text-center shadow-xl">
+            <div className="mx-auto w-14 h-14 bg-[#eef4f9] rounded-full flex items-center justify-center mb-5">
+              <Send size={24} className="text-[#004e8c] rotate-45 -ml-1 mt-1" />
+            </div>
+            
+            <h3 className="text-lg font-bold text-[#1a202c] mb-2.5">
+              Kirim Pesanan Sekarang?
+            </h3>
+            
+            <p className="text-[13px] text-slate-500 mb-6 leading-relaxed">
+              Pastikan menu yang Anda pilih sudah sesuai. Pesanan yang telah dikirim tidak dapat diubah kembali.
+            </p>
+            
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => handleConfirm()}
+                disabled={isSubmitting}
+                className="w-full bg-[#004e8c] text-white font-semibold py-3 rounded-full text-sm hover:bg-[#003d6f] transition-colors outline-none focus:outline-none border-none ring-0 disabled:opacity-70 flex items-center justify-center"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin mr-2" />
+                    Memproses...
+                  </>
+                ) : (
+                  'Ya, Kirim Sekarang'
+                )}
+              </button>
+              
+              <button
+                onClick={() => setShowModal(false)}
+                disabled={isSubmitting}
+                className="w-full bg-white text-[#004e8c] font-semibold py-3 rounded-full text-sm border border-solid border-[#004e8c] hover:bg-[#f8fafc] transition-colors outline-none focus:outline-none ring-0 disabled:opacity-50"
+              >
+                Periksa Kembali
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
