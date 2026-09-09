@@ -199,9 +199,12 @@ export default function Cart() {
       const randomStr = Math.floor(1000 + Math.random() * 9000);
       const orderCode = `ORD-${dateStr}-${randomStr}`;
 
-      const servingDate = new Date();
-      servingDate.setDate(servingDate.getDate() + 1);
-      servingDate.setHours(0, 0, 0, 0);
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const year = tomorrow.getFullYear();
+      const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+      const date = String(tomorrow.getDate()).padStart(2, '0');
+      const servingDateISO = `${year}-${month}-${date}T00:00:00.000Z`;
 
       // Helper function to generate UUID (fallback for mobile/HTTP environments)
       const generateUUID = () => {
@@ -226,7 +229,7 @@ export default function Cart() {
             menuName: entry.item.name,
             paketName: entry.paketName || null,
             mealTime: mealTimeKey,
-            servingDate: servingDate.toISOString(),
+            servingDate: servingDateISO,
             quantity: entry.qty,
             type: type,
             consumer: consumer,
@@ -262,7 +265,7 @@ export default function Cart() {
             menuName: "Menu Default (Ditentukan Ahli Gizi)",
             paketName: "Paket Default",
             mealTime: dbMealTime,
-            servingDate: servingDate.toISOString(),
+            servingDate: servingDateISO,
             quantity: quota,
             type: 'INCLUDE',
             consumer: 'PASIEN',
