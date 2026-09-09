@@ -81,6 +81,7 @@ export function PatientProvider({ children }) {
     setPatient(null);
     sessionStorage.removeItem('active_patient_session');
     sessionStorage.removeItem('patient_cart');
+    sessionStorage.removeItem('patient_cart_note');
   };
 
   return (
