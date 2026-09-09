@@ -14,6 +14,7 @@ import toast from 'react-hot-toast';
 import { getOrders } from '../../services/orderService';
 import RekapCard from '../../components/ui/cards/RekapCard';
 import logoEdhos from '../../assets/logoedhos.png';
+import PageTransition from '../../components/PageTransition';
 
 const MONTHS = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -122,6 +123,7 @@ export default function Statistics() {
   };
 
   return (
+    <PageTransition>
     <div className="w-full">
       {/* ========================================================================= */}
       {/* 1. TAMPILAN WEB (INTERAKTIF) - HANYA MUNCUL DI LAYAR (HIDDEN SAAT PRINT) */}
@@ -492,5 +494,6 @@ export default function Statistics() {
         </div>
       </div>
     </div>
+    </PageTransition>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import PageTransition from '../../components/PageTransition';
 import { 
   ArrowLeft, 
   User, 
@@ -58,6 +59,7 @@ export default function Onboarding() {
   };
 
   return (
+    <PageTransition>
     <div className="min-h-screen relative bg-slate-50 flex flex-col font-sans text-gray-800 pt-[60px]">
       {/* Background Gradients */}
       <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-blue-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
@@ -184,5 +186,6 @@ export default function Onboarding() {
 
       </div>
     </div>
+    </PageTransition>
   );
 }

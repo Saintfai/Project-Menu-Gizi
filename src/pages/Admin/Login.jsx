@@ -7,6 +7,7 @@ import {
   Info 
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import PageTransition from '../../components/PageTransition';
 import { useAuth } from '../../context/AuthContext';
 import logoEdhos from '../../assets/logoedhos.png';
 
@@ -41,6 +42,7 @@ export default function AdminLogin() {
   };
 
   return (
+    <PageTransition>
     <div className="min-h-screen relative overflow-hidden bg-slate-50 flex flex-col font-sans text-gray-800">
       
       {/* Background Gradients */}
@@ -139,5 +141,6 @@ export default function AdminLogin() {
       </div>
 
     </div>
+    </PageTransition>
   );
 }

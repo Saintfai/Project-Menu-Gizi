@@ -16,6 +16,7 @@ import NoteDetailModal from '../../components/ui/modals/NoteDetailModal';
 import { groupOrdersForTable } from '../../utils/orderTransformer';
 import { getOrders } from '../../services/orderService';
 import { supabase } from '../../utils/supabase';
+import PageTransition from '../../components/PageTransition';
 
 // Helper date strings (YYYY-MM-DD)
 const toDateInputString = (d) => {
@@ -201,6 +202,7 @@ export default function Dashboard() {
   };
 
   return (
+    <PageTransition>
     <div className="space-y-6 w-full">
       {/* Header Info & Real-Time Status Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-200">
@@ -359,5 +361,6 @@ export default function Dashboard() {
         data={selectedNoteData}
       />
     </div>
+    </PageTransition>
   );
 }

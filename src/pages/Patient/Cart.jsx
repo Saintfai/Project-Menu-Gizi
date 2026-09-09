@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag } from 'lucide-react';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import { usePatient } from '../../context/PatientContext';
+import PageTransition from '../../components/PageTransition';
 
 // Time schedule labels
 const MEAL_SCHEDULE = {
@@ -189,6 +190,7 @@ export default function Cart() {
   };
 
   return (
+    <PageTransition>
     <div className="min-h-screen relative bg-slate-50 flex flex-col font-sans text-neutral-900 pt-[60px] pb-8">
       
       {/* Background Gradients */}
@@ -304,5 +306,6 @@ export default function Cart() {
       </div>
 
     </div>
+    </PageTransition>
   );
 }
