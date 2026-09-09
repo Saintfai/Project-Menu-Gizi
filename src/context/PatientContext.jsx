@@ -24,10 +24,19 @@ export function PatientProvider({ children }) {
   // Async login function hitting Supabase
   const loginPatient = async (identifier, dob) => {
     try {
-      const { data, error } = await supabase
-        .from('Patient')
-        .select('*')
-        .eq('dob', dob);
+      const normalizedInput = identifier.replace(/\s+/g, '').toLowerCase();
+      const isRM = /\d/.test(normalizedInput);
+
+      let query = supabase.from('Patient').select('*');
+      
+      if (isRM) {
+        const numericInput = normalizedInput.replace(/[^0-9]/g, '');
+        query = query.ilike('rmNumber', `%${numericInput}%`);
+      } else {
+        query = query.eq('dob', dob);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Supabase Login error:', error);
@@ -35,19 +44,19 @@ export function PatientProvider({ children }) {
       }
 
       if (!data || data.length === 0) {
-        throw new Error('Data pasien tidak ditemukan atau tanggal lahir salah.');
+        throw new Error('Data pasien tidak ditemukan.');
       }
-
-      // 1. Normalisasi input user: Hapus SEMUA spasi dan ubah ke huruf kecil
-      const normalizedInput = identifier.replace(/\s+/g, '').toLowerCase();
 
       // 2. Cari pasien yang cocok (No RM atau Nama) secara fleksibel
       const matchedPatient = data.find((p) => {
-        const normRM = (p.rmNumber || '').replace(/\s+/g, '').toLowerCase();
-        const normName = (p.name || '').replace(/\s+/g, '').toLowerCase();
-        
-        // Bisa cocok dengan RM persis, Nama persis, atau Nama yang mengandung input (jika user hanya ketik nama depan)
-        return normRM === normalizedInput || normName === normalizedInput || normName.includes(normalizedInput);
+        if (isRM) {
+          const pNumeric = (p.rmNumber || '').replace(/[^0-9]/g, '');
+          const inputNumeric = normalizedInput.replace(/[^0-9]/g, '');
+          return pNumeric === inputNumeric;
+        } else {
+          const normName = (p.name || '').replace(/\s+/g, '').toLowerCase();
+          return normName === normalizedInput || normName.includes(normalizedInput);
+        }
       });
 
       if (!matchedPatient) {
