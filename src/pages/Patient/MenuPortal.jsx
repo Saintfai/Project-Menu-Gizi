@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { UtensilsCrossed, ShoppingCart, ShoppingBag } from 'lucide-react';
+import { UtensilsCrossed, ShoppingCart, ShoppingBag, AlertCircle } from 'lucide-react';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import PatientIdentityCard from '../../components/ui/cards/PatientIdentityCard';
 import Alert from '../../components/ui/feedback/Alert';
@@ -22,6 +22,7 @@ export default function MenuPortal() {
   const [error, setError] = useState(null);
   const [includeModalOpen, setIncludeModalOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState(null);
+  const [validationAlert, setValidationAlert] = useState(null);
 
   // Local state for steppers
   // quantities format: { [itemId]: ['PASIEN', 'PENDAMPING', ...] }
@@ -66,6 +67,22 @@ export default function MenuPortal() {
           .eq('cycleId', cycleId);
 
         if (fetchError) throw fetchError;
+        
+        // Filter out stale items from quantities that are no longer in the current cycle
+        if (data) {
+          setQuantities(prev => {
+            const currentIds = new Set(data.map(d => d.id));
+            const newQuantities = {};
+            for (const [key, val] of Object.entries(prev)) {
+              const baseKey = key.startsWith('ekstra_') ? key.replace('ekstra_', '') : key;
+              if (currentIds.has(baseKey)) {
+                newQuantities[key] = val;
+              }
+            }
+            return newQuantities;
+          });
+        }
+
         setMenuItems(data || []);
       } catch (err) {
         console.error("Error fetching menus:", err);
@@ -228,6 +245,37 @@ export default function MenuPortal() {
 
   const totalItems = Object.values(quantities).reduce((sum, arr) => sum + (arr ? arr.length : 0), 0);
 
+  const handleProceedToCart = () => {
+    let hasPagi = false;
+    let hasSiang = false;
+    let hasMalam = false;
+
+    Object.entries(quantities).forEach(([key, consumers]) => {
+      if (!consumers || consumers.length === 0) return;
+      if (key.startsWith('ekstra_')) return;
+      
+      const item = menuItems.find(m => m.id === key);
+      if (!item) return;
+      
+      const mealTime = item.mealTime?.toUpperCase();
+      if (mealTime === 'PAGI') hasPagi = true;
+      if (mealTime === 'SIANG') hasSiang = true;
+      if (mealTime === 'MALAM' || mealTime === 'SORE') hasMalam = true;
+    });
+
+    if (!hasPagi || !hasSiang || !hasMalam) {
+      const missing = [];
+      if (!hasPagi) missing.push('Pagi');
+      if (!hasSiang) missing.push('Siang');
+      if (!hasMalam) missing.push('Malam');
+      
+      setValidationAlert(`Mohon pilih minimal 1 Menu Utama untuk waktu makan berikut: ${missing.join(', ')}.`);
+      return;
+    }
+
+    navigate('/cart', { state: { quantities, menuItems } });
+  };
+
   return (
     <div className="min-h-screen relative bg-slate-50 flex flex-col font-sans text-neutral-900 pt-[60px] pb-24">
       
@@ -365,6 +413,32 @@ export default function MenuPortal() {
         onSave={handleIncludeModalSave}
       />
 
+      {/* Validation Alert Modal */}
+      {validationAlert && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-[2px]">
+          <div className="bg-white w-full max-w-[320px] rounded-[24px] p-6 text-center shadow-xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="mx-auto w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center mb-4">
+              <AlertCircle size={28} className="text-amber-500" />
+            </div>
+            
+            <h3 className="text-lg font-bold text-neutral-900 mb-2">
+              Lengkapi Pesanan
+            </h3>
+            
+            <p className="text-[13px] text-slate-500 mb-6 leading-relaxed">
+              {validationAlert}
+            </p>
+            
+            <button
+              onClick={() => setValidationAlert(null)}
+              className="w-full bg-[#004e8c] text-white font-semibold py-3 rounded-2xl text-sm hover:bg-[#003d6f] active:scale-[0.98] transition-all outline-none focus:outline-none border-none ring-0"
+            >
+              Oke, Mengerti
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Floating Cart Banner */}
       {totalItems > 0 && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-4xl bg-[#004e8c] text-white rounded-2xl shadow-xl z-40 p-3 md:px-6 md:py-4 flex items-center justify-between animate-in slide-in-from-bottom-5">
@@ -382,7 +456,7 @@ export default function MenuPortal() {
           </div>
           
           <button 
-            onClick={() => navigate('/cart', { state: { quantities, menuItems } })}
+            onClick={handleProceedToCart}
             className="bg-white text-[#004e8c] font-bold px-4 py-2 rounded-[10px] text-sm hover:bg-neutral-50 transition-colors flex items-center gap-1.5 border-0 outline-none shadow-none"
           >
             Lanjut ke Ringkasan
