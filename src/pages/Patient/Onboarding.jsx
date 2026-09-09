@@ -40,15 +40,11 @@ export default function Onboarding() {
   // Construct allergy/condition string
   let warningText = '';
   const hasAllergies = patient.allergies && patient.allergies.toLowerCase() !== 'tidak ada';
-  const hasConditions = patient.medicalConditions && patient.medicalConditions.toLowerCase() !== 'tidak ada';
 
-  if (hasAllergies || hasConditions) {
-    const parts = [];
-    if (hasAllergies) parts.push(patient.allergies);
-    if (hasConditions) parts.push(patient.medicalConditions);
-    warningText = parts.join('. ');
+  if (hasAllergies) {
+    warningText = patient.allergies;
   } else {
-    warningText = 'Tidak ada catatan alergi atau pantangan medis.';
+    warningText = 'Tidak ada catatan alergi.';
   }
 
   // Format Room Class mapping
