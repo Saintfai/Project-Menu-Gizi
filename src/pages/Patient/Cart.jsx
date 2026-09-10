@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag, Loader2 } from 'lucide-react';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import { usePatient } from '../../context/PatientContext';
+import { createOrders } from '../../services/orderService';
 import PageTransition from '../../components/PageTransition';
 
 // Time schedule labels
@@ -182,11 +183,105 @@ export default function Cart() {
     );
   };
 
-  const handleConfirm = () => {
-    // TODO: Submit order to backend
-    console.log('Order confirmed:', { orderData, note });
-    alert('Pesanan berhasil dikirim!');
-    navigate('/menu');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleConfirm = async () => {
+    try {
+      setSubmitting(true);
+
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const pad = (n) => String(n).padStart(2, '0');
+      const dateCode = `${tomorrow.getFullYear()}${pad(tomorrow.getMonth() + 1)}${pad(tomorrow.getDate())}`;
+      const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+      const orderCode = `ORD-${dateCode}-${randomSuffix}`;
+
+      const patientId = patient?.id;
+      const roomNumber = patient?.roomName || 'Kamar';
+      const classType = patient?.roomClass || 'VIP A';
+
+      const itemsToInsert = [];
+
+      // 1. Pesanan Pasien (INCLUDE)
+      ['PAGI', 'SIANG', 'MALAM'].forEach((mealKey) => {
+        const mealTimeEnum = mealKey === 'MALAM' ? 'SORE' : mealKey;
+        (orderData.pasien[mealKey] || []).forEach((entry) => {
+          itemsToInsert.push({
+            orderCode,
+            patientId,
+            roomNumber,
+            classType,
+            menuName: entry.item.name,
+            paketName: entry.paketName || 'Paket A',
+            mealTime: mealTimeEnum,
+            servingDate: tomorrow.toISOString(),
+            quantity: entry.qty,
+            type: 'INCLUDE',
+            consumer: 'PASIEN',
+            notes: note || null,
+          });
+        });
+      });
+
+      // 2. Pesanan Pendamping (INCLUDE)
+      ['PAGI', 'SIANG', 'MALAM'].forEach((mealKey) => {
+        const mealTimeEnum = mealKey === 'MALAM' ? 'SORE' : mealKey;
+        (orderData.pendamping[mealKey] || []).forEach((entry) => {
+          itemsToInsert.push({
+            orderCode,
+            patientId,
+            roomNumber,
+            classType,
+            menuName: entry.item.name,
+            paketName: entry.paketName || 'Paket B',
+            mealTime: mealTimeEnum,
+            servingDate: tomorrow.toISOString(),
+            quantity: entry.qty,
+            type: 'INCLUDE',
+            consumer: 'PENDAMPING',
+            notes: note || null,
+          });
+        });
+      });
+
+      // 3. Pesanan Ekstra (EXCLUDE)
+      ['SIANG', 'MALAM'].forEach((mealKey) => {
+        const mealTimeEnum = mealKey === 'MALAM' ? 'SORE' : mealKey;
+        (orderData.ekstra[mealKey] || []).forEach((entry) => {
+          itemsToInsert.push({
+            orderCode,
+            patientId,
+            roomNumber,
+            classType,
+            menuName: entry.item.name,
+            paketName: entry.paketName || 'Paket Ekstra',
+            mealTime: mealTimeEnum,
+            servingDate: tomorrow.toISOString(),
+            quantity: entry.qty,
+            type: 'EXCLUDE',
+            consumer: 'PENDAMPING',
+            notes: note || null,
+          });
+        });
+      });
+
+      if (itemsToInsert.length === 0) {
+        alert('Tidak ada menu yang dipilih.');
+        return;
+      }
+
+      if (patientId) {
+        await createOrders(itemsToInsert);
+      }
+
+      alert('Pesanan berhasil dikirim!');
+      navigate('/menu');
+    } catch (err) {
+      console.error('Error submitting order:', err);
+      alert('Gagal mengirim pesanan: ' + (err.message || 'Terjadi kesalahan sistem.'));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -296,10 +391,20 @@ export default function Cart() {
         <div className="mt-8">
           <button
             onClick={handleConfirm}
-            className="w-full bg-[#004e8c] text-white font-bold py-3.5 rounded-2xl text-sm hover:bg-[#003d6f] active:scale-[0.98] transition-all flex items-center justify-center gap-2 border-none outline-none"
+            disabled={submitting}
+            className="w-full bg-[#004e8c] text-white font-bold py-3.5 rounded-2xl text-sm hover:bg-[#003d6f] active:scale-[0.98] transition-all flex items-center justify-center gap-2 border-none outline-none disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <Send size={18} className="rotate-45" />
-            Konfirmasi & Kirim Pesanan
+            {submitting ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                Mengirim Pesanan...
+              </>
+            ) : (
+              <>
+                <Send size={18} className="rotate-45" />
+                Konfirmasi & Kirim Pesanan
+              </>
+            )}
           </button>
         </div>
 

@@ -18,7 +18,9 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
       return (
         <div className="flex items-center gap-1.5 flex-wrap">
           {includePart && (
-            <span className="font-semibold text-primary-700">{includePart}</span>
+            <span className={includePart === '-' ? 'text-neutral-400 font-normal' : 'font-semibold text-primary-700'}>
+              {includePart}
+            </span>
           )}
           <span className="text-neutral-300 font-bold px-0.5">|</span>
           {excludePart && (
