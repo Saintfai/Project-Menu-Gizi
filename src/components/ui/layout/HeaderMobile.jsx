@@ -6,9 +6,9 @@ export const HeaderMobile = ({ title = 'Menu Gizi', className = '', onLogout }) 
   return (
     <header className={`flex items-center px-4 py-3 bg-neutral-0 border-b border-neutral-100 ${className}`}>
       <div 
-        className="flex items-center cursor-pointer transition-opacity hover:opacity-80 active:opacity-70"
+        className={`flex items-center ${onLogout ? 'cursor-pointer transition-opacity hover:opacity-80 active:opacity-70' : ''}`}
         onClick={onLogout}
-        title="Keluar"
+        title={onLogout ? "Keluar" : undefined}
       >
         <div className="flex-shrink-0 flex items-center justify-center mr-3">
           <img src={logoEdhos} alt="Logo Menu Gizi" className="w-8 h-8 object-contain" />

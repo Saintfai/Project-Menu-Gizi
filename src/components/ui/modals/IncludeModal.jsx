@@ -2,12 +2,16 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Utensils, Send } from 'lucide-react';
 
-export const IncludeModal = ({ isOpen, onClose, itemData, onSave }) => {
+export const IncludeModal = ({ isOpen, onClose, itemData, onSave, takenRoles = [] }) => {
   const [selected, setSelected] = useState('PASIEN');
 
   useEffect(() => {
     if (isOpen) {
-      setSelected('PASIEN');
+      if (!takenRoles.includes('PASIEN')) {
+        setSelected('PASIEN');
+      } else if (!takenRoles.includes('PENDAMPING')) {
+        setSelected('PENDAMPING');
+      }
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -15,7 +19,7 @@ export const IncludeModal = ({ isOpen, onClose, itemData, onSave }) => {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, itemData]);
+  }, [isOpen, itemData, takenRoles]);
 
   if (!isOpen || !itemData) return null;
 
@@ -63,21 +67,27 @@ export const IncludeModal = ({ isOpen, onClose, itemData, onSave }) => {
           {/* Toggle Consumer Buttons */}
           <div className="flex gap-3 mt-4">
             <button
-              onClick={() => setSelected('PASIEN')}
+              onClick={() => !takenRoles.includes('PASIEN') && setSelected('PASIEN')}
+              disabled={takenRoles.includes('PASIEN')}
               className={`flex-1 py-2.5 text-sm font-semibold rounded-full border-0 outline-none transition-all ${
-                selected === 'PASIEN'
-                  ? 'bg-primary-600 text-white shadow-sm'
-                  : 'bg-neutral-200 text-neutral-500 hover:bg-neutral-300'
+                takenRoles.includes('PASIEN')
+                  ? 'bg-neutral-100 text-neutral-400 opacity-50 cursor-not-allowed'
+                  : selected === 'PASIEN'
+                    ? 'bg-primary-600 text-white shadow-sm'
+                    : 'bg-neutral-200 text-neutral-500 hover:bg-neutral-300'
               }`}
             >
               Pasien
             </button>
             <button
-              onClick={() => setSelected('PENDAMPING')}
+              onClick={() => !takenRoles.includes('PENDAMPING') && setSelected('PENDAMPING')}
+              disabled={takenRoles.includes('PENDAMPING')}
               className={`flex-1 py-2.5 text-sm font-semibold rounded-full border-0 outline-none transition-all ${
-                selected === 'PENDAMPING'
-                  ? 'bg-primary-600 text-white shadow-sm'
-                  : 'bg-neutral-200 text-neutral-500 hover:bg-neutral-300'
+                takenRoles.includes('PENDAMPING')
+                  ? 'bg-neutral-100 text-neutral-400 opacity-50 cursor-not-allowed'
+                  : selected === 'PENDAMPING'
+                    ? 'bg-primary-600 text-white shadow-sm'
+                    : 'bg-neutral-200 text-neutral-500 hover:bg-neutral-300'
               }`}
             >
               Pendamping
@@ -105,6 +115,7 @@ IncludeModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   itemData: PropTypes.object,
   onSave: PropTypes.func.isRequired,
+  takenRoles: PropTypes.array,
 };
 
 export default IncludeModal;

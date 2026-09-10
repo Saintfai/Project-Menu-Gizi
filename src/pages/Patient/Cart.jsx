@@ -30,7 +30,7 @@ export default function Cart() {
   }, [note]);
 
   // Retrieve data passed from MenuPortal
-  const { quantities = {}, menuItems = [] } = location.state || {};
+  const { quantities = {}, menuItems = [], hasOrderedMain = false } = location.state || {};
 
   // If no data, redirect back
   if (!quantities || Object.keys(quantities).length === 0) {
@@ -250,8 +250,8 @@ export default function Cart() {
         const totalOrdered = pasienItems.reduce((sum, entry) => sum + entry.qty, 0) + 
                              pendampingItems.reduce((sum, entry) => sum + entry.qty, 0);
 
-        if (totalOrdered === 0) {
-          // If the user ordered 0 portions for this session, add a Default Menu
+        if (totalOrdered === 0 && !hasOrderedMain) {
+          // If the user ordered 0 portions for this session and hasn't ordered main menu, add a Default Menu
           let quota = 1;
           if (key === 'PAGI') quota = 2;
           if (key === 'SIANG') quota = isVip ? 2 : 1;
@@ -326,10 +326,6 @@ export default function Cart() {
               <span className="text-[10px] font-normal text-neutral-400 -mt-0.5">Kesehatan Anda, Prioritas Kami</span>
             </div>
           }
-          onLogout={() => {
-            logoutPatient();
-            navigate('/login');
-          }}
         />
       </div>
 

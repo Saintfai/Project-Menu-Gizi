@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { UtensilsCrossed, ShoppingCart, ShoppingBag, AlertCircle } from 'lucide-react';
+import { UtensilsCrossed, ShoppingCart, ShoppingBag, AlertCircle, Info } from 'lucide-react';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import PatientIdentityCard from '../../components/ui/cards/PatientIdentityCard';
 import Alert from '../../components/ui/feedback/Alert';
@@ -11,6 +11,7 @@ import IncludeModal from '../../components/ui/modals/IncludeModal';
 import { usePatient } from '../../context/PatientContext';
 import { supabase } from '../../utils/supabase';
 import PageTransition from '../../components/PageTransition';
+import { getOrders } from '../../services/orderService';
 
 export default function MenuPortal() {
   const { patient, logoutPatient } = usePatient();
@@ -24,6 +25,7 @@ export default function MenuPortal() {
   const [includeModalOpen, setIncludeModalOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [validationAlert, setValidationAlert] = useState(null);
+  const [hasOrderedMain, setHasOrderedMain] = useState(false);
 
   // Local state for steppers
   // quantities format: { [itemId]: ['PASIEN', 'PENDAMPING', ...] }
@@ -85,6 +87,24 @@ export default function MenuPortal() {
         }
 
         setMenuItems(data || []);
+
+        const year = tomorrow.getFullYear();
+        const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+        const dateStr = String(tomorrow.getDate()).padStart(2, '0');
+        const servingDateISO = `${year}-${month}-${dateStr}T00:00:00.000Z`;
+
+        if (displayPatient && displayPatient.id) {
+          const orders = await getOrders({ 
+            servingDate: servingDateISO,
+            patientId: displayPatient.id,
+            type: 'INCLUDE'
+          });
+
+          if (orders && orders.length > 0) {
+            setHasOrderedMain(true);
+          }
+        }
+
       } catch (err) {
         console.error("Error fetching menus:", err);
         setError(err.message);
@@ -264,17 +284,16 @@ export default function MenuPortal() {
       if (mealTime === 'MALAM' || mealTime === 'SORE') hasMalam = true;
     });
 
-    if (!hasPagi || !hasSiang || !hasMalam) {
-      const missing = [];
-      if (!hasPagi) missing.push('Pagi');
-      if (!hasSiang) missing.push('Siang');
-      if (!hasMalam) missing.push('Malam');
-      
-      setValidationAlert(`Mohon pilih minimal 1 Menu Utama untuk waktu makan berikut: ${missing.join(', ')}.`);
+    if (totalItems === 0) {
+      if (!hasOrderedMain) {
+        setValidationAlert(`Mohon pilih minimal 1 menu untuk dipesan.`);
+      } else {
+        setValidationAlert(`Silakan pilih menu ekstra terlebih dahulu.`);
+      }
       return;
     }
 
-    navigate('/cart', { state: { quantities, menuItems } });
+    navigate('/cart', { state: { quantities, menuItems, hasOrderedMain } });
   };
 
   return (
@@ -294,10 +313,6 @@ export default function MenuPortal() {
               <span className="text-[10px] text-gray-500 font-normal">Kesehatan Anda, Prioritas Kami</span>
             </div>
           }
-          onLogout={() => {
-            logoutPatient();
-            navigate('/');
-          }}
         />
       </div>
 
@@ -325,46 +340,55 @@ export default function MenuPortal() {
         </Alert>
 
         {/* Menu Utama Section */}
-        <div className="space-y-4 pt-2">
-          <div className="flex items-center gap-2 mb-2">
-            <UtensilsCrossed size={20} className="text-primary-500" />
-            <h2 className="text-lg md:text-xl font-bold text-neutral-900">Menu Utama</h2>
+        {hasOrderedMain ? (
+          <div className="bg-white shadow-sm border border-slate-200 border-l-[4px] border-l-[#004e8c] rounded-xl p-4 flex items-center gap-3 mt-2 mb-4">
+            <div className="bg-[#eef4f9] p-2 rounded-full">
+              <Info size={20} className="text-[#004e8c]" />
+            </div>
+            <span className="text-[14px] font-bold text-slate-700">Menu utama sudah dipesan</span>
           </div>
+        ) : (
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-2 mb-2">
+              <UtensilsCrossed size={20} className="text-primary-500" />
+              <h2 className="text-lg md:text-xl font-bold text-neutral-900">Menu Utama</h2>
+            </div>
 
-          <Accordion 
-            title="Makan Pagi" 
-            defaultExpanded={true}
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            }
-          >
-            {renderMenuGrid(menuPagi, maxQtyPagi)}
-          </Accordion>
+            <Accordion 
+              title="Makan Pagi" 
+              defaultExpanded={true}
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              }
+            >
+              {renderMenuGrid(menuPagi, maxQtyPagi)}
+            </Accordion>
 
-          <Accordion 
-            title="Makan Siang" 
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            }
-          >
-            {renderMenuGrid(menuSiang, maxQtySiang)}
-          </Accordion>
+            <Accordion 
+              title="Makan Siang" 
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              }
+            >
+              {renderMenuGrid(menuSiang, maxQtySiang)}
+            </Accordion>
 
-          <Accordion 
-            title="Makan Malam" 
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            }
-          >
-            {renderMenuGrid(menuMalam, maxQtyMalam)}
-          </Accordion>
-        </div>
+            <Accordion 
+              title="Makan Malam" 
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              }
+            >
+              {renderMenuGrid(menuMalam, maxQtyMalam)}
+            </Accordion>
+          </div>
+        )}
 
         {/* Ekstra Section */}
         <div className="space-y-4 pt-4">
@@ -377,6 +401,17 @@ export default function MenuPortal() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+
+          <Alert 
+            variant="danger" 
+            icon={
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            }
+          >
+            Batas order untuk makan siang pukul 10.00 WIB, dan untuk makan malam 14.00 WIB.
+          </Alert>
 
           <Accordion 
             title="Makan Siang" 
@@ -405,15 +440,33 @@ export default function MenuPortal() {
       </div>
 
       {/* Modals */}
-      <IncludeModal 
-        isOpen={includeModalOpen}
-        onClose={() => {
-          setIncludeModalOpen(false);
-          setSelectedCardId(null);
-        }}
-        itemData={selectedCardId ? menuItems.find(m => m.id === selectedCardId) : null}
-        onSave={handleIncludeModalSave}
-      />
+      {(() => {
+        let takenRoles = [];
+        if (selectedCardId && includeModalOpen) {
+          const selectedItem = menuItems.find(m => m.id === selectedCardId);
+          if (selectedItem) {
+            const mealTime = selectedItem.mealTime;
+            const sameMealItems = menuItems.filter(m => m.mealTime === mealTime);
+            sameMealItems.forEach(m => {
+              const roles = quantities[m.id] || [];
+              takenRoles = [...takenRoles, ...roles];
+            });
+          }
+        }
+        
+        return (
+          <IncludeModal 
+            isOpen={includeModalOpen}
+            onClose={() => {
+              setIncludeModalOpen(false);
+              setSelectedCardId(null);
+            }}
+            itemData={selectedCardId ? menuItems.find(m => m.id === selectedCardId) : null}
+            onSave={handleIncludeModalSave}
+            takenRoles={takenRoles}
+          />
+        );
+      })()}
 
       {/* Validation Alert Modal */}
       {validationAlert && (
