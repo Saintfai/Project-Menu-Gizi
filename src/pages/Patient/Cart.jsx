@@ -4,6 +4,7 @@ import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag, Loader2 } 
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import { usePatient } from '../../context/PatientContext';
 import { createOrders } from '../../services/orderService';
+import PageTransition from '../../components/PageTransition';
 
 // Time schedule labels
 const MEAL_SCHEDULE = {
@@ -309,6 +310,7 @@ export default function Cart() {
   };
 
   return (
+    <PageTransition>
     <div className="min-h-screen relative bg-slate-50 flex flex-col font-sans text-neutral-900 pt-[60px] pb-8">
       
       {/* Background Gradients */}
@@ -468,5 +470,6 @@ export default function Cart() {
       )}
 
     </div>
+    </PageTransition>
   );
 }

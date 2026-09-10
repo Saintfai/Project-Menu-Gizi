@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
 
 // Providers
@@ -31,51 +32,55 @@ import Statistics from './pages/Admin/Statistics';
 import ComponentsShowcase from './pages/ComponentsShowcase';
 
 function App() {
+  const location = useLocation();
+
   return (
     <AuthProvider>
       <PatientProvider>
         <CartProvider>
           <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
-          <Routes>
-            {/* ================= PUBLIC PATIENT ================= */}
-            {/* Direct QR scan or RM search */}
-            <Route path="/login" element={<PatientLogin />} />
+          <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+              {/* ================= PUBLIC PATIENT ================= */}
+              {/* Direct QR scan or RM search */}
+              <Route path="/login" element={<PatientLogin />} />
 
-            {/* ================= PROTECTED PATIENT ================= */}
-            {/* Requires verified patient session */}
-            <Route element={<PatientRoute />}>
-              <Route element={<PatientLayout />}>
-                <Route path="/onboarding" element={<Onboarding />} />
-                <Route path="/menu" element={<MenuPortal />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/order-success" element={<OrderSuccess />} />
+              {/* ================= PROTECTED PATIENT ================= */}
+              {/* Requires verified patient session */}
+              <Route element={<PatientRoute />}>
+                <Route element={<PatientLayout />}>
+                  <Route path="/onboarding" element={<Onboarding />} />
+                  <Route path="/menu" element={<MenuPortal />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/order-success" element={<OrderSuccess />} />
+                </Route>
               </Route>
-            </Route>
 
-            {/* ================= PUBLIC ADMIN ================= */}
-            <Route path="/admin/login" element={<AdminLogin />} />
+              {/* ================= PUBLIC ADMIN ================= */}
+              <Route path="/menu/admin/login" element={<AdminLogin />} />
 
-            {/* ================= PROTECTED ADMIN ================= */}
-            {/* Requires dietary staff authentication */}
-            <Route element={<AdminRoute />}>
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                <Route path="dashboard" element={<AdminDashboard />} />
-                <Route path="siklus" element={<MenuCycle />} />
-                <Route path="menu-cycle" element={<Navigate to="/admin/siklus" replace />} />
-                <Route path="statistik" element={<Statistics />} />
-                <Route path="statistics" element={<Navigate to="/admin/statistik" replace />} />
-                <Route path="laporan" element={<Navigate to="/admin/statistik" replace />} />
+              {/* ================= PROTECTED ADMIN ================= */}
+              {/* Requires dietary staff authentication */}
+              <Route element={<AdminRoute />}>
+                <Route path="/menu/admin" element={<AdminLayout />}>
+                  <Route index element={<Navigate to="/menu/admin/dashboard" replace />} />
+                  <Route path="dashboard" element={<AdminDashboard />} />
+                  <Route path="siklus" element={<MenuCycle />} />
+                  <Route path="menu-cycle" element={<Navigate to="/menu/admin/siklus" replace />} />
+                  <Route path="statistik" element={<Statistics />} />
+                  <Route path="statistics" element={<Navigate to="/menu/admin/statistik" replace />} />
+                  <Route path="laporan" element={<Navigate to="/menu/admin/statistik" replace />} />
+                </Route>
               </Route>
-            </Route>
 
-            {/* Components Showcase */}
-            <Route path="/components" element={<ComponentsShowcase />} />
+              {/* Components Showcase */}
+              <Route path="/components" element={<ComponentsShowcase />} />
 
-            {/* ================= ROOT & FALLBACK ================= */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </Routes>
+              {/* ================= ROOT & FALLBACK ================= */}
+              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </AnimatePresence>
         </CartProvider>
       </PatientProvider>
     </AuthProvider>
@@ -83,3 +88,4 @@ function App() {
 }
 
 export default App;
+

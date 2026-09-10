@@ -13,6 +13,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import PageTransition from '../../components/PageTransition';
 
 import { usePatient } from '../../context/PatientContext';
 
@@ -154,6 +155,7 @@ export default function PatientLogin() {
   };
 
   return (
+    <PageTransition>
     <div className="min-h-screen relative overflow-hidden bg-slate-50 flex flex-col font-sans text-gray-800">
       
       {/* Background Gradients */}
@@ -335,5 +337,6 @@ export default function PatientLogin() {
       </div>
 
     </div>
+    </PageTransition>
   );
 }

@@ -24,6 +24,7 @@ import {
 import Button from '../../components/ui/buttons/Button';
 import { Input, Textarea } from '../../components/ui/forms/Input';
 import Modal from '../../components/ui/modals/Modal';
+import PageTransition from '../../components/PageTransition';
 
 export default function MenuCycle() {
   const activeCycle = getMenuCycleByDate();
@@ -291,13 +292,13 @@ export default function MenuCycle() {
   };
 
   return (
+    <PageTransition>
     <div className="space-y-6 w-full pb-10">
       {/* Top Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             Kelola Siklus Menu
-            <Sparkles className="w-5 h-5 text-amber-500" />
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
             Daftar dan konfigurasi paket makanan pasien berdasarkan siklus gizi (Siklus 1 - 11).
@@ -556,5 +557,6 @@ export default function MenuCycle() {
         </div>
       </Modal>
     </div>
+    </PageTransition>
   );
 }

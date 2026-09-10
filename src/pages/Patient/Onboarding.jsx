@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import PageTransition from '../../components/PageTransition';
 import { 
   ArrowLeft, 
   User, 
@@ -37,14 +38,14 @@ export default function Onboarding() {
     return `${d}/${m}/${y}`;
   };
 
-  // Construct allergy/condition string
+  // Construct allergy string
   let warningText = '';
   const hasAllergies = patient.allergies && patient.allergies.toLowerCase() !== 'tidak ada';
 
   if (hasAllergies) {
     warningText = patient.allergies;
   } else {
-    warningText = 'Tidak ada catatan alergi.';
+    warningText = 'Tidak ada catatan riwayat alergi.';
   }
 
   // Format Room Class mapping
@@ -54,6 +55,7 @@ export default function Onboarding() {
   };
 
   return (
+    <PageTransition>
     <div className="min-h-screen relative bg-slate-50 flex flex-col font-sans text-gray-800 pt-[60px]">
       {/* Background Gradients */}
       <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-blue-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
@@ -145,7 +147,7 @@ export default function Onboarding() {
               <div className="flex items-start gap-2.5">
                 <AlertTriangle size={16} className="text-red-500 mt-0.5 flex-shrink-0" strokeWidth={2.5} />
                 <div>
-                  <h3 className="text-xs font-bold text-red-700 mb-1">Catatan Alergi & Pantangan</h3>
+                  <h3 className="text-xs font-bold text-red-700 mb-1">Catatan Riwayat Alergi</h3>
                   <p className="text-[11px] text-red-600/90 leading-relaxed font-medium">
                     {warningText}
                   </p>
@@ -182,5 +184,6 @@ export default function Onboarding() {
 
       </div>
     </div>
+    </PageTransition>
   );
 }
