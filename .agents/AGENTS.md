@@ -5,17 +5,19 @@
 **Application Food Ordering & Nutrition Management System (Hospital Dietary System)**
 
   ----------------------------------- -----------------------------------
-  **Dokumen Versi**                   1.7
+  **Dokumen Versi**                   1.8
   **Status**                          Approved / Ready for Development
-                                      --- Penghapusan Aksi Selesai
-                                      (Pengantaran Otomatis Sesuai Jadwal)
-  **Perubahan dari v1.6**             Penghapusan fitur tombol aksi
-                                      "Tandai Selesai" dan status tracking
-                                      manual pada Paket Ekstra. Seluruh
-                                      pesanan (Paket Utama maupun Paket
-                                      Ekstra) langsung diproduksi dan
-                                      didistribusikan mengikuti jadwal
-                                      penyajian T+1 operasional dapur gizi.
+                                      --- Fleksibilitas Pemilihan Waktu
+                                      Makan & Representasi Rekap Tabel
+  **Perubahan dari v1.7**             - Pasien tidak wajib memesan ketiga
+                                        waktu makan (boleh memesan parsial,
+                                        misal hanya Makan Pagi).
+                                      - Kolom waktu makan yang tidak
+                                        dipesan ditampilkan tanda strip
+                                        (`-`) di tabel rekap dapur.
+                                      - Pasien yang tidak memesan sama
+                                        sekali tidak akan muncul di tabel
+                                        rekap dashboard dapur.
   ----------------------------------- -----------------------------------
 
 **1. Ringkasan Produk & Tujuan**
@@ -110,12 +112,14 @@ sakit.
         waktu makan (Pagi: 2, Siang: 2, Malam: 2).
     -   Kelas VIP B ke Bawah (VIP B, Kelas 1, 2, 3): Pagi: 2 porsi,
         Siang: 1 porsi, Malam: 1 porsi.
--   Menu Default: Jika pasien tidak menyelesaikan pemesanan Paket Utama
-    sebelum cut-off time (15:00 WIB), sistem otomatis menetapkan Menu
-    Default yang mengikuti Siklus Menu berjalan pada tanggal tersebut,
-    sesuai kelas kamar pasien, sehingga pasien tetap menerima makanan
-    tanpa perlu input manual.
--   Ketentuan Catatan Pesanan:
+-   **Fleksibilitas Pemilihan Waktu Makan & Pesanan Parsial:**
+    -   Pasien **tidak diwajibkan** memesan ketiga waktu makan sekaligus.
+    -   Pasien diperbolehkan memilih hanya satu atau dua waktu makan saja (misalnya hanya memesan Makan Pagi, atau hanya Makan Siang dan Malam).
+    -   Slot waktu makan yang tidak dipesan akan ditampilkan sebagai tanda strip (`-`) pada tabel rekapitulasi dapur gizi.
+-   **Ketentuan Pemesanan vs Tampilan Tabel:**
+    -   Hanya transaksi pesanan yang telah di-checkout oleh pasien yang masuk dan ditampilkan pada Dashboard Rekap Dapur Gizi.
+    -   Jika pasien **tidak melakukan pemesanan / tidak memilih makanan sama sekali**, maka data pasien tersebut **tidak akan muncul sama sekali di tabel rekap dashboard dapur**.
+-   **Ketentuan Catatan Pesanan:**
     -   Setiap pesanan (baik Paket Utama maupun Paket Ekstra) memiliki
         **1 kolom catatan khusus per pesanan**, bukan per item menu
         atau per porsi.
@@ -240,9 +244,10 @@ Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
     -   Tabel Detail Rekap Pesanan Terintegrasi:
         -   Kolom: `NO`, `NO. RM`, `PASIEN`, `KAMAR`, `MAKAN PAGI`, `MAKAN SIANG`,
             `MAKAN MALAM`, `TANGGAL & WAKTU`, `CATATAN` (Kolom menu tambahan dilebur ke dalam kolom makan).
-        -   Format Pemisah Kolom Makan:
+        -   Format Pemisah & Status Kolom Makan:
             -   Garis Miring (`/`): Memisahkan porsi Pasien dan Penunggu (contoh: `Paket A / Paket B` atau jika sama `Paket A 2x`).
             -   Garis Tegak (`|`): Memisahkan Paket Utama dengan Paket Ekstra (contoh: `Paket A 2x | Paket B` atau `Paket A / Paket B | Paket A`).
+            -   Tanda Strip (`-`): Ditampilkan pada slot waktu makan yang tidak dipesan oleh pasien (contoh: pasien hanya memesan Makan Pagi, maka kolom Makan Siang dan Malam terisi `-`).
         -   Indikator Alergi: Pasien dengan riwayat alergi memiliki tanda
             lingkaran merah (🔴) di samping Nama Pasien.
         -   Kolom Tanggal & Waktu: Memuat jadwal T+1 untuk seluruh
@@ -423,10 +428,12 @@ Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
                             dalam satu sesi checkout, baik untuk Paket
                             Utama maupun Paket Ekstra.
 
-  Pemesanan    **FR-014**   Sistem menetapkan Menu Default otomatis mengikuti
-                            siklus menu berjalan dan kelas kamar pasien,
-                            apabila pasien tidak menyelesaikan pemesanan Paket
-                            Utama sebelum cut-off time.
+  Pemesanan    **FR-014**   Sistem hanya menampilkan data pesanan aktif pasien
+                            yang telah checkout pada tabel rekap dapur; pasien
+                            yang tidak memesan sama sekali tidak akan muncul di
+                            tabel. Untuk pesanan parsial, kolom waktu makan
+                            yang tidak dipesan direpresentasikan dengan tanda
+                            strip (`-`).
 
   Pemesanan    **FR-016**   Sistem menerapkan mekanisme keranjang (cart): item
                             pemesanan dapat diedit bebas sebelum checkout;
