@@ -19,7 +19,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
 
   const handleLogoClick = () => {
     logout();
-    navigate('/admin/login', { replace: true });
+    navigate('/menu/admin/login', { replace: true });
   };
 
   // Format Date: e.g. "JUMAT, 31 JULI 2026"
@@ -39,7 +39,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
 
   return (
     <header
-      className={`relative flex items-center justify-between px-4 sm:px-8 py-3 bg-neutral-0 border-b border-neutral-100 shadow-sm ${className}`}
+      className={`no-print print:hidden relative flex items-center justify-between px-4 sm:px-8 py-3 bg-neutral-0 border-b border-neutral-100 shadow-sm ${className}`}
     >
       {/* Left: Brand Logo & Title */}
       <div className="flex items-center">
@@ -63,7 +63,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
         aria-label="Menu Admin"
       >
         <NavLink
-          to="/admin/dashboard"
+          to="/menu/admin/dashboard"
           className={({ isActive }) =>
             `text-sm sm:text-base transition-colors duration-150 py-1 ${
               isActive
@@ -76,7 +76,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
         </NavLink>
 
         <NavLink
-          to="/admin/siklus"
+          to="/menu/admin/siklus"
           className={({ isActive }) =>
             `text-sm sm:text-base transition-colors duration-150 py-1 ${
               isActive
@@ -89,7 +89,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
         </NavLink>
 
         <NavLink
-          to="/admin/statistik"
+          to="/menu/admin/statistik"
           className={({ isActive }) =>
             `text-sm sm:text-base transition-colors duration-150 py-1 ${
               isActive

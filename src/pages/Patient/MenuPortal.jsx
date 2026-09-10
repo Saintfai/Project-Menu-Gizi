@@ -10,6 +10,7 @@ import SearchBar from '../../components/ui/forms/SearchBar';
 import IncludeModal from '../../components/ui/modals/IncludeModal';
 import { usePatient } from '../../context/PatientContext';
 import { supabase } from '../../utils/supabase';
+import PageTransition from '../../components/PageTransition';
 
 export default function MenuPortal() {
   const { patient, logoutPatient } = usePatient();
@@ -229,6 +230,7 @@ export default function MenuPortal() {
   const totalItems = Object.values(quantities).reduce((sum, arr) => sum + (arr ? arr.length : 0), 0);
 
   return (
+    <PageTransition>
     <div className="min-h-screen relative bg-slate-50 flex flex-col font-sans text-neutral-900 pt-[60px] pb-24">
       
       {/* Background Gradients */}
@@ -393,6 +395,7 @@ export default function MenuPortal() {
         </div>
       )}
     </div>
+    </PageTransition>
   );
 }
 

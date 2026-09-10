@@ -41,7 +41,7 @@ export function formatMealColumn(items = []) {
     return includeStr;
   }
   if (excludeStr) {
-    return `| ${excludeStr}`;
+    return `- | ${excludeStr}`;
   }
   return '-';
 }

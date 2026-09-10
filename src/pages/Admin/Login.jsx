@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  User, 
   Lock, 
   LogIn, 
   AlertCircle, 
   Info 
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import PageTransition from '../../components/PageTransition';
 import { useAuth } from '../../context/AuthContext';
 import logoEdhos from '../../assets/logoedhos.png';
 
@@ -15,7 +15,6 @@ export default function AdminLogin() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -25,30 +24,28 @@ export default function AdminLogin() {
     setError('');
     setIsLoading(true);
 
-    // Mock authentication check
+    const validPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
+
     setTimeout(() => {
-      if (
-        (username === 'admin' || username === 'dapur' || username === 'gizi') &&
-        password === 'admin123'
-      ) {
+      if (password === validPassword) {
         login({
           id: 'adm-001',
-          name: username === 'dapur' ? 'Staf Kitchen Dapur' : 'Dietisien / Ahli Gizi',
-          role: username === 'dapur' ? 'kitchen' : 'admin_gizi',
-          username: username,
+          name: 'Staf Dapur Gizi',
+          role: 'admin_gizi',
         });
-        navigate('/admin/dashboard', { replace: true });
+        navigate('/menu/admin/dashboard', { replace: true });
       } else {
-        setError('Username atau password tidak sesuai. Coba: admin / admin123');
+        setError('Kata sandi yang Anda masukkan salah. Silakan coba lagi.');
       }
       setIsLoading(false);
-    }, 450);
+    }, 350);
   };
 
   return (
+    <PageTransition>
     <div className="min-h-screen relative overflow-hidden bg-slate-50 flex flex-col font-sans text-gray-800">
       
-      {/* Background Gradients - Adjusted visibility */}
+      {/* Background Gradients */}
       <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-blue-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
       <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-pink-200/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
 
@@ -61,7 +58,7 @@ export default function AdminLogin() {
           className="w-full max-w-[360px] bg-white/90 backdrop-blur-xl rounded-[24px] p-6 shadow-2xl border border-white"
         >
           {/* Card Header */}
-          <div className="flex flex-col items-center mb-5">
+          <div className="flex flex-col items-center mb-6">
             <img 
               src={logoEdhos} 
               alt="Logo RS Edelweiss" 
@@ -71,7 +68,7 @@ export default function AdminLogin() {
               Portal Dapur Gizi
             </h2>
             <p className="text-xs text-slate-500 text-center leading-relaxed">
-              Masuk untuk memantau rekap pesanan dan mengelola siklus menu makanan.
+              Masukkan kata sandi untuk mengakses dashboard rekap dan manajemen gizi.
             </p>
           </div>
 
@@ -89,27 +86,6 @@ export default function AdminLogin() {
 
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-4">
-            
-            {/* Input: Username */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5 ml-1">
-                Username / ID Petugas
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <User size={16} strokeWidth={1.5} />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Contoh: admin / dapur"
-                  className="w-full pl-9 pr-3 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-slate-800"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
             {/* Input: Password */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5 ml-1">
@@ -121,10 +97,11 @@ export default function AdminLogin() {
                 </div>
                 <input
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="Masukkan kata sandi..."
                   className="w-full pl-9 pr-3 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800 placeholder:text-slate-400"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoFocus
                   required
                 />
               </div>
@@ -134,7 +111,7 @@ export default function AdminLogin() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-2 bg-[#00529B] hover:bg-[#004280] text-white py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-blue-900/20 text-xs border-none outline-none disabled:opacity-60"
+              className="w-full mt-2 bg-[#00529B] hover:bg-[#004280] text-white py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-blue-900/20 text-xs border-none outline-none disabled:opacity-60 cursor-pointer"
             >
               {isLoading ? (
                 <span>Memverifikasi...</span>
@@ -151,7 +128,7 @@ export default function AdminLogin() {
           <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-start gap-2">
             <Info size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
             <p className="text-[10px] text-slate-500 leading-relaxed">
-              Akses terbatas untuk Petugas Dapur dan Dietisien RS.
+              Akses terbatas untuk Petugas Dapur dan Dietisien RS Edelweiss.
             </p>
           </div>
         </motion.div>
@@ -164,5 +141,6 @@ export default function AdminLogin() {
       </div>
 
     </div>
+    </PageTransition>
   );
 }

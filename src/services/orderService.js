@@ -16,8 +16,7 @@ export async function getOrders(options = {}) {
         name,
         roomName,
         roomClass,
-        allergies,
-        medicalConditions
+        allergies
       )
     `)
     .order('createdAt', { ascending: false });

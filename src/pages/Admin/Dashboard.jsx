@@ -1,11 +1,27 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Sun, Utensils, Moon, PlusCircle, Search, RefreshCw, Clock, AlertCircle, ChevronDown } from 'lucide-react';
+import { 
+  Sun, 
+  Utensils, 
+  Moon, 
+  PlusCircle, 
+  Search, 
+  RefreshCw, 
+  AlertCircle, 
+  ChevronDown
+} from 'lucide-react';
 import RekapCard from '../../components/ui/cards/RekapCard';
 import OrdersTable from '../../components/ui/tables/OrdersTable';
 import NoteDetailModal from '../../components/ui/modals/NoteDetailModal';
 import { groupOrdersForTable } from '../../utils/orderTransformer';
 import { getOrders } from '../../services/orderService';
 import { supabase } from '../../utils/supabase';
+import PageTransition from '../../components/PageTransition';
+
+// Helper date strings (YYYY-MM-DD)
+const toDateInputString = (d) => {
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
 
 export default function Dashboard() {
   const [rawOrders, setRawOrders] = useState([]);
@@ -16,13 +32,6 @@ export default function Dashboard() {
   const [selectedFilter, setSelectedFilter] = useState('ALL');
   const [selectedNoteData, setSelectedNoteData] = useState(null);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  // Real-time clock WIB update
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   // Fetch orders from database
   const fetchOrderData = useCallback(async () => {
@@ -56,20 +65,44 @@ export default function Dashboard() {
     };
   }, [fetchOrderData]);
 
-  // Hitung siklus aktif T+1
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const day = tomorrow.getDate();
-  let cycleNumber = day % 10;
-  if (cycleNumber === 0) cycleNumber = 10;
-  if (day === 31) cycleNumber = 11;
+  // Tanggal penyajian operasional dapur gizi selalu besok (T+1)
+  const tomorrowObj = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d;
+  }, []);
 
-  // Transform data mentah flat dari DB ke 1 baris per pasien/orderCode
+  const tomorrowStr = useMemo(() => toDateInputString(tomorrowObj), [tomorrowObj]);
+
+  // Hitung siklus aktif penyajian besok (T+1)
+  const cycleNumber = useMemo(() => {
+    const day = tomorrowObj.getDate();
+    let num = day % 10;
+    if (num === 0) num = 10;
+    if (day === 31) num = 11;
+    return num;
+  }, [tomorrowObj]);
+
+  // Filter raw orders khusus untuk jadwal penyajian besok (T+1)
+  const filteredDailyOrders = useMemo(() => {
+    return rawOrders.filter((order) => {
+      const dateVal = order.servingDate || order.createdAt;
+      if (!dateVal) return false;
+      
+      const d = new Date(dateVal);
+      const localStr = !isNaN(d.getTime()) ? toDateInputString(d) : '';
+      const isoPrefix = typeof dateVal === 'string' ? dateVal.slice(0, 10) : '';
+
+      return localStr === tomorrowStr || isoPrefix === tomorrowStr;
+    });
+  }, [rawOrders, tomorrowStr]);
+
+  // Transform data mentah harian ke 1 baris per pasien/orderCode
   const tableData = useMemo(() => {
-    return groupOrdersForTable(rawOrders);
-  }, [rawOrders]);
+    return groupOrdersForTable(filteredDailyOrders);
+  }, [filteredDailyOrders]);
 
-  // Hitung ringkasan 4 kartu secara otomatis dari raw orders database
+  // Hitung ringkasan 4 kartu secara otomatis dari filtered daily orders
   const stats = useMemo(() => {
     let pagiTotal = 0, pagiA = 0, pagiB = 0;
     let siangTotal = 0, siangA = 0, siangB = 0;
@@ -77,7 +110,7 @@ export default function Dashboard() {
     let ekstraTotal = 0;
     const ekstraNames = new Set();
 
-    rawOrders.forEach(order => {
+    filteredDailyOrders.forEach(order => {
       const qty = order.quantity || 1;
       const meal = (order.mealTime || '').toUpperCase();
       const paket = (order.paketName || '').toUpperCase();
@@ -109,7 +142,7 @@ export default function Dashboard() {
       malam: { total: malamTotal, a: malamA, b: malamB },
       ekstra: { total: ekstraTotal, kinds: ekstraNames.size },
     };
-  }, [rawOrders]);
+  }, [filteredDailyOrders]);
 
   // Filter dan pencarian tabel
   const filteredData = useMemo(() => {
@@ -147,42 +180,42 @@ export default function Dashboard() {
     setSelectedNoteData(null);
   };
 
-  const formatWibTime = (d) => {
+  const formatServingDateDisplay = (d) => {
     const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${days[d.getDay()]}, ${pad(d.getDate())} ${months[d.getMonth()]} ${d.getFullYear()} - ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} WIB`;
+    return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
   };
 
   return (
+    <PageTransition>
     <div className="space-y-6 w-full">
-      {/* Header Info & Real-Time Status */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-neutral-200">
-        <div className="flex items-center gap-3">
+      {/* Header Info & Real-Time Status Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-200">
+        {/* Status Siklus Aktif & Keterangan Hari Penyajian Besok */}
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200">
             <span className="w-2 h-2 rounded-full bg-primary-600 animate-pulse"></span>
-            Siklus Aktif: Hari ke-{cycleNumber} (Penyajian T+1)
+            Siklus Aktif: Hari ke-{cycleNumber}
+          </span>
+          <span className="text-xs font-semibold text-neutral-700 bg-neutral-100 px-2.5 py-1 rounded-lg border border-neutral-200">
+            Penyajian Besok (T+1): {formatServingDateDisplay(tomorrowObj)}
           </span>
           <span className="text-xs text-neutral-500 font-medium hidden md:inline">
             Cut-Off: 15:00 WIB
           </span>
         </div>
 
-        <div className="flex items-center gap-4">
+        {/* Refresh Action */}
+        <div className="flex items-center gap-3">
           <button
             onClick={fetchOrderData}
             disabled={loading}
-            className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-800 bg-primary-50 hover:bg-primary-100 px-2.5 py-1 rounded-lg border border-primary-200 transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-800 bg-primary-50 hover:bg-primary-100 px-2.5 py-1 rounded-lg border border-primary-200 transition-colors disabled:opacity-50 cursor-pointer"
             title="Muat ulang data dari database"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </button>
-          
-          <div className="flex items-center gap-2 text-xs font-semibold text-neutral-600">
-            <Clock className="w-4 h-4 text-primary-600" />
-            <span>{formatWibTime(currentTime)}</span>
-          </div>
         </div>
       </div>
 
@@ -194,7 +227,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* 4 Card Widget Informasi Real-time */}
+      {/* 4 Card Widget Informasi Real-time Harian */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
         {/* Makan Pagi */}
         <RekapCard
@@ -308,5 +341,6 @@ export default function Dashboard() {
         data={selectedNoteData}
       />
     </div>
+    </PageTransition>
   );
 }
