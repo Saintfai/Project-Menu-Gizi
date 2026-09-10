@@ -253,7 +253,7 @@ export default function Cart() {
       ['SIANG', 'MALAM'].forEach(key => {
         const dbMealTime = key === 'MALAM' ? 'SORE' : key;
         if (orderData.ekstra[key] && orderData.ekstra[key].length > 0) {
-          addItems('EXCLUDE', 'PASIEN', dbMealTime, orderData.ekstra[key]);
+          addItems('EXCLUDE', 'PENDAMPING', dbMealTime, orderData.ekstra[key]);
         }
       });
 
