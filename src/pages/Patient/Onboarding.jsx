@@ -38,18 +38,14 @@ export default function Onboarding() {
     return `${d}/${m}/${y}`;
   };
 
-  // Construct allergy/condition string
+  // Construct allergy string
   let warningText = '';
   const hasAllergies = patient.allergies && patient.allergies.toLowerCase() !== 'tidak ada';
-  const hasConditions = patient.medicalConditions && patient.medicalConditions.toLowerCase() !== 'tidak ada';
 
-  if (hasAllergies || hasConditions) {
-    const parts = [];
-    if (hasAllergies) parts.push(patient.allergies);
-    if (hasConditions) parts.push(patient.medicalConditions);
-    warningText = parts.join('. ');
+  if (hasAllergies) {
+    warningText = patient.allergies;
   } else {
-    warningText = 'Tidak ada catatan alergi atau pantangan medis.';
+    warningText = 'Tidak ada catatan riwayat alergi.';
   }
 
   // Format Room Class mapping
@@ -150,7 +146,7 @@ export default function Onboarding() {
             <div className="flex items-start gap-2.5">
               <AlertTriangle size={16} className="text-red-500 mt-0.5 flex-shrink-0" strokeWidth={2.5} />
               <div>
-                <h3 className="text-xs font-bold text-red-700 mb-1">Catatan Alergi & Pantangan</h3>
+                <h3 className="text-xs font-bold text-red-700 mb-1">Catatan Riwayat Alergi</h3>
                 <p className="text-[11px] text-red-600/90 leading-relaxed font-medium">
                   {warningText}
                 </p>

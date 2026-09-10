@@ -6,7 +6,6 @@ import {
   PlusCircle, 
   Search, 
   RefreshCw, 
-  Clock, 
   AlertCircle, 
   ChevronDown
 } from 'lucide-react';
@@ -33,13 +32,6 @@ export default function Dashboard() {
   const [selectedFilter, setSelectedFilter] = useState('ALL');
   const [selectedNoteData, setSelectedNoteData] = useState(null);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  // Real-time clock WIB update
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   // Fetch orders from database
   const fetchOrderData = useCallback(async () => {
@@ -188,13 +180,6 @@ export default function Dashboard() {
     setSelectedNoteData(null);
   };
 
-  const formatWibTime = (d) => {
-    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${days[d.getDay()]}, ${pad(d.getDate())} ${months[d.getMonth()]} ${d.getFullYear()} - ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} WIB`;
-  };
-
   const formatServingDateDisplay = (d) => {
     const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -220,7 +205,7 @@ export default function Dashboard() {
           </span>
         </div>
 
-        {/* Refresh & Real-time Clock */}
+        {/* Refresh Action */}
         <div className="flex items-center gap-3">
           <button
             onClick={fetchOrderData}
@@ -231,11 +216,6 @@ export default function Dashboard() {
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </button>
-          
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600">
-            <Clock className="w-3.5 h-3.5 text-primary-600" />
-            <span>{formatWibTime(currentTime)}</span>
-          </div>
         </div>
       </div>
 

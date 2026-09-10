@@ -252,7 +252,6 @@ async function main() {
       roomName: 'LAVENDER 1 - 1.1',
       roomClass: 'VIP A',
       allergies: 'Tidak Ada',
-      medicalConditions: 'Tidak Ada',
     },
     {
       rmNumber: 'RM-11111',
@@ -262,7 +261,6 @@ async function main() {
       roomName: 'LILY 2 - 2.1',
       roomClass: 'VIP C',
       allergies: 'Seafood, Udang',
-      medicalConditions: 'Hipertensi',
     },
     {
       rmNumber: 'RM-22222',
@@ -272,7 +270,6 @@ async function main() {
       roomName: 'LILAC 3 - 3.5',
       roomClass: 'VIP B',
       allergies: 'Telur, Susu Sapi',
-      medicalConditions: 'Diabetes',
     },
     {
       rmNumber: 'RM-33333',
@@ -282,7 +279,6 @@ async function main() {
       roomName: 'EDELWEISS SUITE 01',
       roomClass: 'VIP A',
       allergies: 'Kacang Tanah',
-      medicalConditions: 'Pasca Operasi',
     },
     {
       rmNumber: 'RM-44444',
@@ -292,7 +288,6 @@ async function main() {
       roomName: 'MAWAR 4 - 4.2',
       roomClass: 'Kelas 2',
       allergies: 'Tidak Ada',
-      medicalConditions: 'Dispepsia',
     },
     {
       rmNumber: 'RM-55555',
@@ -302,7 +297,6 @@ async function main() {
       roomName: 'TULIP 1 - 1.3',
       roomClass: 'VIP A',
       allergies: 'Tidak Ada',
-      medicalConditions: 'Pemulihan Demam',
     },
     {
       rmNumber: 'RM-66666',
@@ -312,7 +306,6 @@ async function main() {
       roomName: 'ASOKA 5 - 5.1',
       roomClass: 'Kelas 3',
       allergies: 'Daging Ayam',
-      medicalConditions: 'Asam Urat',
     },
   ];
 
@@ -327,7 +320,6 @@ async function main() {
         roomName: p.roomName,
         roomClass: p.roomClass,
         allergies: p.allergies,
-        medicalConditions: p.medicalConditions,
       },
       create: p,
     });
