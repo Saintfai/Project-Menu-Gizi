@@ -142,17 +142,19 @@ export default function Onboarding() {
           </div>
 
           {/* Alert: Alergi & Pantangan */}
-          <div className="bg-red-50/80 border border-red-100 rounded-xl p-4 mb-3">
-            <div className="flex items-start gap-2.5">
-              <AlertTriangle size={16} className="text-red-500 mt-0.5 flex-shrink-0" strokeWidth={2.5} />
-              <div>
-                <h3 className="text-xs font-bold text-red-700 mb-1">Catatan Riwayat Alergi</h3>
-                <p className="text-[11px] text-red-600/90 leading-relaxed font-medium">
-                  {warningText}
-                </p>
+          {hasAllergies && (
+            <div className="bg-red-50/80 border border-red-100 rounded-xl p-4 mb-3">
+              <div className="flex items-start gap-2.5">
+                <AlertTriangle size={16} className="text-red-500 mt-0.5 flex-shrink-0" strokeWidth={2.5} />
+                <div>
+                  <h3 className="text-xs font-bold text-red-700 mb-1">Catatan Riwayat Alergi</h3>
+                  <p className="text-[11px] text-red-600/90 leading-relaxed font-medium">
+                    {warningText}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Alert: Info */}
           <div className="bg-blue-50/80 border border-blue-100 rounded-xl p-3 flex items-start gap-2.5">

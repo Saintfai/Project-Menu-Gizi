@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { UtensilsCrossed, ShoppingCart, ShoppingBag } from 'lucide-react';
+import { UtensilsCrossed, ShoppingCart, ShoppingBag, AlertCircle, Info } from 'lucide-react';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import PatientIdentityCard from '../../components/ui/cards/PatientIdentityCard';
 import Alert from '../../components/ui/feedback/Alert';
@@ -11,6 +11,7 @@ import IncludeModal from '../../components/ui/modals/IncludeModal';
 import { usePatient } from '../../context/PatientContext';
 import { supabase } from '../../utils/supabase';
 import PageTransition from '../../components/PageTransition';
+import { getOrders } from '../../services/orderService';
 
 export default function MenuPortal() {
   const { patient, logoutPatient } = usePatient();
@@ -23,6 +24,8 @@ export default function MenuPortal() {
   const [error, setError] = useState(null);
   const [includeModalOpen, setIncludeModalOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState(null);
+  const [validationAlert, setValidationAlert] = useState(null);
+  const [hasOrderedMain, setHasOrderedMain] = useState(false);
 
   // Local state for steppers
   // quantities format: { [itemId]: ['PASIEN', 'PENDAMPING', ...] }
@@ -67,7 +70,41 @@ export default function MenuPortal() {
           .eq('cycleId', cycleId);
 
         if (fetchError) throw fetchError;
+        
+        // Filter out stale items from quantities that are no longer in the current cycle
+        if (data) {
+          setQuantities(prev => {
+            const currentIds = new Set(data.map(d => d.id));
+            const newQuantities = {};
+            for (const [key, val] of Object.entries(prev)) {
+              const baseKey = key.startsWith('ekstra_') ? key.replace('ekstra_', '') : key;
+              if (currentIds.has(baseKey)) {
+                newQuantities[key] = val;
+              }
+            }
+            return newQuantities;
+          });
+        }
+
         setMenuItems(data || []);
+
+        const year = tomorrow.getFullYear();
+        const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+        const dateStr = String(tomorrow.getDate()).padStart(2, '0');
+        const servingDateISO = `${year}-${month}-${dateStr}T00:00:00.000Z`;
+
+        if (displayPatient && displayPatient.id) {
+          const orders = await getOrders({ 
+            servingDate: servingDateISO,
+            patientId: displayPatient.id,
+            type: 'INCLUDE'
+          });
+
+          if (orders && orders.length > 0) {
+            setHasOrderedMain(true);
+          }
+        }
+
       } catch (err) {
         console.error("Error fetching menus:", err);
         setError(err.message);
@@ -229,6 +266,36 @@ export default function MenuPortal() {
 
   const totalItems = Object.values(quantities).reduce((sum, arr) => sum + (arr ? arr.length : 0), 0);
 
+  const handleProceedToCart = () => {
+    let hasPagi = false;
+    let hasSiang = false;
+    let hasMalam = false;
+
+    Object.entries(quantities).forEach(([key, consumers]) => {
+      if (!consumers || consumers.length === 0) return;
+      if (key.startsWith('ekstra_')) return;
+      
+      const item = menuItems.find(m => m.id === key);
+      if (!item) return;
+      
+      const mealTime = item.mealTime?.toUpperCase();
+      if (mealTime === 'PAGI') hasPagi = true;
+      if (mealTime === 'SIANG') hasSiang = true;
+      if (mealTime === 'MALAM' || mealTime === 'SORE') hasMalam = true;
+    });
+
+    if (totalItems === 0) {
+      if (!hasOrderedMain) {
+        setValidationAlert(`Mohon pilih minimal 1 menu untuk dipesan.`);
+      } else {
+        setValidationAlert(`Silakan pilih menu ekstra terlebih dahulu.`);
+      }
+      return;
+    }
+
+    navigate('/cart', { state: { quantities, menuItems, hasOrderedMain } });
+  };
+
   return (
     <PageTransition>
     <div className="min-h-screen relative bg-slate-50 flex flex-col font-sans text-neutral-900 pt-[60px] pb-24">
@@ -246,10 +313,6 @@ export default function MenuPortal() {
               <span className="text-[10px] text-gray-500 font-normal">Kesehatan Anda, Prioritas Kami</span>
             </div>
           }
-          onLogout={() => {
-            logoutPatient();
-            navigate('/');
-          }}
         />
       </div>
 
@@ -277,46 +340,55 @@ export default function MenuPortal() {
         </Alert>
 
         {/* Menu Utama Section */}
-        <div className="space-y-4 pt-2">
-          <div className="flex items-center gap-2 mb-2">
-            <UtensilsCrossed size={20} className="text-primary-500" />
-            <h2 className="text-lg md:text-xl font-bold text-neutral-900">Menu Utama</h2>
+        {hasOrderedMain ? (
+          <div className="bg-white shadow-sm border border-slate-200 border-l-[4px] border-l-[#004e8c] rounded-xl p-4 flex items-center gap-3 mt-2 mb-4">
+            <div className="bg-[#eef4f9] p-2 rounded-full">
+              <Info size={20} className="text-[#004e8c]" />
+            </div>
+            <span className="text-[14px] font-bold text-slate-700">Menu utama sudah dipesan</span>
           </div>
+        ) : (
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-2 mb-2">
+              <UtensilsCrossed size={20} className="text-primary-500" />
+              <h2 className="text-lg md:text-xl font-bold text-neutral-900">Menu Utama</h2>
+            </div>
 
-          <Accordion 
-            title="Makan Pagi" 
-            defaultExpanded={true}
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            }
-          >
-            {renderMenuGrid(menuPagi, maxQtyPagi)}
-          </Accordion>
+            <Accordion 
+              title="Makan Pagi" 
+              defaultExpanded={true}
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              }
+            >
+              {renderMenuGrid(menuPagi, maxQtyPagi)}
+            </Accordion>
 
-          <Accordion 
-            title="Makan Siang" 
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            }
-          >
-            {renderMenuGrid(menuSiang, maxQtySiang)}
-          </Accordion>
+            <Accordion 
+              title="Makan Siang" 
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              }
+            >
+              {renderMenuGrid(menuSiang, maxQtySiang)}
+            </Accordion>
 
-          <Accordion 
-            title="Makan Malam" 
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            }
-          >
-            {renderMenuGrid(menuMalam, maxQtyMalam)}
-          </Accordion>
-        </div>
+            <Accordion 
+              title="Makan Malam" 
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              }
+            >
+              {renderMenuGrid(menuMalam, maxQtyMalam)}
+            </Accordion>
+          </div>
+        )}
 
         {/* Ekstra Section */}
         <div className="space-y-4 pt-4">
@@ -329,6 +401,17 @@ export default function MenuPortal() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+
+          <Alert 
+            variant="danger" 
+            icon={
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            }
+          >
+            Batas order untuk makan siang pukul 10.00 WIB, dan untuk makan malam 14.00 WIB.
+          </Alert>
 
           <Accordion 
             title="Makan Siang" 
@@ -357,15 +440,59 @@ export default function MenuPortal() {
       </div>
 
       {/* Modals */}
-      <IncludeModal 
-        isOpen={includeModalOpen}
-        onClose={() => {
-          setIncludeModalOpen(false);
-          setSelectedCardId(null);
-        }}
-        itemData={selectedCardId ? menuItems.find(m => m.id === selectedCardId) : null}
-        onSave={handleIncludeModalSave}
-      />
+      {(() => {
+        let takenRoles = [];
+        if (selectedCardId && includeModalOpen) {
+          const selectedItem = menuItems.find(m => m.id === selectedCardId);
+          if (selectedItem) {
+            const mealTime = selectedItem.mealTime;
+            const sameMealItems = menuItems.filter(m => m.mealTime === mealTime);
+            sameMealItems.forEach(m => {
+              const roles = quantities[m.id] || [];
+              takenRoles = [...takenRoles, ...roles];
+            });
+          }
+        }
+        
+        return (
+          <IncludeModal 
+            isOpen={includeModalOpen}
+            onClose={() => {
+              setIncludeModalOpen(false);
+              setSelectedCardId(null);
+            }}
+            itemData={selectedCardId ? menuItems.find(m => m.id === selectedCardId) : null}
+            onSave={handleIncludeModalSave}
+            takenRoles={takenRoles}
+          />
+        );
+      })()}
+
+      {/* Validation Alert Modal */}
+      {validationAlert && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-[2px]">
+          <div className="bg-white w-full max-w-[320px] rounded-[24px] p-6 text-center shadow-xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="mx-auto w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center mb-4">
+              <AlertCircle size={28} className="text-amber-500" />
+            </div>
+            
+            <h3 className="text-lg font-bold text-neutral-900 mb-2">
+              Lengkapi Pesanan
+            </h3>
+            
+            <p className="text-[13px] text-slate-500 mb-6 leading-relaxed">
+              {validationAlert}
+            </p>
+            
+            <button
+              onClick={() => setValidationAlert(null)}
+              className="w-full bg-[#004e8c] text-white font-semibold py-3 rounded-2xl text-sm hover:bg-[#003d6f] active:scale-[0.98] transition-all outline-none focus:outline-none border-none ring-0"
+            >
+              Oke, Mengerti
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Floating Cart Banner */}
       {totalItems > 0 && (
@@ -384,7 +511,7 @@ export default function MenuPortal() {
           </div>
           
           <button 
-            onClick={() => navigate('/cart', { state: { quantities, menuItems } })}
+            onClick={handleProceedToCart}
             className="bg-white text-[#004e8c] font-bold px-4 py-2 rounded-[10px] text-sm hover:bg-neutral-50 transition-colors flex items-center gap-1.5 border-0 outline-none shadow-none"
           >
             Lanjut ke Ringkasan

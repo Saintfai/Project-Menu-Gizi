@@ -119,11 +119,13 @@ export default function PatientLogin() {
   const [showNotFound, setShowNotFound] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  const isRMInput = /\d/.test(identifier);
+
   const handleSearch = async (e) => {
     e.preventDefault();
     setErrorMsg('');
     
-    if (!dobDay || !dobMonth || !dobYear) {
+    if (!isRMInput && (!dobDay || !dobMonth || !dobYear)) {
       setErrorMsg('Silakan lengkapi pilihan Tanggal Lahir.');
       return;
     }
@@ -131,7 +133,7 @@ export default function PatientLogin() {
     setIsLoading(true);
     setShowNotFound(false);
     
-    const dob = `${dobYear}-${dobMonth}-${dobDay}`;
+    const dob = isRMInput ? null : `${dobYear}-${dobMonth}-${dobDay}`;
     
     try {
       await loginPatient(identifier.trim(), dob);
@@ -221,7 +223,7 @@ export default function PatientLogin() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="w-full max-w-[320px] bg-white/90 backdrop-blur-xl rounded-[24px] p-5 shadow-2xl border border-white relative z-20"
+              className="w-full max-w-[320px] min-h-[420px] flex flex-col bg-white/90 backdrop-blur-xl rounded-[24px] p-5 shadow-2xl border border-white relative z-20"
             >
               {/* Card Header */}
               <div className="flex flex-col items-center mb-5">
@@ -260,32 +262,34 @@ export default function PatientLogin() {
                 </div>
 
                 {/* Input: Tanggal Lahir */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5 ml-1 flex items-center gap-1.5">
-                    <Calendar size={14} className="text-slate-400" />
-                    Tanggal Lahir
-                  </label>
-                  <div className="grid grid-cols-[1.1fr_1.1fr_1fr] gap-1.5">
-                    <CustomSelect 
-                      options={days} 
-                      value={dobDay} 
-                      onChange={setDobDay} 
-                      placeholder="Tanggal" 
-                    />
-                    <CustomSelect 
-                      options={months} 
-                      value={dobMonth} 
-                      onChange={setDobMonth} 
-                      placeholder="Bulan" 
-                    />
-                    <CustomSelect 
-                      options={years} 
-                      value={dobYear} 
-                      onChange={setDobYear} 
-                      placeholder="Tahun" 
-                    />
+                {!isRMInput && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5 ml-1 flex items-center gap-1.5 mt-4">
+                      <Calendar size={14} className="text-slate-400" />
+                      Tanggal Lahir
+                    </label>
+                    <div className="grid grid-cols-[1.1fr_1.1fr_1fr] gap-1.5">
+                      <CustomSelect 
+                        options={days} 
+                        value={dobDay} 
+                        onChange={setDobDay} 
+                        placeholder="Tanggal" 
+                      />
+                      <CustomSelect 
+                        options={months} 
+                        value={dobMonth} 
+                        onChange={setDobMonth} 
+                        placeholder="Bulan" 
+                      />
+                      <CustomSelect 
+                        options={years} 
+                        value={dobYear} 
+                        onChange={setDobYear} 
+                        placeholder="Tahun" 
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Error Message if Date Incomplete */}
                 {errorMsg && (
@@ -315,7 +319,7 @@ export default function PatientLogin() {
               </form>
 
               {/* Footer Info inside Card */}
-              <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-start gap-2">
+              <div className="mt-auto pt-3.5 border-t border-slate-100 flex items-start gap-2">
                 <Info size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
                 <p className="text-[10px] text-slate-500 leading-relaxed">
                   Data pasien digunakan untuk menyesuaikan menu gizi.

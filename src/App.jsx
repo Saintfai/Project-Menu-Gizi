@@ -20,6 +20,7 @@ import PatientLogin from './pages/Patient/Login';
 import Onboarding from './pages/Patient/Onboarding';
 import MenuPortal from './pages/Patient/MenuPortal';
 import Cart from './pages/Patient/Cart';
+import OrderSuccess from './pages/Patient/OrderSuccess';
 
 // Admin Pages
 import AdminLogin from './pages/Admin/Login';
@@ -51,6 +52,7 @@ function App() {
                   <Route path="/onboarding" element={<Onboarding />} />
                   <Route path="/menu" element={<MenuPortal />} />
                   <Route path="/cart" element={<Cart />} />
+                  <Route path="/order-success" element={<OrderSuccess />} />
                 </Route>
               </Route>
 

@@ -18,10 +18,19 @@ export default function Cart() {
   const navigate = useNavigate();
   const location = useLocation();
   const { patient, logoutPatient } = usePatient();
-  const [note, setNote] = useState('');
+  const [note, setNote] = useState(() => {
+    return sessionStorage.getItem('patient_cart_note') || '';
+  });
+  const [showModal, setShowModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Save note to sessionStorage whenever it changes
+  React.useEffect(() => {
+    sessionStorage.setItem('patient_cart_note', note);
+  }, [note]);
 
   // Retrieve data passed from MenuPortal
-  const { quantities = {}, menuItems = [] } = location.state || {};
+  const { quantities = {}, menuItems = [], hasOrderedMain = false } = location.state || {};
 
   // If no data, redirect back
   if (!quantities || Object.keys(quantities).length === 0) {
@@ -183,104 +192,120 @@ export default function Cart() {
     );
   };
 
-  const [submitting, setSubmitting] = useState(false);
-
   const handleConfirm = async () => {
+    setIsSubmitting(true);
     try {
-      setSubmitting(true);
+      const orderItemsToInsert = [];
+      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      const randomStr = Math.floor(1000 + Math.random() * 9000);
+      const orderCode = `ORD-${dateStr}-${randomStr}`;
 
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
-      const pad = (n) => String(n).padStart(2, '0');
-      const dateCode = `${tomorrow.getFullYear()}${pad(tomorrow.getMonth() + 1)}${pad(tomorrow.getDate())}`;
-      const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-      const orderCode = `ORD-${dateCode}-${randomSuffix}`;
+      const year = tomorrow.getFullYear();
+      const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+      const date = String(tomorrow.getDate()).padStart(2, '0');
+      const servingDateISO = `${year}-${month}-${date}T00:00:00.000Z`;
 
-      const patientId = patient?.id;
-      const roomNumber = patient?.roomName || 'Kamar';
-      const classType = patient?.roomClass || 'VIP A';
+      // Helper function to generate UUID (fallback for mobile/HTTP environments)
+      const generateUUID = () => {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+          return crypto.randomUUID();
+        }
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          const r = Math.random() * 16 | 0;
+          const v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+      };
 
-      const itemsToInsert = [];
-
-      // 1. Pesanan Pasien (INCLUDE)
-      ['PAGI', 'SIANG', 'MALAM'].forEach((mealKey) => {
-        const mealTimeEnum = mealKey === 'MALAM' ? 'SORE' : mealKey;
-        (orderData.pasien[mealKey] || []).forEach((entry) => {
-          itemsToInsert.push({
+      const addItems = (type, consumer, mealTimeKey, itemsArr) => {
+        itemsArr.forEach(entry => {
+          orderItemsToInsert.push({
+            id: generateUUID(),
             orderCode,
-            patientId,
-            roomNumber,
-            classType,
+            patientId: patient.id,
+            roomNumber: patient.roomName,
+            classType: patient.roomClass,
             menuName: entry.item.name,
-            paketName: entry.paketName || 'Paket A',
-            mealTime: mealTimeEnum,
-            servingDate: tomorrow.toISOString(),
+            paketName: entry.paketName || null,
+            mealTime: mealTimeKey,
+            servingDate: servingDateISO,
             quantity: entry.qty,
+            type: type,
+            consumer: consumer,
+            notes: note || null
+          });
+        });
+      };
+
+      const roomClassLower = patient.roomClass?.toLowerCase() || '';
+      const isVip = roomClassLower.includes('vip a') || roomClassLower.includes('suite');
+
+      ['PAGI', 'SIANG', 'MALAM'].forEach(key => {
+        const dbMealTime = key === 'MALAM' ? 'SORE' : key;
+        const pasienItems = orderData.pasien[key] || [];
+        const pendampingItems = orderData.pendamping[key] || [];
+        
+        const totalOrdered = pasienItems.reduce((sum, entry) => sum + entry.qty, 0) + 
+                             pendampingItems.reduce((sum, entry) => sum + entry.qty, 0);
+
+        if (totalOrdered === 0 && !hasOrderedMain) {
+          // If the user ordered 0 portions for this session and hasn't ordered main menu, add a Default Menu
+          let quota = 1;
+          if (key === 'PAGI') quota = 2;
+          if (key === 'SIANG') quota = isVip ? 2 : 1;
+          if (key === 'MALAM') quota = isVip ? 2 : 1;
+
+          orderItemsToInsert.push({
+            id: generateUUID(),
+            orderCode,
+            patientId: patient.id,
+            roomNumber: patient.roomName,
+            classType: patient.roomClass,
+            menuName: "Menu Default (Ditentukan Ahli Gizi)",
+            paketName: "Paket Default",
+            mealTime: dbMealTime,
+            servingDate: servingDateISO,
+            quantity: quota,
             type: 'INCLUDE',
             consumer: 'PASIEN',
-            notes: note || null,
+            notes: note || null
           });
-        });
+        } else {
+          if (pasienItems.length > 0) addItems('INCLUDE', 'PASIEN', dbMealTime, pasienItems);
+          if (pendampingItems.length > 0) addItems('INCLUDE', 'PENDAMPING', dbMealTime, pendampingItems);
+        }
       });
 
-      // 2. Pesanan Pendamping (INCLUDE)
-      ['PAGI', 'SIANG', 'MALAM'].forEach((mealKey) => {
-        const mealTimeEnum = mealKey === 'MALAM' ? 'SORE' : mealKey;
-        (orderData.pendamping[mealKey] || []).forEach((entry) => {
-          itemsToInsert.push({
-            orderCode,
-            patientId,
-            roomNumber,
-            classType,
-            menuName: entry.item.name,
-            paketName: entry.paketName || 'Paket B',
-            mealTime: mealTimeEnum,
-            servingDate: tomorrow.toISOString(),
-            quantity: entry.qty,
-            type: 'INCLUDE',
-            consumer: 'PENDAMPING',
-            notes: note || null,
-          });
-        });
+      ['SIANG', 'MALAM'].forEach(key => {
+        const dbMealTime = key === 'MALAM' ? 'SORE' : key;
+        if (orderData.ekstra[key]) addItems('EXCLUDE', 'PASIEN', dbMealTime, orderData.ekstra[key]);
       });
 
-      // 3. Pesanan Ekstra (EXCLUDE)
-      ['SIANG', 'MALAM'].forEach((mealKey) => {
-        const mealTimeEnum = mealKey === 'MALAM' ? 'SORE' : mealKey;
-        (orderData.ekstra[mealKey] || []).forEach((entry) => {
-          itemsToInsert.push({
-            orderCode,
-            patientId,
-            roomNumber,
-            classType,
-            menuName: entry.item.name,
-            paketName: entry.paketName || 'Paket Ekstra',
-            mealTime: mealTimeEnum,
-            servingDate: tomorrow.toISOString(),
-            quantity: entry.qty,
-            type: 'EXCLUDE',
-            consumer: 'PENDAMPING',
-            notes: note || null,
-          });
-        });
+      await createOrders(orderItemsToInsert);
+
+      // Clear the saved note upon successful submission
+      sessionStorage.removeItem('patient_cart_note');
+
+      // Create summary for receipt based on exactly what was inserted
+      const summaryMap = {};
+      orderItemsToInsert.forEach(entry => {
+         const keyName = entry.paketName || entry.menuName;
+         if (!summaryMap[keyName]) {
+           summaryMap[keyName] = { name: keyName, qty: 0 };
+         }
+         summaryMap[keyName].qty += entry.quantity;
       });
+      const summary = Object.values(summaryMap);
 
-      if (itemsToInsert.length === 0) {
-        alert('Tidak ada menu yang dipilih.');
-        return;
-      }
-
-      if (patientId) {
-        await createOrders(itemsToInsert);
-      }
-
-      alert('Pesanan berhasil dikirim!');
-      navigate('/menu');
-    } catch (err) {
-      console.error('Error submitting order:', err);
-      alert('Gagal mengirim pesanan: ' + (err.message || 'Terjadi kesalahan sistem.'));
+      navigate('/order-success', { state: { summary } });
+    } catch (error) {
+      alert(`Terjadi kesalahan saat menyimpan pesanan: ${error.message || 'Silakan coba lagi.'}`);
+      console.error(error);
     } finally {
-      setSubmitting(false);
+      setIsSubmitting(false);
+      setShowModal(false);
     }
   };
 
@@ -301,10 +326,6 @@ export default function Cart() {
               <span className="text-[10px] font-normal text-neutral-400 -mt-0.5">Kesehatan Anda, Prioritas Kami</span>
             </div>
           }
-          onLogout={() => {
-            logoutPatient();
-            navigate('/login');
-          }}
         />
       </div>
 
@@ -390,25 +411,59 @@ export default function Cart() {
         {/* Confirm Button - Inline Scrollable */}
         <div className="mt-8">
           <button
-            onClick={handleConfirm}
-            disabled={submitting}
-            className="w-full bg-[#004e8c] text-white font-bold py-3.5 rounded-2xl text-sm hover:bg-[#003d6f] active:scale-[0.98] transition-all flex items-center justify-center gap-2 border-none outline-none disabled:opacity-60 disabled:cursor-not-allowed"
+            onClick={() => setShowModal(true)}
+            className="w-full bg-[#004e8c] text-white font-bold py-3.5 rounded-2xl text-sm hover:bg-[#003d6f] active:scale-[0.98] transition-all flex items-center justify-center gap-2 border-none outline-none"
           >
-            {submitting ? (
-              <>
-                <Loader2 size={18} className="animate-spin" />
-                Mengirim Pesanan...
-              </>
-            ) : (
-              <>
-                <Send size={18} className="rotate-45" />
-                Konfirmasi & Kirim Pesanan
-              </>
-            )}
+            <Send size={18} className="rotate-45" />
+            Konfirmasi & Kirim Pesanan
           </button>
         </div>
 
       </div>
+
+      {/* Confirmation Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-[2px]">
+          <div className="bg-white w-full max-w-[320px] rounded-[24px] p-6 text-center shadow-xl">
+            <div className="mx-auto w-14 h-14 bg-[#eef4f9] rounded-full flex items-center justify-center mb-5">
+              <Send size={24} className="text-[#004e8c] rotate-45 -ml-1 mt-1" />
+            </div>
+            
+            <h3 className="text-lg font-bold text-[#1a202c] mb-2.5">
+              Kirim Pesanan Sekarang?
+            </h3>
+            
+            <p className="text-[13px] text-slate-500 mb-6 leading-relaxed">
+              Pastikan menu yang Anda pilih sudah sesuai. Pesanan yang telah dikirim tidak dapat diubah kembali.
+            </p>
+            
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => handleConfirm()}
+                disabled={isSubmitting}
+                className="w-full bg-[#004e8c] text-white font-semibold py-3 rounded-full text-sm hover:bg-[#003d6f] transition-colors outline-none focus:outline-none border-none ring-0 disabled:opacity-70 flex items-center justify-center"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin mr-2" />
+                    Memproses...
+                  </>
+                ) : (
+                  'Ya, Kirim Sekarang'
+                )}
+              </button>
+              
+              <button
+                onClick={() => setShowModal(false)}
+                disabled={isSubmitting}
+                className="w-full bg-white text-[#004e8c] font-semibold py-3 rounded-full text-sm border border-solid border-[#004e8c] hover:bg-[#f8fafc] transition-colors outline-none focus:outline-none ring-0 disabled:opacity-50"
+              >
+                Periksa Kembali
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
     </PageTransition>

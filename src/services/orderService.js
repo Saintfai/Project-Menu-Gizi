@@ -37,6 +37,14 @@ export async function getOrders(options = {}) {
     query = query.eq('orderCode', options.orderCode);
   }
 
+  if (options.patientId) {
+    query = query.eq('patientId', options.patientId);
+  }
+
+  if (options.type) {
+    query = query.eq('type', options.type);
+  }
+
   const { data, error } = await query;
 
   if (error) {

@@ -5,7 +5,7 @@ export const Accordion = ({ title, icon, defaultExpanded = false, children, clas
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
-    <div className={`bg-neutral-50 rounded-xl overflow-hidden transition-all ${isExpanded ? 'pb-4' : ''} ${className}`}>
+    <div className={`bg-white border border-slate-200 shadow-sm rounded-[16px] overflow-hidden transition-all ${isExpanded ? 'pb-4 mb-4' : 'mb-3'} ${className}`}>
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
