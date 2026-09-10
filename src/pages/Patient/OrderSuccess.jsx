@@ -41,10 +41,6 @@ export default function OrderSuccess() {
               <span className="text-[10px] font-normal text-neutral-400 -mt-0.5">Kesehatan Anda, Prioritas Kami</span>
             </div>
           }
-          onLogout={() => {
-            logoutPatient();
-            navigate('/login');
-          }}
         />
       </div>
 

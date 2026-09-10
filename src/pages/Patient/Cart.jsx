@@ -239,48 +239,22 @@ export default function Cart() {
         });
       };
 
-      const roomClassLower = patient.roomClass?.toLowerCase() || '';
-      const isVip = roomClassLower.includes('vip a') || roomClassLower.includes('suite');
-
+      // 1. Pesanan Utama Pasien & Pendamping (INCLUDE)
       ['PAGI', 'SIANG', 'MALAM'].forEach(key => {
         const dbMealTime = key === 'MALAM' ? 'SORE' : key;
         const pasienItems = orderData.pasien[key] || [];
         const pendampingItems = orderData.pendamping[key] || [];
-        
-        const totalOrdered = pasienItems.reduce((sum, entry) => sum + entry.qty, 0) + 
-                             pendampingItems.reduce((sum, entry) => sum + entry.qty, 0);
 
-        if (totalOrdered === 0 && !hasOrderedMain) {
-          // If the user ordered 0 portions for this session and hasn't ordered main menu, add a Default Menu
-          let quota = 1;
-          if (key === 'PAGI') quota = 2;
-          if (key === 'SIANG') quota = isVip ? 2 : 1;
-          if (key === 'MALAM') quota = isVip ? 2 : 1;
-
-          orderItemsToInsert.push({
-            id: generateUUID(),
-            orderCode,
-            patientId: patient.id,
-            roomNumber: patient.roomName,
-            classType: patient.roomClass,
-            menuName: "Menu Default (Ditentukan Ahli Gizi)",
-            paketName: "Paket Default",
-            mealTime: dbMealTime,
-            servingDate: servingDateISO,
-            quantity: quota,
-            type: 'INCLUDE',
-            consumer: 'PASIEN',
-            notes: note || null
-          });
-        } else {
-          if (pasienItems.length > 0) addItems('INCLUDE', 'PASIEN', dbMealTime, pasienItems);
-          if (pendampingItems.length > 0) addItems('INCLUDE', 'PENDAMPING', dbMealTime, pendampingItems);
-        }
+        if (pasienItems.length > 0) addItems('INCLUDE', 'PASIEN', dbMealTime, pasienItems);
+        if (pendampingItems.length > 0) addItems('INCLUDE', 'PENDAMPING', dbMealTime, pendampingItems);
       });
 
+      // 2. Pesanan Ekstra (EXCLUDE)
       ['SIANG', 'MALAM'].forEach(key => {
         const dbMealTime = key === 'MALAM' ? 'SORE' : key;
-        if (orderData.ekstra[key]) addItems('EXCLUDE', 'PASIEN', dbMealTime, orderData.ekstra[key]);
+        if (orderData.ekstra[key] && orderData.ekstra[key].length > 0) {
+          addItems('EXCLUDE', 'PENDAMPING', dbMealTime, orderData.ekstra[key]);
+        }
       });
 
       await createOrders(orderItemsToInsert);

@@ -18,6 +18,11 @@ export default function MenuPortal() {
   const navigate = useNavigate();
   const location = useLocation();
   
+  const currentHour = new Date().getHours();
+  const isMainMenuLockedTime = currentHour >= 15;
+  const isExtraSiangLockedTime = currentHour >= 10;
+  const isExtraMalamLockedTime = currentHour >= 14;
+  
   // Local state for fetching menus
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -293,6 +298,29 @@ export default function MenuPortal() {
       return;
     }
 
+    // Check if user has selected items in locked categories
+    let invalidLock = null;
+    Object.entries(quantities).forEach(([key, consumers]) => {
+      if (!consumers || consumers.length === 0) return;
+      
+      if (key.startsWith('ekstra_')) {
+        const baseKey = key.replace('ekstra_', '');
+        const item = menuItems.find(m => m.id === baseKey);
+        if (item) {
+          const mealTime = item.mealTime?.toUpperCase();
+          if (mealTime === 'SIANG' && isExtraSiangLockedTime) invalidLock = 'Ekstra Siang (maks 10:00 WIB)';
+          if ((mealTime === 'MALAM' || mealTime === 'SORE') && isExtraMalamLockedTime) invalidLock = 'Ekstra Malam (maks 14:00 WIB)';
+        }
+      } else {
+        if (isMainMenuLockedTime) invalidLock = 'Menu Utama (maks 15:00 WIB)';
+      }
+    });
+
+    if (invalidLock) {
+      setValidationAlert(`Batas waktu pemesanan untuk ${invalidLock} telah habis.`);
+      return;
+    }
+
     navigate('/cart', { state: { quantities, menuItems, hasOrderedMain } });
   };
 
@@ -327,25 +355,29 @@ export default function MenuPortal() {
           roomClass={displayPatient.roomClass}
         />
 
-        {/* Warning Banner */}
-        <Alert 
-          variant="danger" 
-          icon={
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-          }
-        >
-          Batas order menu utama pukul 15.00 WIB untuk penyajian esok hari.
-        </Alert>
+        {/* Warning Banner - hanya tampil jika menu utama masih bisa dipesan */}
+        {!hasOrderedMain && !isMainMenuLockedTime && (
+          <Alert 
+            variant="danger" 
+            icon={
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            }
+          >
+            Batas order menu utama pukul 15.00 WIB untuk penyajian esok hari.
+          </Alert>
+        )}
 
         {/* Menu Utama Section */}
-        {hasOrderedMain ? (
+        {hasOrderedMain || isMainMenuLockedTime ? (
           <div className="bg-white shadow-sm border border-slate-200 border-l-[4px] border-l-[#004e8c] rounded-xl p-4 flex items-center gap-3 mt-2 mb-4">
             <div className="bg-[#eef4f9] p-2 rounded-full">
               <Info size={20} className="text-[#004e8c]" />
             </div>
-            <span className="text-[14px] font-bold text-slate-700">Menu utama sudah dipesan</span>
+            <span className="text-[14px] font-bold text-slate-700">
+              {hasOrderedMain ? "Menu utama sudah dipesan" : "Batas waktu pemesanan menu utama habis (15:00 WIB)"}
+            </span>
           </div>
         ) : (
           <div className="space-y-4 pt-2">
@@ -402,39 +434,60 @@ export default function MenuPortal() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
 
-          <Alert 
-            variant="danger" 
-            icon={
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-            }
-          >
-            Batas order untuk makan siang pukul 10.00 WIB, dan untuk makan malam 14.00 WIB.
-          </Alert>
+          {/* Info alert - hanya tampil jika masih ada ekstra yang bisa dipesan */}
+          {(!isExtraSiangLockedTime || !isExtraMalamLockedTime) && (
+            <Alert 
+              variant="danger" 
+              icon={
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              }
+            >
+              Batas order untuk makan siang pukul 10.00 WIB, dan untuk makan malam 14.00 WIB.
+            </Alert>
+          )}
 
-          <Accordion 
-            title="Makan Siang" 
-            defaultExpanded={true}
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            }
-          >
-            {renderEkstraGrid(filteredEkstraSiang)}
-          </Accordion>
+          {isExtraSiangLockedTime ? (
+            <div className="bg-white shadow-sm border border-slate-200 border-l-[4px] border-l-amber-600 rounded-xl p-4 flex items-center gap-3 mt-2 mb-4">
+              <div className="bg-amber-50 p-2 rounded-full">
+                <AlertCircle size={20} className="text-amber-600" />
+              </div>
+              <span className="text-[14px] font-bold text-slate-700">Batas order ekstra siang habis (10:00 WIB)</span>
+            </div>
+          ) : (
+            <Accordion 
+              title="Makan Siang" 
+              defaultExpanded={true}
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              }
+            >
+              {renderEkstraGrid(filteredEkstraSiang)}
+            </Accordion>
+          )}
 
-          <Accordion 
-            title="Makan Malam" 
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            }
-          >
-            {renderEkstraGrid(filteredEkstraMalam)}
-          </Accordion>
+          {isExtraMalamLockedTime ? (
+            <div className="bg-white shadow-sm border border-slate-200 border-l-[4px] border-l-amber-600 rounded-xl p-4 flex items-center gap-3 mt-2 mb-4">
+              <div className="bg-amber-50 p-2 rounded-full">
+                <AlertCircle size={20} className="text-amber-600" />
+              </div>
+              <span className="text-[14px] font-bold text-slate-700">Batas order ekstra malam habis (14:00 WIB)</span>
+            </div>
+          ) : (
+            <Accordion 
+              title="Makan Malam" 
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              }
+            >
+              {renderEkstraGrid(filteredEkstraMalam)}
+            </Accordion>
+          )}
         </div>
 
       </div>
