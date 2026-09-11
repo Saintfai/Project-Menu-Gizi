@@ -49,6 +49,7 @@ model Patient {
   name              String
   dob               DateTime
   phone             String?  // Nomor Telepon (PRD 3.1)
+  address           String?  // Alamat Pasien
   roomName          String
   roomClass         String   // VIP_A, Kelas_1, dsb (Untuk penentuan kuota porsi)
   allergies         String?
