@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import PageTransition from '../../components/PageTransition';
 import { 
   ArrowLeft, 
   User, 
   Calendar, 
+  MapPin,
   Building, 
   AlertTriangle, 
   Info 
@@ -15,6 +16,7 @@ import { usePatient } from '../../context/PatientContext';
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { patient } = usePatient();
 
   // If no patient is logged in, redirect to login
@@ -78,7 +80,13 @@ export default function Onboarding() {
         {/* Title Section */}
         <div className="flex items-start gap-3 mb-6 mt-2">
           <button 
-            onClick={() => navigate('/login')}
+            onClick={() => {
+              if (location.state?.showMultiple) {
+                navigate('/login', { state: location.state });
+              } else {
+                navigate('/login');
+              }
+            }}
             className="mt-0.5 text-slate-700 hover:text-blue-700 transition-colors border-none outline-none ring-0 bg-transparent p-0"
           >
             <ArrowLeft size={20} strokeWidth={2.5} />
@@ -128,6 +136,17 @@ export default function Onboarding() {
                 <span className="text-xs font-medium">Tanggal Lahir</span>
               </div>
               <span className="text-xs font-bold text-slate-800">{formatDate(patient.dob)}</span>
+            </div>
+
+            {/* Row: Alamat */}
+            <div className="flex items-center justify-between border-b border-slate-50 pb-3">
+              <div className="flex items-center gap-2.5 text-slate-500 flex-shrink-0">
+                <MapPin size={16} strokeWidth={2} />
+                <span className="text-xs font-medium">Alamat</span>
+              </div>
+              <span className="text-xs font-bold text-slate-800 text-right pl-3 truncate max-w-[200px]" title={patient.address || '-'}>
+                {patient.address || '-'}
+              </span>
             </div>
 
             {/* Row: Ruangan */}

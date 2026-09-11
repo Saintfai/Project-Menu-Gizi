@@ -48,7 +48,7 @@ export function PatientProvider({ children }) {
       }
 
       // 2. Cari pasien yang cocok (No RM atau Nama) secara fleksibel
-      const matchedPatient = data.find((p) => {
+      const matchedPatients = data.filter((p) => {
         if (isRM) {
           const pNumeric = (p.rmNumber || '').replace(/[^0-9]/g, '');
           const inputNumeric = normalizedInput.replace(/[^0-9]/g, '');
@@ -59,23 +59,35 @@ export function PatientProvider({ children }) {
         }
       });
 
-      if (!matchedPatient) {
+      if (matchedPatients.length === 0) {
         throw new Error('Data pasien tidak ditemukan atau tanggal lahir salah.');
       }
 
-      // Saves patient basic verification info
-      const patientData = {
-        ...matchedPatient,
-        isVerified: matchedPatient.isVerified ?? true,
-      };
-      
-      setPatient(patientData);
-      sessionStorage.setItem('active_patient_session', JSON.stringify(patientData));
-      
-      return patientData;
+      if (matchedPatients.length === 1) {
+        const patientData = {
+          ...matchedPatients[0],
+          isVerified: matchedPatients[0].isVerified ?? true,
+        };
+        
+        setPatient(patientData);
+        sessionStorage.setItem('active_patient_session', JSON.stringify(patientData));
+        return { type: 'single', patient: patientData };
+      } else {
+        return { type: 'multiple', patients: matchedPatients };
+      }
     } catch (err) {
       throw err;
     }
+  };
+
+  const selectPatient = (selectedPatient) => {
+    const patientData = {
+      ...selectedPatient,
+      isVerified: selectedPatient.isVerified ?? true,
+    };
+    setPatient(patientData);
+    sessionStorage.setItem('active_patient_session', JSON.stringify(patientData));
+    return patientData;
   };
 
   const updatePatientInfo = (updatedFields) => {
@@ -100,6 +112,7 @@ export function PatientProvider({ children }) {
         isVerified: !!patient?.isVerified,
         loading,
         loginPatient,
+        selectPatient,
         updatePatientInfo,
         logoutPatient,
       }}
