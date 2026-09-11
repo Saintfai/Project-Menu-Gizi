@@ -31,7 +31,8 @@ export function PatientProvider({ children }) {
       
       if (isRM) {
         const numericInput = normalizedInput.replace(/[^0-9]/g, '');
-        query = query.ilike('rmNumber', `%${numericInput}%`);
+        const formattedRM = `RM-${numericInput}`;
+        query = query.eq('rmNumber', formattedRM);
       } else {
         query = query.eq('dob', dob);
       }
