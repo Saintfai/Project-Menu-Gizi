@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   IdCard, 
   UserSearch, 
@@ -10,7 +10,8 @@ import {
   UserX,
   Phone,
   RotateCcw,
-  ChevronDown
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PageTransition from '../../components/PageTransition';
@@ -110,14 +111,17 @@ const CustomSelect = ({ options, value, onChange, placeholder }) => {
 
 export default function PatientLogin() {
   const navigate = useNavigate();
-  const { loginPatient } = usePatient();
-  const [identifier, setIdentifier] = useState('');
-  const [dobDay, setDobDay] = useState('');
-  const [dobMonth, setDobMonth] = useState('');
-  const [dobYear, setDobYear] = useState('');
+  const location = useLocation();
+  const { loginPatient, selectPatient } = usePatient();
+  const [identifier, setIdentifier] = useState(location.state?.identifier || '');
+  const [dobDay, setDobDay] = useState(location.state?.dobDay || '');
+  const [dobMonth, setDobMonth] = useState(location.state?.dobMonth || '');
+  const [dobYear, setDobYear] = useState(location.state?.dobYear || '');
   const [isLoading, setIsLoading] = useState(false);
   const [showNotFound, setShowNotFound] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [multiplePatients, setMultiplePatients] = useState(location.state?.multiplePatients || []);
+  const [showMultiple, setShowMultiple] = useState(location.state?.showMultiple || false);
 
   const isRMInput = /\d/.test(identifier);
 
@@ -136,8 +140,13 @@ export default function PatientLogin() {
     const dob = isRMInput ? null : `${dobYear}-${dobMonth}-${dobDay}`;
     
     try {
-      await loginPatient(identifier.trim(), dob);
-      navigate('/onboarding');
+      const result = await loginPatient(identifier.trim(), dob);
+      if (result && result.type === 'multiple') {
+        setMultiplePatients(result.patients);
+        setShowMultiple(true);
+      } else {
+        navigate('/onboarding');
+      }
     } catch (err) {
       setShowNotFound(true);
     } finally {
@@ -147,6 +156,8 @@ export default function PatientLogin() {
 
   const handleRetry = () => {
     setShowNotFound(false);
+    setShowMultiple(false);
+    setMultiplePatients([]);
     setErrorMsg('');
     setIdentifier('');
     setDobDay('');
@@ -167,7 +178,75 @@ export default function PatientLogin() {
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-4 z-10 relative pb-12">
         
         <AnimatePresence mode="wait">
-          {showNotFound ? (
+          {showMultiple ? (
+            /* ==================== MULTIPLE MATCHES STATE ==================== */
+            <motion.div
+              key="multiple-patients"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className="w-full max-w-[360px] flex flex-col bg-white/90 backdrop-blur-xl rounded-[24px] p-5 shadow-2xl border border-white relative z-20"
+            >
+              <div className="flex flex-col items-center mb-5">
+                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center mb-3 text-blue-800 shadow-inner">
+                  <UserSearch size={20} strokeWidth={1.5} />
+                </div>
+                <h2 className="text-lg font-bold text-slate-800 text-center tracking-tight mb-1.5">
+                  Pilih Data Pasien
+                </h2>
+                <p className="text-xs text-slate-500 text-center leading-relaxed">
+                  Ditemukan beberapa data dengan nama dan tanggal lahir yang sama. Silakan pilih data Anda.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2.5 max-h-[350px] overflow-y-auto pr-1.5 custom-scrollbar">
+                {multiplePatients.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => {
+                       selectPatient(p);
+                       navigate('/onboarding', {
+                         state: {
+                           identifier,
+                           dobDay,
+                           dobMonth,
+                           dobYear,
+                           multiplePatients,
+                           showMultiple: true
+                         }
+                       });
+                    }}
+                    className="w-full text-left bg-white border border-slate-200 hover:border-[#00529B] rounded-[16px] p-3 shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-3.5 group outline-none"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-[#00529B] transition-colors">
+                      <IdCard size={18} className="text-[#00529B] group-hover:text-white transition-colors" />
+                    </div>
+                    
+                    <div className="flex flex-col flex-1 overflow-hidden">
+                      <h3 className="text-sm font-bold text-slate-800">{p.rmNumber}</h3>
+                      <div className="flex items-center text-xs text-slate-500 mt-0.5 gap-1.5">
+                        <span className="truncate font-medium">{p.name}</span>
+                        <span className="text-slate-300">•</span>
+                        <span className="truncate">{p.roomName}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-center opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200">
+                      <ChevronRight size={18} className="text-[#00529B]" />
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={handleRetry}
+                className="w-full mt-4 bg-[#00529B] hover:bg-[#004280] text-white py-2.5 rounded-[16px] font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-blue-900/20 text-xs border-none outline-none"
+              >
+                <span>Kembali</span>
+              </button>
+            </motion.div>
+          ) : showNotFound ? (
             /* ==================== NOT FOUND STATE ==================== */
             <motion.div
               key="not-found"

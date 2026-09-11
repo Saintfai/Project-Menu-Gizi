@@ -53,8 +53,7 @@ model Patient {
   roomName          String
   roomClass         String   // VIP_A, Kelas_1, dsb (Untuk penentuan kuota porsi)
   allergies         String?
-
-  
+  address           String?
   orders            Order[]
   createdAt         DateTime @default(now())
 }

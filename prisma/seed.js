@@ -314,6 +314,26 @@ async function main() {
       roomClass: 'VIP D',
       allergies: 'Udang',
     },
+    {
+      rmNumber: 'RM-99998',
+      name: 'Budi Test',
+      dob: new Date('1990-01-01T00:00:00Z'),
+      phone: '08123456789',
+      address: 'Jl. Raya Cibiru No. 123, Bandung',
+      roomName: 'TULIP 1 - 1.3',
+      roomClass: 'VIP D',
+      allergies: 'Tidak Ada',
+    },
+    {
+      rmNumber: 'RM-99999',
+      name: 'Budi Test',
+      dob: new Date('1990-01-01T00:00:00Z'),
+      phone: '08123456790',
+      address: 'Jl. Setiabudi No. 45, Bandung',
+      roomName: 'MAWAR 2 - 2.5',
+      roomClass: 'Kelas 1',
+      allergies: 'Udang',
+    },
   ];
 
   const seededPatients = {};
