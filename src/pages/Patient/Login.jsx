@@ -116,11 +116,11 @@ export default function PatientLogin() {
             /* ==================== MULTIPLE MATCHES STATE ==================== */
             <motion.div
               key="multiple-patients"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className="w-full max-w-[360px] flex flex-col bg-white/90 backdrop-blur-xl rounded-[24px] p-5 shadow-2xl border border-white relative z-20"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="w-full max-w-[360px] mx-auto flex flex-col bg-white rounded-[24px] p-5 shadow-2xl border border-white relative z-20"
             >
               <div className="flex flex-col items-center mb-5">
                 <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center mb-3 text-blue-800 shadow-inner">
@@ -181,11 +181,11 @@ export default function PatientLogin() {
             /* ==================== NOT FOUND STATE ==================== */
             <motion.div
               key="not-found"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className="w-full max-w-[320px] flex flex-col items-center text-center relative z-20 bg-white/90 backdrop-blur-xl rounded-[24px] p-5 shadow-2xl border border-white"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="w-full max-w-[320px] mx-auto flex flex-col items-center text-center relative z-20 bg-white rounded-[24px] p-5 shadow-2xl border border-white"
             >
               <div className="relative mb-6">
                 <div className="w-28 h-28 bg-red-50 rounded-full flex items-center justify-center">
@@ -225,11 +225,11 @@ export default function PatientLogin() {
             /* ==================== LOGIN FORM STATE ==================== */
             <motion.div
               key="login-form"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              className="w-full max-w-[320px] flex flex-col bg-white/90 backdrop-blur-xl rounded-[24px] p-5 shadow-2xl border border-white relative z-20"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="w-full max-w-[320px] mx-auto flex flex-col bg-white rounded-[24px] p-5 shadow-2xl border border-white relative z-20"
             >
               {/* Card Header */}
               <div className="flex flex-col items-center mb-5">
@@ -279,10 +279,10 @@ export default function PatientLogin() {
                   {activeTab === 'rm' ? (
                     <motion.div
                       key="tab-rm"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 10 }}
-                      transition={{ duration: 0.2 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
                     >
                       <label className="block text-xs font-semibold text-slate-700 mb-1.5 ml-1">
                         Nomor Rekam Medis
@@ -305,10 +305,10 @@ export default function PatientLogin() {
                   ) : (
                     <motion.div
                       key="tab-name"
-                      initial={{ opacity: 0, x: 10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -10 }}
-                      transition={{ duration: 0.2 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
                       className="space-y-3"
                     >
                       {/* Nama */}

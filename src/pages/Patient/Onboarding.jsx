@@ -148,10 +148,10 @@ export default function Onboarding() {
 
         {/* Data Card */}
         <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="w-full bg-white/90 backdrop-blur-xl rounded-[20px] p-5 shadow-xl shadow-slate-200/50 border border-white mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="w-full bg-white rounded-[20px] p-5 shadow-xl shadow-slate-200/50 border border-white mb-8"
         >
           {/* Patient Details */}
           <div className="space-y-4 mb-6">
@@ -231,9 +231,9 @@ export default function Onboarding() {
 
         {/* Action Button */}
         <motion.button
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.1, ease: "easeOut" }}
           onClick={() => navigate('/menu')}
           className="w-full bg-[#00529B] hover:bg-[#004280] text-white py-3.5 rounded-xl font-bold text-sm transition-all active:scale-[0.98] shadow-lg shadow-blue-900/20 border-none outline-none"
         >

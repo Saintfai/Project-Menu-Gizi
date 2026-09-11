@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const Accordion = ({ title, icon, defaultExpanded = false, children, className = '' }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
-    <div className={`bg-white border border-slate-200 shadow-sm rounded-[16px] overflow-hidden transition-all ${isExpanded ? 'pb-4 mb-4' : 'mb-3'} ${className}`}>
+    <div className={`bg-white border border-slate-200 shadow-sm rounded-[16px] overflow-hidden transition-all duration-300 ${isExpanded ? 'pb-4 mb-4' : 'mb-3'} ${className}`}>
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
@@ -20,7 +21,7 @@ export const Accordion = ({ title, icon, defaultExpanded = false, children, clas
           <span className="font-bold text-neutral-900">{title}</span>
         </div>
         <svg 
-          className={`w-5 h-5 text-neutral-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
+          className={`w-5 h-5 text-neutral-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} 
           fill="none" 
           stroke="currentColor" 
           viewBox="0 0 24 24"
@@ -29,11 +30,21 @@ export const Accordion = ({ title, icon, defaultExpanded = false, children, clas
         </svg>
       </button>
       
-      {isExpanded && (
-        <div className="px-4 pt-2">
-          {children}
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pt-2">
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
