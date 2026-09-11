@@ -40,6 +40,51 @@ export default function Onboarding() {
     return `${d}/${m}/${y}`;
   };
 
+  // Mask address helper
+  const maskAddress = (address) => {
+    if (!address || address.trim() === '' || address === '-') return '-';
+
+    const parts = address.split(',').map((p) => p.trim()).filter(Boolean);
+
+    if (parts.length >= 3) {
+      // Keep primary area/street and final city/regency, masking detailed middle segments
+      const first = parts[0]
+        .replace(/\b(no\.?|blok|kav\.?|rt|rw|unit|lt\.?)\s*[\w\d\/-]+/gi, '')
+        .replace(/\b\d+[\w\d\/-]*/g, '')
+        .trim();
+      const last = parts[parts.length - 1];
+      return `${first || parts[0]}, ****, ${last}`;
+    } else if (parts.length === 2) {
+      // For 2 segments like "Jl. Raya Cibiru No. 123, Bandung"
+      let first = parts[0];
+      if (/\b(no\.?|blok|kav\.?|rt|rw|unit|lt\.?)\s*[\w\d\/-]+/i.test(first) || /\d+/.test(first)) {
+        first = first.replace(/\b(no\.?|blok|kav\.?|rt|rw|unit|lt\.?)\s*[\w\d\/-]+/gi, '****');
+        first = first.replace(/\b\d+[\w\d\/-]*/g, '****');
+      } else {
+        const words = first.split(' ');
+        if (words.length > 2) {
+          first = `${words.slice(0, 2).join(' ')} ****`;
+        } else {
+          first = `${first} ****`;
+        }
+      }
+      return `${first}, ${parts[1]}`;
+    } else {
+      // Single continuous string
+      let masked = address
+        .replace(/\b(no\.?|blok|kav\.?|rt|rw|unit|lt\.?)\s*[\w\d\/-]+/gi, '****')
+        .replace(/\b\d+[\w\d\/-]*/g, '****');
+      if (masked === address && address.length > 10) {
+        const words = address.split(' ');
+        if (words.length >= 3) {
+          return `${words[0]} **** ${words[words.length - 1]}`;
+        }
+        return `${address.slice(0, 4)} **** ${address.slice(-4)}`;
+      }
+      return masked;
+    }
+  };
+
   // Construct allergy string
   let warningText = '';
   const hasAllergies = patient.allergies && patient.allergies.toLowerCase() !== 'tidak ada';
@@ -144,8 +189,8 @@ export default function Onboarding() {
                 <MapPin size={16} strokeWidth={2} />
                 <span className="text-xs font-medium">Alamat</span>
               </div>
-              <span className="text-xs font-bold text-slate-800 text-right pl-3 truncate max-w-[200px]" title={patient.address || '-'}>
-                {patient.address || '-'}
+              <span className="text-xs font-bold text-slate-800 text-right pl-3 truncate max-w-[200px]" title={maskAddress(patient.address)}>
+                {maskAddress(patient.address)}
               </span>
             </div>
 
