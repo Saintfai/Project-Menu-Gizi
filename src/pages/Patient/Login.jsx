@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   IdCard, 
@@ -10,144 +10,80 @@ import {
   UserX,
   Phone,
   RotateCcw,
-  ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Hash,
+  User,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PageTransition from '../../components/PageTransition';
 
 import { usePatient } from '../../context/PatientContext';
 
-// --- Data Arrays ---
-const days = Array.from({ length: 31 }, (_, i) => {
-  const val = (i + 1).toString().padStart(2, '0');
-  return { value: val, label: val };
-});
-
-const months = [
-  { value: '01', label: 'Jan' },
-  { value: '02', label: 'Feb' },
-  { value: '03', label: 'Mar' },
-  { value: '04', label: 'Apr' },
-  { value: '05', label: 'Mei' },
-  { value: '06', label: 'Jun' },
-  { value: '07', label: 'Jul' },
-  { value: '08', label: 'Ags' },
-  { value: '09', label: 'Sep' },
-  { value: '10', label: 'Okt' },
-  { value: '11', label: 'Nov' },
-  { value: '12', label: 'Des' },
-];
-
-const currentYear = new Date().getFullYear();
-const years = Array.from({ length: 100 }, (_, i) => {
-  const val = (currentYear - i).toString();
-  return { value: val, label: val };
-});
-
-// --- Custom Select Component ---
-const CustomSelect = ({ options, value, onChange, placeholder }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  // Close on outside click
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const selectedOption = options.find((opt) => opt.value === value);
-
-  return (
-    <div className={`relative ${isOpen ? 'z-50' : 'z-10'}`} ref={dropdownRef}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={`w-full pl-2.5 pr-5 py-2.5 bg-slate-100/80 border-none outline-none ring-0 ${
-          !value ? 'text-slate-400' : 'text-slate-700'
-        } rounded-xl text-[12.5px] transition-all text-left flex items-center justify-between`}
-      >
-        <span className="block truncate">{selectedOption ? selectedOption.label : placeholder}</span>
-        <div className="absolute inset-y-0 right-0 pr-1.5 flex items-center pointer-events-none text-slate-400">
-          <ChevronDown size={14} strokeWidth={2} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-        </div>
-      </button>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -5 }}
-            transition={{ duration: 0.15 }}
-            // max-h-[175px] ~ allows roughly 5 items (approx 34px each) to be visible at once
-            className="absolute z-50 w-full mt-1.5 bg-white border border-slate-100 rounded-xl shadow-xl max-h-[175px] overflow-y-auto"
-          >
-            {options.map((opt) => (
-              <div
-                key={opt.value}
-                onClick={() => {
-                  onChange(opt.value);
-                  setIsOpen(false);
-                }}
-                className={`px-3 py-2 text-[13px] cursor-pointer hover:bg-blue-50 transition-colors ${
-                  value === opt.value ? 'bg-blue-50 font-semibold text-blue-700' : 'text-slate-600'
-                }`}
-              >
-                {opt.label}
-              </div>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
 export default function PatientLogin() {
   const navigate = useNavigate();
   const location = useLocation();
   const { loginPatient, selectPatient } = usePatient();
-  const [identifier, setIdentifier] = useState(location.state?.identifier || '');
-  const [dobDay, setDobDay] = useState(location.state?.dobDay || '');
-  const [dobMonth, setDobMonth] = useState(location.state?.dobMonth || '');
-  const [dobYear, setDobYear] = useState(location.state?.dobYear || '');
+
+  // 'rm' | 'name'
+  const [activeTab, setActiveTab] = useState('rm');
+
+  // RM tab
+  const [rmNumber, setRmNumber] = useState(location.state?.identifier || '');
+
+  // Name+DOB tab
+  const [name, setName] = useState('');
+  const [dob, setDob] = useState('');
+
   const [isLoading, setIsLoading] = useState(false);
   const [showNotFound, setShowNotFound] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [multiplePatients, setMultiplePatients] = useState(location.state?.multiplePatients || []);
   const [showMultiple, setShowMultiple] = useState(location.state?.showMultiple || false);
 
-  const isRMInput = /\d/.test(identifier);
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setErrorMsg('');
+    setShowNotFound(false);
+  };
 
   const handleSearch = async (e) => {
     e.preventDefault();
     setErrorMsg('');
-    
-    if (!isRMInput && (!dobDay || !dobMonth || !dobYear)) {
-      setErrorMsg('Silakan lengkapi pilihan Tanggal Lahir.');
-      return;
+
+    let identifier = '';
+    let dobValue = null;
+
+    if (activeTab === 'rm') {
+      if (!rmNumber.trim()) {
+        setErrorMsg('Masukkan Nomor RM pasien.');
+        return;
+      }
+      identifier = rmNumber.trim();
+    } else {
+      if (!name.trim()) {
+        setErrorMsg('Masukkan nama pasien.');
+        return;
+      }
+      if (!dob) {
+        setErrorMsg('Pilih tanggal lahir pasien.');
+        return;
+      }
+      identifier = name.trim();
+      dobValue = dob;
     }
 
     setIsLoading(true);
     setShowNotFound(false);
-    
-    const dob = isRMInput ? null : `${dobYear}-${dobMonth}-${dobDay}`;
-    
+
     try {
-      const result = await loginPatient(identifier.trim(), dob);
+      const result = await loginPatient(identifier, dobValue);
       if (result && result.type === 'multiple') {
         setMultiplePatients(result.patients);
         setShowMultiple(true);
       } else {
         navigate('/onboarding');
       }
-    } catch (err) {
+    } catch {
       setShowNotFound(true);
     } finally {
       setIsLoading(false);
@@ -159,24 +95,22 @@ export default function PatientLogin() {
     setShowMultiple(false);
     setMultiplePatients([]);
     setErrorMsg('');
-    setIdentifier('');
-    setDobDay('');
-    setDobMonth('');
-    setDobYear('');
+    setRmNumber('');
+    setName('');
+    setDob('');
   };
 
   return (
     <PageTransition>
     <div className="min-h-screen relative overflow-hidden bg-slate-50 flex flex-col font-sans text-gray-800">
-      
+
       {/* Background Gradients */}
       <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-blue-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
       <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-pink-200/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
 
-
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-4 z-10 relative pb-12">
-        
+
         <AnimatePresence mode="wait">
           {showMultiple ? (
             /* ==================== MULTIPLE MATCHES STATE ==================== */
@@ -208,10 +142,6 @@ export default function PatientLogin() {
                        selectPatient(p);
                        navigate('/onboarding', {
                          state: {
-                           identifier,
-                           dobDay,
-                           dobMonth,
-                           dobYear,
                            multiplePatients,
                            showMultiple: true
                          }
@@ -246,6 +176,7 @@ export default function PatientLogin() {
                 <span>Kembali</span>
               </button>
             </motion.div>
+
           ) : showNotFound ? (
             /* ==================== NOT FOUND STATE ==================== */
             <motion.div
@@ -256,7 +187,6 @@ export default function PatientLogin() {
               transition={{ duration: 0.4, ease: "easeOut" }}
               className="w-full max-w-[320px] flex flex-col items-center text-center relative z-20 bg-white/90 backdrop-blur-xl rounded-[24px] p-5 shadow-2xl border border-white"
             >
-              {/* Icon Illustration */}
               <div className="relative mb-6">
                 <div className="w-28 h-28 bg-red-50 rounded-full flex items-center justify-center">
                   <UserX size={48} className="text-red-400" strokeWidth={1.5} />
@@ -266,17 +196,14 @@ export default function PatientLogin() {
                 </div>
               </div>
 
-              {/* Title */}
               <h2 className="text-xl font-bold text-slate-800 mb-3">
                 Data Pasien Tidak Ditemukan
               </h2>
 
-              {/* Description */}
               <p className="text-xs text-slate-500 leading-relaxed mb-8 px-2">
                 Maaf, data dengan No. RM atau Nama yang Anda masukkan tidak terdaftar di sistem kami. Silakan periksa kembali input Anda atau hubungi perawat.
               </p>
 
-              {/* Coba Lagi Button */}
               <button
                 onClick={handleRetry}
                 className="w-full bg-[#00529B] hover:bg-[#004280] text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-blue-900/20 text-sm border-none outline-none mb-3"
@@ -285,24 +212,24 @@ export default function PatientLogin() {
                 <span>Coba Lagi</span>
               </button>
 
-              {/* Hubungi Perawat Button */}
               <button
-                onClick={() => {/* Could link to a contact or call action */}}
+                onClick={() => {}}
                 className="w-full bg-white hover:bg-slate-50 text-[#00529B] py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] border border-[#00529B] text-sm outline-none"
               >
                 <Phone size={16} strokeWidth={2} />
                 <span>Hubungi Perawat</span>
               </button>
             </motion.div>
+
           ) : (
             /* ==================== LOGIN FORM STATE ==================== */
-            <motion.div 
+            <motion.div
               key="login-form"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="w-full max-w-[320px] min-h-[420px] flex flex-col bg-white/90 backdrop-blur-xl rounded-[24px] p-5 shadow-2xl border border-white relative z-20"
+              className="w-full max-w-[320px] flex flex-col bg-white/90 backdrop-blur-xl rounded-[24px] p-5 shadow-2xl border border-white relative z-20"
             >
               {/* Card Header */}
               <div className="flex flex-col items-center mb-5">
@@ -313,64 +240,119 @@ export default function PatientLogin() {
                   Masukkan Identitas
                 </h2>
                 <p className="text-xs text-slate-500 text-center leading-relaxed">
-                  Silakan masukkan data pasien untuk mengakses menu gizi yang disesuaikan.
+                  Pilih cara verifikasi sesuai data yang Anda ketahui.
                 </p>
               </div>
 
+              {/* Tab Toggle */}
+              <div className="flex bg-slate-100 rounded-xl p-1 mb-4 gap-1">
+                <button
+                  type="button"
+                  onClick={() => handleTabChange('rm')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11.5px] font-semibold transition-all duration-200 outline-none border-none ${
+                    activeTab === 'rm'
+                      ? 'bg-white text-[#00529B] shadow-sm'
+                      : 'text-slate-400 hover:text-slate-600'
+                  }`}
+                >
+                  <Hash size={12} strokeWidth={2.5} />
+                  Nomor RM
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleTabChange('name')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11.5px] font-semibold transition-all duration-200 outline-none border-none ${
+                    activeTab === 'name'
+                      ? 'bg-white text-[#00529B] shadow-sm'
+                      : 'text-slate-400 hover:text-slate-600'
+                  }`}
+                >
+                  <User size={12} strokeWidth={2.5} />
+                  Nama &amp; Tgl Lahir
+                </button>
+              </div>
+
               {/* Login Form */}
-              <form onSubmit={handleSearch} className="space-y-4">
-                
-                {/* Input: No RM / Nama */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5 ml-1">
-                    No RM / Nama Pasien
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                      <UserSearch size={16} strokeWidth={1.5} />
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Contoh: RM123456 / John Doe"
-                      className="w-full pl-9 pr-3 py-2.5 bg-slate-100/80 border-none outline-none ring-0 rounded-xl text-[13px] transition-all placeholder:text-slate-400"
-                      value={identifier}
-                      onChange={(e) => setIdentifier(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
+              <form onSubmit={handleSearch} className="space-y-3">
 
-                {/* Input: Tanggal Lahir */}
-                {!isRMInput && (
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5 ml-1 flex items-center gap-1.5 mt-4">
-                      <Calendar size={14} className="text-slate-400" />
-                      Tanggal Lahir
-                    </label>
-                    <div className="grid grid-cols-[1.1fr_1.1fr_1fr] gap-1.5">
-                      <CustomSelect 
-                        options={days} 
-                        value={dobDay} 
-                        onChange={setDobDay} 
-                        placeholder="Tanggal" 
-                      />
-                      <CustomSelect 
-                        options={months} 
-                        value={dobMonth} 
-                        onChange={setDobMonth} 
-                        placeholder="Bulan" 
-                      />
-                      <CustomSelect 
-                        options={years} 
-                        value={dobYear} 
-                        onChange={setDobYear} 
-                        placeholder="Tahun" 
-                      />
-                    </div>
-                  </div>
-                )}
+                <AnimatePresence mode="wait">
+                  {activeTab === 'rm' ? (
+                    <motion.div
+                      key="tab-rm"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5 ml-1">
+                        Nomor Rekam Medis
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                          <Hash size={15} strokeWidth={2} />
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Contoh: RM-12345"
+                          className="w-full pl-9 pr-3 py-2.5 bg-slate-100/80 border-none outline-none ring-0 rounded-xl text-[13px] transition-all placeholder:text-slate-400"
+                          value={rmNumber}
+                          onChange={(e) => setRmNumber(e.target.value)}
+                          autoFocus
+                        />
+                      </div>
+                    </motion.div>
 
-                {/* Error Message if Date Incomplete */}
+                  ) : (
+                    <motion.div
+                      key="tab-name"
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-3"
+                    >
+                      {/* Nama */}
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1.5 ml-1">
+                          Nama Pasien
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <UserSearch size={15} strokeWidth={1.5} />
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Contoh: Andi Pratama"
+                            className="w-full pl-9 pr-3 py-2.5 bg-slate-100/80 border-none outline-none ring-0 rounded-xl text-[13px] transition-all placeholder:text-slate-400"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            autoFocus
+                          />
+                        </div>
+                      </div>
+
+                      {/* Tanggal Lahir — single native date input */}
+                      <div>
+                        <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1.5 ml-1">
+                          <Calendar size={13} className="text-slate-400" />
+                          Tanggal Lahir
+                        </label>
+                        <input
+                          type="date"
+                          className="w-full px-3 py-2.5 bg-slate-100/80 border-none outline-none ring-0 rounded-xl text-[13px] text-slate-700 transition-all"
+                          value={dob}
+                          onChange={(e) => setDob(e.target.value)}
+                          max={new Date().toISOString().split('T')[0]}
+                        />
+                        <p className="text-[10px] text-slate-400 mt-1 ml-1">
+                          Jika nama sama, sistem akan meminta konfirmasi.
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Error Message */}
                 {errorMsg && (
                   <div className="text-red-500 text-[11px] font-medium text-center bg-red-50 py-1.5 rounded-lg border border-red-100">
                     {errorMsg}
@@ -398,7 +380,7 @@ export default function PatientLogin() {
               </form>
 
               {/* Footer Info inside Card */}
-              <div className="mt-auto pt-3.5 border-t border-slate-100 flex items-start gap-2">
+              <div className="mt-auto pt-3.5 border-t border-slate-100 flex items-start gap-2 mt-4">
                 <Info size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
                 <p className="text-[10px] text-slate-500 leading-relaxed">
                   Data pasien digunakan untuk menyesuaikan menu gizi.
