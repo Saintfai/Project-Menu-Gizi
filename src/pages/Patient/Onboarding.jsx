@@ -6,6 +6,7 @@ import {
   ArrowLeft, 
   User, 
   Calendar, 
+  MapPin,
   Building, 
   AlertTriangle, 
   Info 
@@ -128,6 +129,17 @@ export default function Onboarding() {
                 <span className="text-xs font-medium">Tanggal Lahir</span>
               </div>
               <span className="text-xs font-bold text-slate-800">{formatDate(patient.dob)}</span>
+            </div>
+
+            {/* Row: Alamat */}
+            <div className="flex items-center justify-between border-b border-slate-50 pb-3">
+              <div className="flex items-center gap-2.5 text-slate-500 flex-shrink-0">
+                <MapPin size={16} strokeWidth={2} />
+                <span className="text-xs font-medium">Alamat</span>
+              </div>
+              <span className="text-xs font-bold text-slate-800 text-right pl-3 truncate max-w-[200px]" title={patient.address || '-'}>
+                {patient.address || '-'}
+              </span>
             </div>
 
             {/* Row: Ruangan */}

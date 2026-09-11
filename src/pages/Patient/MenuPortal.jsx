@@ -45,6 +45,7 @@ export default function MenuPortal() {
   const displayPatient = patient || {
     name: 'Budi Santoso',
     rmNumber: 'RM-1223',
+    address: 'Apartemen Grand Asia Afrika Tower B Lt. 12 Unit 1205, Lengkong, Bandung',
     roomName: 'LAVENDER 1 - 1.1',
     roomClass: 'VIP A'
   };
