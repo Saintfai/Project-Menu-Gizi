@@ -1,21 +1,14 @@
+/**
+ * NAMA FILE: PageTransition.jsx
+ * FUNGSI UTAMA: Komponen pembungkus animasi transisi antar halaman.
+ * 
+ * DETAIL:
+ * - Menggunakan library animasi (Framer Motion) untuk memberikan efek pergantian halaman yang mulus.
+ * - Meningkatkan estetika dan pengalaman pengguna (UX) secara keseluruhan.
+ */
 import { motion } from 'framer-motion';
 
-/**
- * PageTransition – wrapper untuk animasi masuk/keluar halaman.
- *
- * Hanya menggunakan opacity agar tidak terjadi layout-shift (geser posisi).
- * Animasi transform (y/scale) dihindari di level halaman karena
- * menyebabkan reflow pada flex-centering yang memicu efek "lompat kiri-kanan".
- *
- * @example
- * export default function MyPage() {
- *   return (
- *     <PageTransition>
- *       <div>konten halaman</div>
- *     </PageTransition>
- *   );
- * }
- */
+
 
 const pageVariants = {
   initial: {

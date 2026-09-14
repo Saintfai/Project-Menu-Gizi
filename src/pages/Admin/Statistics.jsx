@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: Statistics.jsx
+ * FUNGSI UTAMA: Halaman antarmuka khusus untuk staf/Admin Gizi Rumah Sakit.
+ * 
+ * DETAIL:
+ * - Membutuhkan otentikasi admin.
+ * - Digunakan untuk memantau pesanan, mengelola siklus menu, atau melihat laporan statistik dapur.
+ */
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
   TrendingUp, 
@@ -53,7 +61,7 @@ export default function Statistics() {
     loadOrders();
   }, [loadOrders]);
 
-  // Filter orders by month and year
+  
   const filteredOrders = useMemo(() => {
     return rawOrders.filter((order) => {
       const dateVal = order.servingDate || order.createdAt;
@@ -63,7 +71,7 @@ export default function Statistics() {
     });
   }, [rawOrders, selectedMonth, selectedYear]);
 
-  // Aggregate stats
+  
   const stats = useMemo(() => {
     let total = 0;
     const map = {};
@@ -84,11 +92,11 @@ export default function Statistics() {
       percentage: total > 0 ? ((item.count / total) * 100).toFixed(1) : '0',
     }));
 
-    // Descending for Top
+    
     const desc = [...list].sort((a, b) => b.count - a.count);
     const top5 = desc.slice(0, 5);
 
-    // Ascending for Bottom
+    
     const asc = [...list].sort((a, b) => a.count - b.count);
     const bottom5 = asc.slice(0, 5);
 
@@ -125,11 +133,11 @@ export default function Statistics() {
   return (
     <PageTransition>
     <div className="w-full">
-      {/* ========================================================================= */}
-      {/* 1. TAMPILAN WEB (INTERAKTIF) - HANYA MUNCUL DI LAYAR (HIDDEN SAAT PRINT) */}
-      {/* ========================================================================= */}
+      {}
+      {}
+      {}
       <div className="no-print print:hidden space-y-6 max-w-6xl mx-auto">
-        {/* Header & Controls */}
+        {}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-neutral-200">
           <div>
             <h1 className="text-lg sm:text-xl font-bold text-neutral-900">
@@ -140,9 +148,9 @@ export default function Statistics() {
             </p>
           </div>
 
-          {/* Filter Month / Year & Action Buttons */}
+          {}
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Month Selector */}
+            {}
             <div className="relative">
               <select
                 value={selectedMonth}
@@ -156,7 +164,7 @@ export default function Statistics() {
               <ChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
-            {/* Year Selector */}
+            {}
             <div className="relative">
               <select
                 value={selectedYear}
@@ -170,7 +178,7 @@ export default function Statistics() {
               <ChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
-            {/* Refresh */}
+            {}
             <button
               onClick={() => loadOrders(true)}
               disabled={loading || isRefreshing}
@@ -181,7 +189,7 @@ export default function Statistics() {
               <span className="hidden sm:inline">Refresh</span>
             </button>
 
-            {/* Print */}
+            {}
             <button
               onClick={handlePrint}
               className="flex items-center gap-1.5 text-xs font-medium text-white bg-primary-600 hover:bg-primary-700 px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer shadow-sm"
@@ -193,9 +201,9 @@ export default function Statistics() {
           </div>
         </div>
 
-        {/* 3 Simple KPI Cards */}
+        {}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
-          {/* Total Portions */}
+          {}
           <RekapCard
             title="Total Porsi Disajikan"
             icon={<BarChart2 className="w-4 h-4 text-primary-600" />}
@@ -207,7 +215,7 @@ export default function Statistics() {
             ]}
           />
 
-          {/* Most Ordered */}
+          {}
           <RekapCard
             title="Menu Paling Laku"
             icon={<TrendingUp className="w-4 h-4 text-emerald-600" />}
@@ -219,7 +227,7 @@ export default function Statistics() {
             ]}
           />
 
-          {/* Least Ordered */}
+          {}
           <RekapCard
             title="Menu Paling Sedikit"
             icon={<TrendingDown className="w-4 h-4 text-amber-600" />}
@@ -232,7 +240,7 @@ export default function Statistics() {
           />
         </section>
 
-        {/* Empty State */}
+        {}
         {!loading && stats.total === 0 && (
           <div className="bg-neutral-0 border border-neutral-200 rounded-xl p-8 text-center text-neutral-400">
             <Utensils className="w-8 h-8 mx-auto mb-2 text-neutral-300" />
@@ -240,10 +248,10 @@ export default function Statistics() {
           </div>
         )}
 
-        {/* 2 Comparison Cards (Side-by-side) */}
+        {}
         {stats.total > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-            {/* Top 5 Most Popular */}
+            {}
             <div className="bg-neutral-0 border border-neutral-200 rounded-xl p-5 shadow-xs">
               <div className="flex items-center justify-between mb-4 pb-2 border-b border-neutral-100">
                 <h2 className="text-sm font-bold text-neutral-900 flex items-center gap-1.5">
@@ -269,7 +277,7 @@ export default function Statistics() {
                           {item.count} <span className="text-neutral-400 font-normal">({item.percentage}%)</span>
                         </span>
                       </div>
-                      {/* Clean flat progress bar */}
+                      {}
                       <div className="w-full bg-neutral-100 h-2 rounded-full overflow-hidden">
                         <div
                           className="bg-primary-600 h-full rounded-full transition-all duration-300"
@@ -282,7 +290,7 @@ export default function Statistics() {
               </div>
             </div>
 
-            {/* Top 5 Least Popular */}
+            {}
             <div className="bg-neutral-0 border border-neutral-200 rounded-xl p-5 shadow-xs">
               <div className="flex items-center justify-between mb-4 pb-2 border-b border-neutral-100">
                 <h2 className="text-sm font-bold text-neutral-900 flex items-center gap-1.5">
@@ -308,7 +316,7 @@ export default function Statistics() {
                           {item.count} <span className="text-neutral-400 font-normal">({item.percentage}%)</span>
                         </span>
                       </div>
-                      {/* Clean flat progress bar */}
+                      {}
                       <div className="w-full bg-neutral-100 h-2 rounded-full overflow-hidden">
                         <div
                           className="bg-neutral-400 h-full rounded-full transition-all duration-300"
@@ -324,11 +332,11 @@ export default function Statistics() {
         )}
       </div>
 
-      {/* ========================================================================= */}
-      {/* 2. TEMPLATE DOKUMEN CETAK RESMI RUMAH SAKIT (PRINT-ONLY)                   */}
-      {/* ========================================================================= */}
+      {}
+      {}
+      {}
       <div className="hidden print:block text-neutral-900 bg-white w-full font-sans leading-tight">
-        {/* KOP SURAT RESMI */}
+        {}
         <div className="flex items-center justify-between pb-2 border-b-2 border-black">
           <div className="flex items-center gap-3">
             <img 
@@ -353,10 +361,10 @@ export default function Statistics() {
             <span className="text-neutral-500">KODE: GIZ-REC-01</span>
           </div>
         </div>
-        {/* Garis ganda kop surat */}
+        {}
         <div className="border-b border-black mt-0.5 mb-3"></div>
 
-        {/* JUDUL LAPORAN */}
+        {}
         <div className="text-center mb-3">
           <h3 className="text-xs font-bold uppercase tracking-wider underline underline-offset-2">
             LAPORAN REKAPITULASI & EVALUASI KONSUMSI MENU GIZI
@@ -366,7 +374,7 @@ export default function Statistics() {
           </p>
         </div>
 
-        {/* INFORMASI METADATA LAPORAN (COMPACT STRIP) */}
+        {}
         <div className="text-[9px] mb-3 bg-neutral-50 border border-neutral-300 px-3 py-1.5 rounded">
           <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
             <div>
@@ -388,7 +396,7 @@ export default function Statistics() {
           </div>
         </div>
 
-        {/* BAGIAN I: RINGKASAN INDIKATOR UTAMA (4 METRICS IN HORIZONTAL GRID) */}
+        {}
         <div className="mb-3 print-avoid-break">
           <h4 className="text-[9.5px] font-bold text-black uppercase mb-1">
             I. RINGKASAN INDIKATOR UTAMA
@@ -423,7 +431,7 @@ export default function Statistics() {
           </div>
         </div>
 
-        {/* BAGIAN II: TABEL REKAPITULASI & EVALUASI SELURUH MENU */}
+        {}
         <div className="mb-4">
           <h4 className="text-[9.5px] font-bold text-black uppercase mb-1">
             II. REKAPITULASI & EVALUASI KONSUMSI MENU LENGKAP
@@ -470,10 +478,10 @@ export default function Statistics() {
           </table>
         </div>
 
-        {/* BAGIAN III: LEMBAR PENGESAHAN & TANDA TANGAN */}
+        {}
         <div className="text-[9px] print-avoid-break mt-4 pt-2 border-t border-neutral-200">
           <div className="grid grid-cols-2 text-center gap-6">
-            {/* Kolom Kiri: Dietisien */}
+            {}
             <div className="flex flex-col items-center">
               <p className="text-neutral-600 mb-0.5">Diverifikasi Oleh,</p>
               <p className="font-bold text-black">Dietisien / PJ Pelayanan Gizi</p>
@@ -482,7 +490,7 @@ export default function Statistics() {
               <p className="text-[8px] text-neutral-500 mt-0.5">NIP / ID: .......................................</p>
             </div>
 
-            {/* Kolom Kanan: Ka. Instalasi */}
+            {}
             <div className="flex flex-col items-center">
               <p className="text-neutral-600 mb-0.5">Bandung, {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
               <p className="font-bold text-black">Kepala Instalasi Gizi & Dietetik</p>

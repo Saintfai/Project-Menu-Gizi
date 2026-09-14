@@ -1,12 +1,14 @@
 /**
- * Secure Session Storage Utility
- * Hospital Dietary System — Project Menu Gizi
- *
- * Protects Patient PII and sensitive state stored in browser sessionStorage
- * by encrypting/obfuscating payloads so they are not exposed in plaintext.
+ * NAMA FILE: secureStorage.js
+ * FUNGSI UTAMA: Fungsi-fungsi utilitas pendukung (Helper Functions).
+ * 
+ * DETAIL:
+ * - Berisi fungsi murni (pure functions) untuk pemformatan, validasi, atau komputasi umum.
+ * - Dapat dipanggil dari berbagai bagian aplikasi untuk menghindari duplikasi kode.
  */
 
-// Ephemeral session seed derived per browser tab session
+
+
 const getSessionKey = () => {
   const salt = 'HospitalDietary_v1.8_SecureSalt_2026';
   const ua = typeof navigator !== 'undefined' ? navigator.userAgent : 'default_agent';
@@ -21,11 +23,7 @@ const getSessionKey = () => {
 
 const SESSION_KEY = getSessionKey();
 
-/**
- * Obfuscate/encrypt plaintext payload
- * @param {string} text - Plaintext JSON or string
- * @returns {string} - Ciphertext string (Base64 encoded)
- */
+
 function encrypt(text) {
   if (!text) return '';
   try {
@@ -83,12 +81,7 @@ export const secureSessionStorage = {
     }
   },
 
-  /**
-   * Get and decrypt item from sessionStorage
-   * @param {string} key 
-   * @param {boolean} [isObject=false] - Whether to parse as JSON
-   * @returns {any}
-   */
+  
   getItem(key, isObject = false) {
     try {
       const raw = sessionStorage.getItem(key);
@@ -96,7 +89,7 @@ export const secureSessionStorage = {
 
       const decrypted = decrypt(raw);
       if (!decrypted) {
-        // Fallback for legacy unencrypted data if any exists
+        
         try {
           return isObject ? JSON.parse(raw) : raw;
         } catch {
@@ -114,10 +107,7 @@ export const secureSessionStorage = {
     }
   },
 
-  /**
-   * Remove item from sessionStorage
-   * @param {string} key 
-   */
+  
   removeItem(key) {
     try {
       sessionStorage.removeItem(key);
@@ -126,9 +116,7 @@ export const secureSessionStorage = {
     }
   },
 
-  /**
-   * Clear all sessionStorage
-   */
+  
   clear() {
     try {
       sessionStorage.clear();

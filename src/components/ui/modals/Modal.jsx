@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: Modal.jsx
+ * FUNGSI UTAMA: Komponen UI Modal (Pop-up/Dialog).
+ * 
+ * DETAIL:
+ * - Menampilkan konten atau konfirmasi aksi di atas lapisan halaman utama.
+ * - Mencegah interaksi dengan latar belakang saat modal aktif.
+ */
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 
@@ -18,10 +26,10 @@ export const Modal = ({ isOpen, onClose, title, children, className = '' }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-neutral-900/50 backdrop-blur-sm transition-all p-4 sm:p-0">
-      {/* Overlay click to close */}
+      {}
       <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
       
-      {/* Modal Content */}
+      {}
       <div 
         className={`relative bg-neutral-0 rounded-xl shadow-xl w-full max-w-lg mx-auto flex flex-col max-h-[90vh] ${className}`}
         role="dialog" 

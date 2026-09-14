@@ -1,14 +1,22 @@
+/**
+ * NAMA FILE: CartContext.jsx
+ * FUNGSI UTAMA: React Context Provider untuk manajemen state global aplikasi.
+ * 
+ * DETAIL:
+ * - Menyediakan state dan fungsi yang dapat diakses oleh komponen turunan tanpa prop-drilling.
+ * - Mengelola siklus hidup data (otentikasi, keranjang belanja, atau data pasien).
+ */
 import { createContext, useContext, useState, useEffect } from 'react';
 import { secureSessionStorage } from '../utils/secureStorage';
 
 const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
-  // Cart items structure:
-  // mainMeals: { breakfast: [], lunch: [], dinner: [] }
-  // extraMeals: [ { id, name, price, qty, serveTime, note } ]
+  
+  
+  
   const [cart, setCart] = useState(() => {
-    // ─── SECURITY FIX: Decrypt cart data from sessionStorage ───
+    
     const saved = secureSessionStorage.getItem('patient_cart', true);
     if (saved) {
       return saved;
@@ -20,12 +28,12 @@ export function CartProvider({ children }) {
   });
 
   useEffect(() => {
-    // ─── SECURITY FIX: Encrypt cart data before storing in sessionStorage ───
+    
     secureSessionStorage.setItem('patient_cart', cart);
   }, [cart]);
 
   const setMainMeal = (mealTime, items) => {
-    // mealTime: 'breakfast' | 'lunch' | 'dinner'
+    
     setCart((prev) => ({
       ...prev,
       mainMeals: {

@@ -1,17 +1,14 @@
 /**
- * Input Validation & Sanitization Utilities
- * Hospital Dietary System — Project Menu Gizi
- *
- * Provides defense-in-depth sanitization for all user inputs
- * before they are stored in the database.
+ * NAMA FILE: inputValidator.js
+ * FUNGSI UTAMA: Fungsi-fungsi utilitas pendukung (Helper Functions).
+ * 
+ * DETAIL:
+ * - Berisi fungsi murni (pure functions) untuk pemformatan, validasi, atau komputasi umum.
+ * - Dapat dipanggil dari berbagai bagian aplikasi untuk menghindari duplikasi kode.
  */
 
-/**
- * Sanitize text input — strip HTML tags, dangerous characters, and trim.
- * @param {string} input - Raw user input
- * @param {number} [maxLength=500] - Maximum allowed length
- * @returns {string} Sanitized string
- */
+
+
 export function sanitizeText(input, maxLength = 500) {
   if (typeof input !== 'string') return '';
   return input

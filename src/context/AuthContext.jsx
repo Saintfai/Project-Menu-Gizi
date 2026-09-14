@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: AuthContext.jsx
+ * FUNGSI UTAMA: React Context Provider untuk manajemen state global aplikasi.
+ * 
+ * DETAIL:
+ * - Menyediakan state dan fungsi yang dapat diakses oleh komponen turunan tanpa prop-drilling.
+ * - Mengelola siklus hidup data (otentikasi, keranjang belanja, atau data pasien).
+ */
 import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
@@ -7,7 +15,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // ─── SECURITY FIX: Verify stored token server-side before restoring session ───
+    
     const verifySession = async () => {
       const savedAdmin = localStorage.getItem('hospital_admin_session');
       if (!savedAdmin) {
@@ -18,14 +26,14 @@ export function AuthProvider({ children }) {
       try {
         const parsed = JSON.parse(savedAdmin);
 
-        // If no token stored, session is invalid (legacy or forged)
+        
         if (!parsed.token) {
           localStorage.removeItem('hospital_admin_session');
           setLoading(false);
           return;
         }
 
-        // Verify token is still valid server-side
+        
         const res = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-verify`,
           {
@@ -37,7 +45,7 @@ export function AuthProvider({ children }) {
         if (res.ok) {
           setAdmin(parsed);
         } else {
-          // Token expired or invalid — clear session
+          
           localStorage.removeItem('hospital_admin_session');
         }
       } catch (e) {

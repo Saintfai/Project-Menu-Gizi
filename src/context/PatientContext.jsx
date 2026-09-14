@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: PatientContext.jsx
+ * FUNGSI UTAMA: React Context Provider untuk manajemen state global aplikasi.
+ * 
+ * DETAIL:
+ * - Menyediakan state dan fungsi yang dapat diakses oleh komponen turunan tanpa prop-drilling.
+ * - Mengelola siklus hidup data (otentikasi, keranjang belanja, atau data pasien).
+ */
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../utils/supabase';
 import { secureSessionStorage } from '../utils/secureStorage';
@@ -9,7 +17,7 @@ export function PatientProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // ─── SECURITY FIX: Decrypt saved patient session from sessionStorage ───
+    
     const savedPatient = secureSessionStorage.getItem('active_patient_session', true);
     if (savedPatient) {
       setPatient(savedPatient);
@@ -17,7 +25,7 @@ export function PatientProvider({ children }) {
     setLoading(false);
   }, []);
 
-  // Async login function hitting Supabase
+  
   const loginPatient = async (identifier, dob) => {
     try {
       const normalizedInput = identifier.replace(/\s+/g, '').toLowerCase();
@@ -33,7 +41,7 @@ export function PatientProvider({ children }) {
         const formattedRM = `RM-${numericInput}`;
         query = query.eq('rmNumber', formattedRM);
       } else {
-        // ─── SECURITY FIX: Require DOB for name-based lookups ───
+        
         if (!dob) {
           throw new Error('Tanggal lahir wajib diisi untuk pencarian berdasarkan nama.');
         }
@@ -51,7 +59,7 @@ export function PatientProvider({ children }) {
         throw new Error('Data pasien tidak ditemukan.');
       }
 
-      // ─── SECURITY FIX: Exact match only (no partial match via includes) ───
+      
       const matchedPatients = data.filter((p) => {
         if (isRM) {
           const pNumeric = (p.rmNumber || '').replace(/[^0-9]/g, '');

@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: MenuPortal.jsx
+ * FUNGSI UTAMA: Halaman antarmuka interaktif untuk Pasien Rawat Inap.
+ * 
+ * DETAIL:
+ * - Memungkinkan pasien untuk memverifikasi identitas, melihat menu, dan memesan makanan.
+ * - Didesain dengan pendekatan yang ramah pengguna dan aksesibel.
+ */
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { UtensilsCrossed, ShoppingCart, ShoppingBag, AlertCircle, Info } from 'lucide-react';
@@ -23,7 +31,7 @@ export default function MenuPortal() {
   const isExtraSiangLockedTime = currentHour >= 10;
   const isExtraMalamLockedTime = currentHour >= 14;
   
-  // Local state for fetching menus
+  
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,10 +40,10 @@ export default function MenuPortal() {
   const [validationAlert, setValidationAlert] = useState(null);
   const [hasOrderedMain, setHasOrderedMain] = useState(false);
 
-  // Local state for steppers
-  // quantities format: { [itemId]: ['PASIEN', 'PENDAMPING', ...] }
+  
+  
   const [quantities, setQuantities] = useState(() => {
-    // Restore quantities when coming back from Cart
+    
     return location.state?.restoredQuantities || {};
   });
   const [searchQuery, setSearchQuery] = useState('');
@@ -47,7 +55,7 @@ export default function MenuPortal() {
   const roomClassLower = displayPatient.roomClass?.toLowerCase() || '';
   // VIP A, Junior Suite, and Suite get 2 portions for all meals
   const isVip = roomClassLower.includes('vip a') || roomClassLower.includes('suite');
-  // VIP gets 2 portions for Pagi, Siang, Malam. Others get 2 Pagi, 1 Siang, 1 Malam.
+  
   const maxQtyPagi = 2;
   const maxQtySiang = isVip ? 2 : 1;
   const maxQtyMalam = isVip ? 2 : 1;
@@ -56,7 +64,7 @@ export default function MenuPortal() {
     async function fetchMenus() {
       try {
         setLoading(true);
-        // Calculate T+1 Cycle
+        
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         const day = tomorrow.getDate();
@@ -71,7 +79,7 @@ export default function MenuPortal() {
 
         if (fetchError) throw fetchError;
         
-        // Filter out stale items from quantities that are no longer in the current cycle
+        
         if (data) {
           setQuantities(prev => {
             const currentIds = new Set(data.map(d => d.id));
@@ -120,20 +128,20 @@ export default function MenuPortal() {
     const currentQty = currentQtyArr.length;
 
     if (val > currentQty) {
-      // User clicked '+'
+      
       if (sessionMaxQty > 1) {
-        // Kuota lebih dari 1, tampilkan modal untuk memilih siapa pengonsumsinya
+        
         setIncludeModalOpen(true);
         setSelectedCardId(item.id);
       } else {
-        // Kuota hanya 1, otomatis assign ke PASIEN
+        
         setQuantities(prev => ({
           ...prev,
           [item.id]: [...(prev[item.id] || []), 'PASIEN']
         }));
       }
     } else if (val < currentQty) {
-      // User clicked '-', hapus elemen terakhir
+      
       setQuantities(prev => {
         const arr = prev[item.id] || [];
         return {
@@ -151,7 +159,7 @@ export default function MenuPortal() {
       [itemId]: [...(prev[itemId] || []), consumerRole]
     }));
     
-    // Tutup modal
+    
     setIncludeModalOpen(false);
     setSelectedCardId(null);
   };
@@ -176,12 +184,12 @@ export default function MenuPortal() {
     }
   };
 
-  // Grouping the menus
+  
   const menuPagi = menuItems.filter(item => item.mealTime?.toUpperCase() === 'PAGI');
   const menuSiang = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SIANG');
   const menuMalam = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SORE' || item.mealTime?.toUpperCase() === 'MALAM');
 
-  // Filtered menus for Ekstra Search
+  
   const filteredEkstraSiang = menuSiang.filter(item => 
     item.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
     item.description?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -192,7 +200,7 @@ export default function MenuPortal() {
     item.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Helper to render Menu Utama cards in a 2-column mobile grid
+  
   const renderMenuGrid = (items, maxSessionQty) => {
     if (loading) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Memuat menu...</div>;
     if (error) return <div className="p-3 text-sm text-danger-500 italic bg-red-50 rounded-lg border border-red-100 mt-2">Gagal memuat menu.</div>;
@@ -230,7 +238,7 @@ export default function MenuPortal() {
     );
   };
 
-  // Helper to render Ekstra cards with 'ekstra_' prefix
+  
   const renderEkstraGrid = (items) => {
     if (loading) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Memuat menu ekstra...</div>;
     if (error) return <div className="p-3 text-sm text-danger-500 italic bg-red-50 rounded-lg border border-red-100 mt-2">Gagal memuat menu.</div>;
@@ -293,7 +301,7 @@ export default function MenuPortal() {
       return;
     }
 
-    // Check if user has selected items in locked categories
+    
     let invalidLock = null;
     Object.entries(quantities).forEach(([key, consumers]) => {
       if (!consumers || consumers.length === 0) return;
@@ -323,11 +331,11 @@ export default function MenuPortal() {
     <PageTransition>
     <div className="min-h-screen relative bg-slate-50 flex flex-col font-sans text-neutral-900 pt-[60px] pb-24">
       
-      {/* Background Gradients */}
+      {}
       <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-blue-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
       <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-pink-200/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
 
-      {/* Header */}
+      {}
       <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-gray-100">
         <HeaderMobile 
           title={
@@ -339,10 +347,10 @@ export default function MenuPortal() {
         />
       </div>
 
-      {/* Main Content Container - Centered */}
+      {}
       <div className="flex-1 flex flex-col px-4 py-6 z-10 relative pb-8 w-full max-w-4xl mx-auto space-y-6 md:space-y-8">
         
-        {/* Patient Profile Card */}
+        {}
         <PatientIdentityCard 
           name={displayPatient.name}
           rmNumber={displayPatient.rmNumber?.replace('RM-', '') || '1223'}
@@ -350,7 +358,7 @@ export default function MenuPortal() {
           roomClass={displayPatient.roomClass}
         />
 
-        {/* Warning Banner - hanya tampil jika menu utama masih bisa dipesan */}
+        {}
         {!hasOrderedMain && !isMainMenuLockedTime && (
           <Alert 
             variant="danger" 
@@ -364,7 +372,7 @@ export default function MenuPortal() {
           </Alert>
         )}
 
-        {/* Menu Utama Section */}
+        {}
         {hasOrderedMain || isMainMenuLockedTime ? (
           <div className="bg-white shadow-sm border border-slate-200 border-l-[4px] border-l-[#004e8c] rounded-xl p-4 flex items-center gap-3 mt-2 mb-4">
             <div className="bg-[#eef4f9] p-2 rounded-full">
@@ -383,6 +391,8 @@ export default function MenuPortal() {
 
             <Accordion 
               title="Makan Pagi" 
+              iconBg="bg-[#e0ecfb]"
+              iconColor="text-[#475569]"
               defaultExpanded={true}
               icon={
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -395,6 +405,8 @@ export default function MenuPortal() {
 
             <Accordion 
               title="Makan Siang" 
+              iconBg="bg-[#ffeedc]"
+              iconColor="text-[#6a3f16]"
               icon={
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -406,6 +418,8 @@ export default function MenuPortal() {
 
             <Accordion 
               title="Makan Sore" 
+              iconBg="bg-[#3b4758]"
+              iconColor="text-white"
               icon={
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
@@ -417,7 +431,7 @@ export default function MenuPortal() {
           </div>
         )}
 
-        {/* Ekstra Section */}
+        {}
         <div className="space-y-4 pt-4">
           <div className="flex items-center gap-2">
             <ShoppingCart size={20} className="text-primary-500" />
@@ -429,7 +443,7 @@ export default function MenuPortal() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
 
-          {/* Info alert - hanya tampil jika masih ada ekstra yang bisa dipesan */}
+          {}
           {(!isExtraSiangLockedTime || !isExtraMalamLockedTime) && (
             <Alert 
               variant="danger" 
@@ -453,6 +467,8 @@ export default function MenuPortal() {
           ) : (
             <Accordion 
               title="Makan Siang" 
+              iconBg="bg-[#ffeedc]"
+              iconColor="text-[#6a3f16]"
               defaultExpanded={true}
               icon={
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -474,6 +490,8 @@ export default function MenuPortal() {
           ) : (
             <Accordion 
               title="Makan Sore" 
+              iconBg="bg-[#3b4758]"
+              iconColor="text-white"
               icon={
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
@@ -487,7 +505,7 @@ export default function MenuPortal() {
 
       </div>
 
-      {/* Modals */}
+      {}
       {(() => {
         let takenRoles = [];
         if (selectedCardId && includeModalOpen) {
@@ -516,7 +534,7 @@ export default function MenuPortal() {
         );
       })()}
 
-      {/* Validation Alert Modal */}
+      {}
       {validationAlert && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-[2px]">
           <div className="bg-white w-full max-w-[320px] rounded-[24px] p-6 text-center shadow-xl animate-in fade-in zoom-in-95 duration-200">
@@ -542,7 +560,7 @@ export default function MenuPortal() {
         </div>
       )}
 
-      {/* Floating Cart Banner */}
+      {}
       {totalItems > 0 && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-4xl bg-[#004e8c] text-white rounded-2xl shadow-xl z-40 p-3 md:px-6 md:py-4 flex items-center justify-between animate-in slide-in-from-bottom-5">
           <div className="flex items-center gap-3">

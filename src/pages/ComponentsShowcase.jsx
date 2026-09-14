@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: ComponentsShowcase.jsx
+ * FUNGSI UTAMA: Halaman pameran (Showcase) untuk seluruh komponen UI.
+ * 
+ * DETAIL:
+ * - Menampilkan koleksi komponen UI yang ada dalam proyek (Dev-Only).
+ * - Memudahkan visualisasi dan pengujian desain komponen terisolasi.
+ */
 import React, { useState } from 'react';
 import Button from '../components/ui/buttons/Button';
 import Alert from '../components/ui/feedback/Alert';
@@ -81,11 +89,11 @@ const ComponentsShowcase = () => {
         <p className="text-neutral-500 mt-2">Pratinjau semua komponen UI Hospital Dietary System</p>
       </div>
 
-      {/* Specific Domain Components (Figma Layouts) */}
+      {}
       <section className="space-y-8 pt-8 border-t border-neutral-200 pb-24">
         <h2 className="text-2xl font-bold text-neutral-900">Spesifik Figma Layouts</h2>
         
-        {/* Header Mobile */}
+        {}
         <div className="space-y-2">
           <h3 className="text-lg font-semibold text-neutral-800">Header Mobile</h3>
           <div className="border border-neutral-200 rounded-lg overflow-hidden bg-neutral-100 max-w-sm">
@@ -93,7 +101,7 @@ const ComponentsShowcase = () => {
           </div>
         </div>
 
-        {/* Patient Identity Card */}
+        {}
         <div className="space-y-2">
           <h3 className="text-lg font-semibold text-neutral-800">Patient Identity Card</h3>
           <div className="max-w-md">
@@ -106,7 +114,7 @@ const ComponentsShowcase = () => {
           </div>
         </div>
 
-        {/* Onboarding Glassmorphism Card */}
+        {}
         <div className="space-y-2">
           <h3 className="text-lg font-semibold text-neutral-800">Glassmorphism Container / Main Card</h3>
           <div className="p-8 bg-neutral-100 rounded-lg">
@@ -114,7 +122,7 @@ const ComponentsShowcase = () => {
           </div>
         </div>
 
-        {/* Alerts / Notifications */}
+        {}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-neutral-800">Notification & Notice Box</h3>
           <Alert 
@@ -152,7 +160,7 @@ const ComponentsShowcase = () => {
           </Alert>
         </div>
 
-        {/* Order Summary Placeholder */}
+        {}
         <div className="space-y-2">
           <h3 className="text-lg font-semibold text-neutral-800">Order Summary Placeholder</h3>
           <div className="max-w-md">
@@ -160,7 +168,7 @@ const ComponentsShowcase = () => {
           </div>
         </div>
 
-        {/* Meal Time Accordions & Menu Cards */}
+        {}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-neutral-800">Collapsible Sections & Menu Cards</h3>
           
@@ -214,7 +222,7 @@ const ComponentsShowcase = () => {
           </div>
         </div>
 
-        {/* Extra Card */}
+        {}
         <div className="space-y-2">
           <h3 className="text-lg font-semibold text-neutral-800">Menu Extra Card & Soft Button</h3>
           <div className="w-40 mb-4">
@@ -234,7 +242,7 @@ const ComponentsShowcase = () => {
           </div>
         </div>
 
-        {/* Quantity Stepper */}
+        {}
         <div className="space-y-2">
           <h3 className="text-lg font-semibold text-neutral-800">Quantity Stepper</h3>
           <div className="flex items-center justify-between max-w-[240px] bg-neutral-50 border border-neutral-100 rounded-lg p-2">
@@ -243,7 +251,7 @@ const ComponentsShowcase = () => {
           </div>
         </div>
 
-        {/* Date & Time Selections */}
+        {}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-neutral-800">Date & Time Selection</h3>
           
@@ -274,7 +282,7 @@ const ComponentsShowcase = () => {
           </div>
         </div>
 
-        {/* Rekap Cards (Bento Style) */}
+        {}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-neutral-800">Section - Rekap Cards (Bento Style)</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl">
@@ -343,7 +351,7 @@ const ComponentsShowcase = () => {
           </div>
         </div>
 
-        {/* Section - Orders Table */}
+        {}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-neutral-800">Section - Orders Table</h3>
           <div className="overflow-x-auto shadow-sm rounded-lg border border-neutral-200">
@@ -351,7 +359,7 @@ const ComponentsShowcase = () => {
           </div>
         </div>
 
-        {/* VerticalBorder (User Menu) Nav (Admin) */}
+        {}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-neutral-800">Date/Time Display & Admin Nav</h3>
           <div className="flex items-center gap-12 bg-neutral-0 p-4 rounded-xl border border-neutral-100 shadow-sm max-w-md">
@@ -364,7 +372,7 @@ const ComponentsShowcase = () => {
           </div>
         </div>
 
-        {/* Search Bar */}
+        {}
         <div className="space-y-2">
           <h3 className="text-lg font-semibold text-neutral-800">Search Bar</h3>
           <div className="max-w-sm">
@@ -372,7 +380,7 @@ const ComponentsShowcase = () => {
           </div>
         </div>
 
-        {/* Modals & Popups */}
+        {}
         <div className="space-y-8">
           <div className="border-b border-neutral-200 pb-2">
             <h3 className="text-xl font-bold text-neutral-800">Modals & Pop-ups</h3>
@@ -415,10 +423,10 @@ const ComponentsShowcase = () => {
           </div>
         </div>
 
-        {/* Sticky Footer Demo */}
+        {}
         <div className="space-y-2 relative h-40 bg-neutral-100 border border-neutral-200 rounded-lg overflow-hidden">
           <h3 className="text-lg font-semibold text-neutral-800 p-4">Sticky Footer Action Bar (Demo)</h3>
-          {/* Note: StickyFooter usually anchors to screen bottom, we override position for showcase preview */}
+          {}
           <div className="absolute bottom-0 left-0 right-0">
             <StickyFooter className="!static !shadow-none" />
           </div>

@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: Login.jsx
+ * FUNGSI UTAMA: Halaman antarmuka interaktif untuk Pasien Rawat Inap.
+ * 
+ * DETAIL:
+ * - Memungkinkan pasien untuk memverifikasi identitas, melihat menu, dan memesan makanan.
+ * - Didesain dengan pendekatan yang ramah pengguna dan aksesibel.
+ */
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -24,10 +32,10 @@ export default function PatientLogin() {
   const location = useLocation();
   const { loginPatient, selectPatient } = usePatient();
 
-  // 'rm' | 'name'
+  
   const [activeTab, setActiveTab] = useState('rm');
 
-  // RM tab
+  
   const [rmNumber, setRmNumber] = useState(location.state?.identifier || '');
 
   // Name+DOB tab
@@ -178,7 +186,7 @@ export default function PatientLogin() {
             </motion.div>
 
           ) : showNotFound ? (
-            /* ==================== NOT FOUND STATE ==================== */
+            
             <motion.div
               key="not-found"
               initial={{ opacity: 0 }}
@@ -222,7 +230,7 @@ export default function PatientLogin() {
             </motion.div>
 
           ) : (
-            /* ==================== LOGIN FORM STATE ==================== */
+            
             <motion.div
               key="login-form"
               initial={{ opacity: 0 }}
@@ -231,7 +239,7 @@ export default function PatientLogin() {
               transition={{ duration: 0.3, ease: "easeOut" }}
               className="w-full max-w-[320px] mx-auto flex flex-col bg-white rounded-[24px] p-5 shadow-2xl border border-white relative z-20"
             >
-              {/* Card Header */}
+              {}
               <div className="flex flex-col items-center mb-5">
                 <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center mb-3 text-blue-800 shadow-inner">
                   <IdCard size={20} strokeWidth={1.5} />
@@ -244,7 +252,7 @@ export default function PatientLogin() {
                 </p>
               </div>
 
-              {/* Tab Toggle */}
+              {}
               <div className="flex bg-slate-100 rounded-xl p-1 mb-4 gap-1">
                 <button
                   type="button"
@@ -272,7 +280,7 @@ export default function PatientLogin() {
                 </button>
               </div>
 
-              {/* Login Form */}
+              {}
               <form onSubmit={handleSearch} className="space-y-3">
 
                 <AnimatePresence mode="wait">
@@ -311,7 +319,7 @@ export default function PatientLogin() {
                       transition={{ duration: 0.15 }}
                       className="space-y-3"
                     >
-                      {/* Nama */}
+                      {}
                       <div>
                         <label className="block text-xs font-semibold text-slate-700 mb-1.5 ml-1">
                           Nama Pasien
@@ -331,7 +339,7 @@ export default function PatientLogin() {
                         </div>
                       </div>
 
-                      {/* Tanggal Lahir — single native date input */}
+                      {}
                       <div>
                         <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1.5 ml-1">
                           <Calendar size={13} className="text-slate-400" />
@@ -352,14 +360,14 @@ export default function PatientLogin() {
                   )}
                 </AnimatePresence>
 
-                {/* Error Message */}
+                {}
                 {errorMsg && (
                   <div className="text-red-500 text-[11px] font-medium text-center bg-red-50 py-1.5 rounded-lg border border-red-100">
                     {errorMsg}
                   </div>
                 )}
 
-                {/* Submit Button */}
+                {}
                 <button
                   type="submit"
                   disabled={isLoading}
@@ -379,7 +387,7 @@ export default function PatientLogin() {
                 </button>
               </form>
 
-              {/* Footer Info inside Card */}
+              {}
               <div className="mt-auto pt-3.5 border-t border-slate-100 flex items-start gap-2 mt-4">
                 <Info size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
                 <p className="text-[10px] text-slate-500 leading-relaxed">
@@ -390,7 +398,7 @@ export default function PatientLogin() {
           )}
         </AnimatePresence>
 
-        {/* Page Footer */}
+        {}
         <div className="mt-8 text-center flex flex-col gap-1 opacity-70 relative z-0">
           <p className="text-[10px] text-slate-500">© 2026 RS Edelweiss. All Rights Reserved.</p>
           <p className="text-[10px] text-slate-400">Sistem Pemesanan Menu Gizi Pasien Rawat Inap</p>
