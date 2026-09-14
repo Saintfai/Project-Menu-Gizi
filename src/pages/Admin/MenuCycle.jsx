@@ -384,9 +384,9 @@ export default function MenuCycle() {
           'sky'
         )}
 
-        {/* Makan Malam / Sore */}
+        {/* Makan Sore */}
         {renderMealColumn(
-          'Makan Sore / Malam',
+          'Makan Sore',
           soreItems,
           'SORE',
           <Moon className="w-5 h-5" />,

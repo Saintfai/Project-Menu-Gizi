@@ -56,7 +56,7 @@ export const NoteDetailContent = ({ data }) => {
           <span className="text-neutral-700 font-medium">{data.makanSiang || data.menuSiangText || '-'}</span>
         </div>
         <div className="py-2.5 flex justify-between items-center text-xs">
-          <span className="font-bold text-primary-700">Makan Malam:</span>
+          <span className="font-bold text-primary-700">Makan Sore:</span>
           <span className="text-neutral-700 font-medium">{data.makanMalam || data.menuMalamText || '-'}</span>
         </div>
       </div>

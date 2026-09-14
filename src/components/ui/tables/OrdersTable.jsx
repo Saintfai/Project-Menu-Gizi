@@ -47,7 +47,7 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
               <th className="px-4 py-3.5 font-semibold">KAMAR</th>
               <th className="px-4 py-3.5 font-semibold">MAKAN PAGI</th>
               <th className="px-4 py-3.5 font-semibold">MAKAN SIANG</th>
-              <th className="px-4 py-3.5 font-semibold">MAKAN MALAM</th>
+              <th className="px-4 py-3.5 font-semibold">MAKAN SORE</th>
               <th className="px-4 py-3.5 font-semibold">TANGGAL & WAKTU</th>
               <th className="px-4 py-3.5 font-semibold text-center">CATATAN</th>
             </tr>

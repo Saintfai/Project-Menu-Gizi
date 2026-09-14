@@ -11,8 +11,7 @@ import { validateNote } from '../../utils/inputValidator';
 const MEAL_SCHEDULE = {
   PAGI: { label: 'Pagi', time: '06:30 - 08:30 WIB', icon: Sun },
   SIANG: { label: 'Siang', time: '11:30 - 13:30 WIB', icon: Cloud },
-  MALAM: { label: 'Malam', time: '17:30 - 19:30 WIB', icon: Moon },
-  SORE: { label: 'Malam', time: '17:30 - 19:30 WIB', icon: Moon },
+  SORE: { label: 'Sore', time: '17:30 - 19:30 WIB', icon: Moon },
 };
 
 export default function Cart() {
@@ -59,9 +58,9 @@ export default function Cart() {
 
   // Process quantities into structured order data
   const orderData = useMemo(() => {
-    const pasien = { PAGI: [], SIANG: [], MALAM: [] };
-    const pendamping = { PAGI: [], SIANG: [], MALAM: [] };
-    const ekstra = { SIANG: [], MALAM: [] };
+    const pasien = { PAGI: [], SIANG: [], SORE: [] };
+    const pendamping = { PAGI: [], SIANG: [], SORE: [] };
+    const ekstra = { SIANG: [], SORE: [] };
 
     Object.entries(quantities).forEach(([key, consumers]) => {
       if (!consumers || consumers.length === 0) return;
@@ -72,8 +71,7 @@ export default function Cart() {
       if (!item) return;
 
       const mealTime = item.mealTime?.toUpperCase();
-      // Normalize SORE to MALAM
-      const normalizedMealTime = mealTime === 'SORE' ? 'MALAM' : mealTime;
+      const normalizedMealTime = mealTime;
 
       if (isEkstra) {
         // All ekstra items go into the ekstra section
@@ -249,20 +247,18 @@ export default function Cart() {
       };
 
       // 1. Pesanan Utama Pasien & Pendamping (INCLUDE)
-      ['PAGI', 'SIANG', 'MALAM'].forEach(key => {
-        const dbMealTime = key === 'MALAM' ? 'SORE' : key;
+      ['PAGI', 'SIANG', 'SORE'].forEach(key => {
         const pasienItems = orderData.pasien[key] || [];
         const pendampingItems = orderData.pendamping[key] || [];
 
-        if (pasienItems.length > 0) addItems('INCLUDE', 'PASIEN', dbMealTime, pasienItems);
-        if (pendampingItems.length > 0) addItems('INCLUDE', 'PENDAMPING', dbMealTime, pendampingItems);
+        if (pasienItems.length > 0) addItems('INCLUDE', 'PASIEN', key, pasienItems);
+        if (pendampingItems.length > 0) addItems('INCLUDE', 'PENDAMPING', key, pendampingItems);
       });
 
       // 2. Pesanan Ekstra (EXCLUDE)
-      ['SIANG', 'MALAM'].forEach(key => {
-        const dbMealTime = key === 'MALAM' ? 'SORE' : key;
+      ['SIANG', 'SORE'].forEach(key => {
         if (orderData.ekstra[key] && orderData.ekstra[key].length > 0) {
-          addItems('EXCLUDE', 'PENDAMPING', dbMealTime, orderData.ekstra[key]);
+          addItems('EXCLUDE', 'PENDAMPING', key, orderData.ekstra[key]);
         }
       });
 
@@ -337,7 +333,7 @@ export default function Cart() {
               <h2 className="text-base font-bold text-[#004e8c]">Pesanan Pasien</h2>
             </div>
             <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-4 md:p-5">
-              {['PAGI', 'SIANG', 'MALAM'].map(key => 
+              {['PAGI', 'SIANG', 'SORE'].map(key => 
                 renderMealSection(key, orderData.pasien[key])
               )}
             </div>
@@ -352,7 +348,7 @@ export default function Cart() {
               <h2 className="text-base font-bold text-[#004e8c]">Pesanan Pendamping</h2>
             </div>
             <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-4 md:p-5">
-              {['PAGI', 'SIANG', 'MALAM'].map(key => 
+              {['PAGI', 'SIANG', 'SORE'].map(key => 
                 renderMealSection(key, orderData.pendamping[key])
               )}
             </div>
@@ -367,7 +363,7 @@ export default function Cart() {
               <h2 className="text-base font-bold text-amber-600">Pesanan Ekstra</h2>
             </div>
             <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-4 md:p-5">
-              {['SIANG', 'MALAM'].map(key => 
+              {['SIANG', 'SORE'].map(key => 
                 renderEkstraMealSection(key, orderData.ekstra[key])
               )}
             </div>

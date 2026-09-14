@@ -7,6 +7,7 @@ import {
   User, 
   Calendar, 
   MapPin,
+  Phone,
   Building, 
   AlertTriangle, 
   Info 
@@ -83,6 +84,19 @@ export default function Onboarding() {
       }
       return masked;
     }
+  };
+
+  // Mask phone number for privacy (e.g., 081234567890 → 0812****7890)
+  const maskPhone = (phone) => {
+    if (!phone || phone.trim() === '' || phone === '-') return '-';
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length <= 4) return phone;
+    // Show first 4 and last 4 digits, mask the middle
+    const visibleStart = digits.slice(0, 4);
+    const visibleEnd = digits.slice(-4);
+    const maskedLength = Math.max(digits.length - 8, 0);
+    const masked = '*'.repeat(maskedLength || 4);
+    return `${visibleStart}${masked}${visibleEnd}`;
   };
 
   // Construct allergy string
@@ -192,6 +206,15 @@ export default function Onboarding() {
               <span className="text-xs font-bold text-slate-800 text-right pl-3 truncate max-w-[200px]" title={maskAddress(patient.address)}>
                 {maskAddress(patient.address)}
               </span>
+            </div>
+
+            {/* Row: Telepon */}
+            <div className="flex items-center justify-between border-b border-slate-50 pb-3">
+              <div className="flex items-center gap-2.5 text-slate-500">
+                <Phone size={16} strokeWidth={2} />
+                <span className="text-xs font-medium">Telepon</span>
+              </div>
+              <span className="text-xs font-bold text-slate-800">{maskPhone(patient.phone)}</span>
             </div>
 
             {/* Row: Ruangan */}

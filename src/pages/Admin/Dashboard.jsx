@@ -253,9 +253,9 @@ export default function Dashboard() {
           ]}
         />
 
-        {/* Makan Malam */}
+        {/* Makan Sore */}
         <RekapCard
-          title="Makan Malam"
+          title="Makan Sore"
           icon={<Moon className="w-4 h-4 text-indigo-600" />}
           total={stats.malam.total}
           totalLabel="Total Porsi"
