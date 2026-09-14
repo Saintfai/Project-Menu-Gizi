@@ -42,7 +42,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
       className={`no-print print:hidden relative flex items-center justify-between px-4 sm:px-8 py-3 bg-neutral-0 border-b border-neutral-100 shadow-sm ${className}`}
     >
       {/* Left: Brand Logo & Title */}
-      <div className="flex items-center">
+      <div className="flex-1 flex items-center justify-start">
         <div
           onClick={handleLogoClick}
           className="flex items-center cursor-pointer select-none group"
@@ -59,7 +59,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
 
       {/* Center: Navigation Links */}
       <nav
-        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-6 sm:gap-8"
+        className="flex items-center justify-center gap-6 sm:gap-8"
         aria-label="Menu Admin"
       >
         <NavLink
@@ -103,7 +103,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
       </nav>
 
       {/* Right: Realtime Date & Time Info */}
-      <div className="flex items-center">
+      <div className="flex-1 flex items-center justify-end">
         <div className="text-right pr-4 border-r border-neutral-300">
           <div className="text-[11px] sm:text-xs font-semibold text-neutral-700 tracking-tight">
             {formattedDate}
