@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { secureSessionStorage } from '../utils/secureStorage';
 
 const CartContext = createContext(null);
 
@@ -7,13 +8,10 @@ export function CartProvider({ children }) {
   // mainMeals: { breakfast: [], lunch: [], dinner: [] }
   // extraMeals: [ { id, name, price, qty, serveTime, note } ]
   const [cart, setCart] = useState(() => {
-    const saved = sessionStorage.getItem('patient_cart');
+    // ─── SECURITY FIX: Decrypt cart data from sessionStorage ───
+    const saved = secureSessionStorage.getItem('patient_cart', true);
     if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Error parsing cart:', e);
-      }
+      return saved;
     }
     return {
       mainMeals: { breakfast: [], lunch: [], dinner: [] },
@@ -22,7 +20,8 @@ export function CartProvider({ children }) {
   });
 
   useEffect(() => {
-    sessionStorage.setItem('patient_cart', JSON.stringify(cart));
+    // ─── SECURITY FIX: Encrypt cart data before storing in sessionStorage ───
+    secureSessionStorage.setItem('patient_cart', cart);
   }, [cart]);
 
   const setMainMeal = (mealTime, items) => {
@@ -74,7 +73,7 @@ export function CartProvider({ children }) {
       mainMeals: { breakfast: [], lunch: [], dinner: [] },
       extraMeals: [],
     });
-    sessionStorage.removeItem('patient_cart');
+    secureSessionStorage.removeItem('patient_cart');
   };
 
   return (

@@ -41,14 +41,8 @@ export default function MenuPortal() {
   const [searchQuery, setSearchQuery] = useState('');
 
 
-  // Mock patient if context is empty for UI testing
-  const displayPatient = patient || {
-    name: 'Budi Santoso',
-    rmNumber: 'RM-1223',
-    address: 'Apartemen Grand Asia Afrika Tower B Lt. 12 Unit 1205, Lengkong, Bandung',
-    roomName: 'LAVENDER 1 - 1.1',
-    roomClass: 'VIP A'
-  };
+  // ─── SECURITY FIX: Remove mock patient fallback to prevent unauthenticated bypass (Bug #13) ───
+  const displayPatient = patient || {};
 
   const roomClassLower = displayPatient.roomClass?.toLowerCase() || '';
   // VIP A, Junior Suite, and Suite get 2 portions for all meals

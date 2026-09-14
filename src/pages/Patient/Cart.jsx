@@ -6,6 +6,7 @@ import { usePatient } from '../../context/PatientContext';
 import { createOrders } from '../../services/orderService';
 import PageTransition from '../../components/PageTransition';
 import { validateNote } from '../../utils/inputValidator';
+import { secureSessionStorage } from '../../utils/secureStorage';
 
 // Time schedule labels
 const MEAL_SCHEDULE = {
@@ -19,14 +20,14 @@ export default function Cart() {
   const location = useLocation();
   const { patient, logoutPatient } = usePatient();
   const [note, setNote] = useState(() => {
-    return sessionStorage.getItem('patient_cart_note') || '';
+    return secureSessionStorage.getItem('patient_cart_note') || '';
   });
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Save note to sessionStorage whenever it changes
+  // Save note to secureSessionStorage whenever it changes
   React.useEffect(() => {
-    sessionStorage.setItem('patient_cart_note', note);
+    secureSessionStorage.setItem('patient_cart_note', note);
   }, [note]);
 
   // Retrieve data passed from MenuPortal
@@ -265,7 +266,7 @@ export default function Cart() {
       await createOrders(orderItemsToInsert);
 
       // Clear the saved note upon successful submission
-      sessionStorage.removeItem('patient_cart_note');
+      secureSessionStorage.removeItem('patient_cart_note');
 
       // Create summary for receipt based on exactly what was inserted
       const summaryMap = {};

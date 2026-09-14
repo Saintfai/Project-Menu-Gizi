@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../utils/supabase';
+import { secureSessionStorage } from '../utils/secureStorage';
 
 const PatientContext = createContext(null);
 
@@ -8,15 +9,10 @@ export function PatientProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check saved active patient in sessionStorage
-    const savedPatient = sessionStorage.getItem('active_patient_session');
+    // ─── SECURITY FIX: Decrypt saved patient session from sessionStorage ───
+    const savedPatient = secureSessionStorage.getItem('active_patient_session', true);
     if (savedPatient) {
-      try {
-        setPatient(JSON.parse(savedPatient));
-      } catch (e) {
-        console.error('Error parsing patient session:', e);
-        sessionStorage.removeItem('active_patient_session');
-      }
+      setPatient(savedPatient);
     }
     setLoading(false);
   }, []);
@@ -78,7 +74,7 @@ export function PatientProvider({ children }) {
         };
         
         setPatient(patientData);
-        sessionStorage.setItem('active_patient_session', JSON.stringify(patientData));
+        secureSessionStorage.setItem('active_patient_session', patientData);
         return { type: 'single', patient: patientData };
       } else {
         return { type: 'multiple', patients: matchedPatients };
@@ -94,23 +90,23 @@ export function PatientProvider({ children }) {
       isVerified: selectedPatient.isVerified ?? true,
     };
     setPatient(patientData);
-    sessionStorage.setItem('active_patient_session', JSON.stringify(patientData));
+    secureSessionStorage.setItem('active_patient_session', patientData);
     return patientData;
   };
 
   const updatePatientInfo = (updatedFields) => {
     setPatient((prev) => {
       const next = { ...prev, ...updatedFields };
-      sessionStorage.setItem('active_patient_session', JSON.stringify(next));
+      secureSessionStorage.setItem('active_patient_session', next);
       return next;
     });
   };
 
   const logoutPatient = () => {
     setPatient(null);
-    sessionStorage.removeItem('active_patient_session');
-    sessionStorage.removeItem('patient_cart');
-    sessionStorage.removeItem('patient_cart_note');
+    secureSessionStorage.removeItem('active_patient_session');
+    secureSessionStorage.removeItem('patient_cart');
+    secureSessionStorage.removeItem('patient_cart_note');
   };
 
   return (
