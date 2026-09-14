@@ -5,6 +5,7 @@ import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import { usePatient } from '../../context/PatientContext';
 import { createOrders } from '../../services/orderService';
 import PageTransition from '../../components/PageTransition';
+import { validateNote } from '../../utils/inputValidator';
 
 // Time schedule labels
 const MEAL_SCHEDULE = {
@@ -195,6 +196,14 @@ export default function Cart() {
   const handleConfirm = async () => {
     setIsSubmitting(true);
     try {
+      // ─── SECURITY FIX: Sanitize note before inserting ───
+      const { valid: noteValid, sanitized: sanitizedNote, error: noteError } = validateNote(note);
+      if (!noteValid) {
+        alert(noteError);
+        setIsSubmitting(false);
+        return;
+      }
+
       const orderItemsToInsert = [];
       const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
       const randomStr = Math.floor(1000 + Math.random() * 9000);
@@ -234,7 +243,7 @@ export default function Cart() {
             quantity: entry.qty,
             type: type,
             consumer: consumer,
-            notes: note || null
+            notes: sanitizedNote || null
           });
         });
       };

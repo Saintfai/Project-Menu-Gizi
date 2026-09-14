@@ -1,4 +1,5 @@
 import { supabase } from '../utils/supabase';
+import { sanitizeText } from '../utils/inputValidator';
 
 /**
  * Mengambil semua pesanan dari database Supabase (tabel Order dengan relasi Patient).
@@ -60,9 +61,16 @@ export async function getOrders(options = {}) {
  * @param {Array<object>} orderItems - Array item pesanan yang akan diinsert
  */
 export async function createOrders(orderItems) {
+  // ─── SECURITY FIX: Defense-in-depth sanitization at service layer ───
+  const sanitizedItems = orderItems.map(item => ({
+    ...item,
+    notes: item.notes ? sanitizeText(item.notes, 300) : null,
+    menuName: item.menuName ? sanitizeText(item.menuName, 100) : item.menuName,
+  }));
+
   const { data, error } = await supabase
     .from('Order')
-    .insert(orderItems)
+    .insert(sanitizedItems)
     .select();
 
   if (error) {
@@ -72,3 +80,4 @@ export async function createOrders(orderItems) {
 
   return data;
 }
+

@@ -25,6 +25,7 @@ import Button from '../../components/ui/buttons/Button';
 import { Input, Textarea } from '../../components/ui/forms/Input';
 import Modal from '../../components/ui/modals/Modal';
 import PageTransition from '../../components/PageTransition';
+import { validateMenuItemFields } from '../../utils/inputValidator';
 
 export default function MenuCycle() {
   const activeCycle = getMenuCycleByDate();
@@ -112,8 +113,11 @@ export default function MenuCycle() {
   // Submit Add
   const handleSubmitAdd = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
-      toast.error('Nama menu wajib diisi!');
+
+    // ─── SECURITY FIX: Validate & sanitize menu item fields ───
+    const { valid, sanitized, errors } = validateMenuItemFields(formData);
+    if (!valid) {
+      toast.error(errors.join(' '));
       return;
     }
 
@@ -122,9 +126,9 @@ export default function MenuCycle() {
       await createMenuItem({
         cycleId: selectedCycle,
         mealTime: currentMealTime,
-        paketName: formData.paketName.trim(),
-        name: formData.name.trim(),
-        description: formData.description.trim(),
+        paketName: (sanitized.paketName || formData.paketName).trim(),
+        name: sanitized.name.trim(),
+        description: (sanitized.description || '').trim(),
       });
       toast.success('Menu baru berhasil ditambahkan!');
       setIsAddModalOpen(false);
@@ -140,17 +144,20 @@ export default function MenuCycle() {
   // Submit Edit
   const handleSubmitEdit = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
-      toast.error('Nama menu wajib diisi!');
+
+    // ─── SECURITY FIX: Validate & sanitize menu item fields ───
+    const { valid, sanitized, errors } = validateMenuItemFields(formData);
+    if (!valid) {
+      toast.error(errors.join(' '));
       return;
     }
 
     try {
       setIsSubmitting(true);
       await updateMenuItem(selectedItem.id, {
-        paketName: formData.paketName.trim(),
-        name: formData.name.trim(),
-        description: formData.description.trim(),
+        paketName: (sanitized.paketName || formData.paketName).trim(),
+        name: sanitized.name.trim(),
+        description: (sanitized.description || '').trim(),
       });
       toast.success('Perubahan menu berhasil disimpan!');
       setIsEditModalOpen(false);
