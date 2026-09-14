@@ -7,17 +7,48 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check saved admin session in localStorage
-    const savedAdmin = localStorage.getItem('hospital_admin_session');
-    if (savedAdmin) {
-      try {
-        setAdmin(JSON.parse(savedAdmin));
-      } catch (e) {
-        console.error('Error parsing admin session:', e);
-        localStorage.removeItem('hospital_admin_session');
+    // ─── SECURITY FIX: Verify stored token server-side before restoring session ───
+    const verifySession = async () => {
+      const savedAdmin = localStorage.getItem('hospital_admin_session');
+      if (!savedAdmin) {
+        setLoading(false);
+        return;
       }
-    }
-    setLoading(false);
+
+      try {
+        const parsed = JSON.parse(savedAdmin);
+
+        // If no token stored, session is invalid (legacy or forged)
+        if (!parsed.token) {
+          localStorage.removeItem('hospital_admin_session');
+          setLoading(false);
+          return;
+        }
+
+        // Verify token is still valid server-side
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-verify`,
+          {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${parsed.token}` },
+          }
+        );
+
+        if (res.ok) {
+          setAdmin(parsed);
+        } else {
+          // Token expired or invalid — clear session
+          localStorage.removeItem('hospital_admin_session');
+        }
+      } catch (e) {
+        console.error('Session verification failed:', e);
+        localStorage.removeItem('hospital_admin_session');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    verifySession();
   }, []);
 
   const login = (userData) => {
