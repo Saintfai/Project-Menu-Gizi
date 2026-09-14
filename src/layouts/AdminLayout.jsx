@@ -4,12 +4,12 @@ import AdminNavbar from '../components/ui/navigation/AdminNavbar';
 
 export default function AdminLayout() {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-neutral-800">
+    <div className="h-screen overflow-hidden bg-slate-50 flex flex-col font-sans text-neutral-800">
       {/* Admin Top Navigation Bar with Edelweiss Logo Logout and Cycle Info */}
       <AdminNavbar />
 
       {/* Main Page Area - Full Width & Responsive */}
-      <main className="flex-1 w-full px-4 sm:px-8 py-6 print:p-0">
+      <main className="flex-1 w-full px-4 sm:px-8 py-6 print:p-0 overflow-y-auto">
         <Outlet />
       </main>
     </div>

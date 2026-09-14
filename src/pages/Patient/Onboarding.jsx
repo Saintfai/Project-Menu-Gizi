@@ -253,15 +253,20 @@ export default function Onboarding() {
         </motion.div>
 
         {/* Action Button */}
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.1, ease: "easeOut" }}
-          onClick={() => navigate('/menu')}
-          className="w-full bg-[#00529B] hover:bg-[#004280] text-white py-3.5 rounded-xl font-bold text-sm transition-all active:scale-[0.98] shadow-lg shadow-blue-900/20 border-none outline-none"
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
+          className="w-full"
         >
-          Lanjut ke Pilih Menu
-        </motion.button>
+          <button
+            onClick={() => navigate('/menu')}
+            style={{ WebkitTapHighlightColor: 'transparent' }}
+            className="w-full bg-[#00529B] text-white py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-900/20 border-none outline-none transition-transform duration-150 active:scale-[0.96] active:bg-[#004280] sm:hover:bg-[#004280]"
+          >
+            Lanjut ke Pilih Menu
+          </button>
+        </motion.div>
         
         {/* Page Footer */}
         <div className="mt-5 pt-4 text-center flex flex-col gap-1 opacity-70">
