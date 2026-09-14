@@ -1,10 +1,15 @@
+/**
+ * NAMA FILE: AdminRoute.jsx
+ * FUNGSI UTAMA: Route Guard untuk memproteksi akses halaman.
+ * 
+ * DETAIL:
+ * - Memvalidasi sesi pengguna (Admin/Patient).
+ * - Mengarahkan pengguna ke halaman login jika sesi tidak valid atau belum terautentikasi.
+ */
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
-/**
- * Route Guard for Admin/Dietary Staff.
- * Checks if admin is logged in and has appropriate role.
- */
+
 export default function AdminRoute() {
   const { admin, isAuthenticated, loading } = useAuth();
 

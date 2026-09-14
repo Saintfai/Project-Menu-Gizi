@@ -1,10 +1,18 @@
+/**
+ * NAMA FILE: MenuCard.jsx
+ * FUNGSI UTAMA: Komponen UI Card untuk menampilkan blok informasi atau data.
+ * 
+ * DETAIL:
+ * - Membungkus konten dengan gaya visual standar (border, shadow, radius).
+ * - Digunakan untuk menampilkan menu, rekap data, atau identitas pasien.
+ */
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Utensils } from 'lucide-react';
 import Stepper from '../navigation/Stepper';
 
 export const MenuCard = ({ 
-  type = 'paket', // 'paket' or 'extra'
+  type = 'paket', 
   image, 
   title, 
   subtitle, 

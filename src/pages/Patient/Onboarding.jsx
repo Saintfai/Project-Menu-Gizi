@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: Onboarding.jsx
+ * FUNGSI UTAMA: Halaman antarmuka interaktif untuk Pasien Rawat Inap.
+ * 
+ * DETAIL:
+ * - Memungkinkan pasien untuk memverifikasi identitas, melihat menu, dan memesan makanan.
+ * - Didesain dengan pendekatan yang ramah pengguna dan aksesibel.
+ */
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -20,7 +28,7 @@ export default function Onboarding() {
   const location = useLocation();
   const { patient } = usePatient();
 
-  // If no patient is logged in, redirect to login
+  
   useEffect(() => {
     if (!patient) {
       navigate('/login', { replace: true });
@@ -29,10 +37,10 @@ export default function Onboarding() {
 
   if (!patient) return null;
 
-  // Format date helper
+  
   const formatDate = (dateString) => {
     if (!dateString) return '-';
-    // Handle YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS
+    
     const dateObj = new Date(dateString);
     if (isNaN(dateObj)) return dateString;
     const d = dateObj.getDate().toString().padStart(2, '0');
@@ -41,7 +49,7 @@ export default function Onboarding() {
     return `${d}/${m}/${y}`;
   };
 
-  // Mask address helper
+  
   const maskAddress = (address) => {
     if (!address || address.trim() === '' || address === '-') return '-';
 
@@ -109,7 +117,7 @@ export default function Onboarding() {
     warningText = 'Tidak ada catatan riwayat alergi.';
   }
 
-  // Format Room Class mapping
+  
   const formatRoomClass = (cls) => {
     if (!cls) return '';
     return cls.replace(/_/g, ' ');
@@ -160,17 +168,17 @@ export default function Onboarding() {
           </div>
         </div>
 
-        {/* Data Card */}
+        {}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
           className="w-full bg-white rounded-[20px] p-5 shadow-xl shadow-slate-200/50 border border-white mb-8"
         >
-          {/* Patient Details */}
+          {}
           <div className="space-y-4 mb-6">
             
-            {/* Row: RM */}
+            {}
             <div className="flex items-center justify-between border-b border-slate-50 pb-3">
               <div className="flex items-center gap-2.5 text-slate-500">
                 <User size={16} strokeWidth={2} />
@@ -179,7 +187,7 @@ export default function Onboarding() {
               <span className="text-xs font-bold text-slate-800">{patient.rmNumber}</span>
             </div>
 
-            {/* Row: Nama */}
+            {}
             <div className="flex items-center justify-between border-b border-slate-50 pb-3">
               <div className="flex items-center gap-2.5 text-slate-500">
                 <User size={16} strokeWidth={2} />
@@ -188,7 +196,7 @@ export default function Onboarding() {
               <span className="text-xs font-bold text-slate-800">{patient.name}</span>
             </div>
 
-            {/* Row: DOB */}
+            {}
             <div className="flex items-center justify-between border-b border-slate-50 pb-3">
               <div className="flex items-center gap-2.5 text-slate-500">
                 <Calendar size={16} strokeWidth={2} />
@@ -197,7 +205,7 @@ export default function Onboarding() {
               <span className="text-xs font-bold text-slate-800">{formatDate(patient.dob)}</span>
             </div>
 
-            {/* Row: Alamat */}
+            {}
             <div className="flex items-center justify-between border-b border-slate-50 pb-3">
               <div className="flex items-center gap-2.5 text-slate-500 flex-shrink-0">
                 <MapPin size={16} strokeWidth={2} />
@@ -208,7 +216,7 @@ export default function Onboarding() {
               </span>
             </div>
 
-            {/* Row: Telepon */}
+            {}
             <div className="flex items-center justify-between border-b border-slate-50 pb-3">
               <div className="flex items-center gap-2.5 text-slate-500">
                 <Phone size={16} strokeWidth={2} />
@@ -217,7 +225,7 @@ export default function Onboarding() {
               <span className="text-xs font-bold text-slate-800">{maskPhone(patient.phone)}</span>
             </div>
 
-            {/* Row: Ruangan */}
+            {}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5 text-slate-500">
                 <Building size={16} strokeWidth={2} />
@@ -228,7 +236,7 @@ export default function Onboarding() {
             
           </div>
 
-          {/* Alert: Alergi & Pantangan */}
+          {}
           {hasAllergies && (
             <div className="bg-red-50/80 border border-red-100 rounded-xl p-4 mb-3">
               <div className="flex items-start gap-2.5">
@@ -243,7 +251,7 @@ export default function Onboarding() {
             </div>
           )}
 
-          {/* Alert: Info */}
+          {}
           <div className="bg-blue-50/80 border border-blue-100 rounded-xl p-3 flex items-start gap-2.5">
             <Info size={16} className="text-blue-500 mt-0.5 flex-shrink-0" strokeWidth={2.5} />
             <p className="text-[11px] text-blue-700/90 font-medium leading-relaxed">
@@ -252,7 +260,7 @@ export default function Onboarding() {
           </div>
         </motion.div>
 
-        {/* Action Button */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -268,7 +276,7 @@ export default function Onboarding() {
           </button>
         </motion.div>
         
-        {/* Page Footer */}
+        {}
         <div className="mt-5 pt-4 text-center flex flex-col gap-1 opacity-70">
           <p className="text-[10px] text-slate-500">© 2026 RS Edelweiss. All Rights Reserved.</p>
           <p className="text-[10px] text-slate-400">Sistem Pemesanan Menu Gizi Pasien Rawat Inap</p>

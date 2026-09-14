@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: Tabs.jsx
+ * FUNGSI UTAMA: Komponen UI untuk navigasi aplikasi.
+ * 
+ * DETAIL:
+ * - Memfasilitasi perpindahan antar halaman atau tab.
+ * - Menunjukkan status langkah atau halaman yang sedang aktif.
+ */
 import React from 'react';
 import PropTypes from 'prop-types';
 

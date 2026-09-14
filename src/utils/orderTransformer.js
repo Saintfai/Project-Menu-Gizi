@@ -1,18 +1,14 @@
 /**
- * Utility untuk mentransformasikan data pesanan mentah (flat table dari DB)
- * menjadi format 1 baris terintegrasi untuk Tabel Rekap Dapur Gizi.
+ * NAMA FILE: orderTransformer.js
+ * FUNGSI UTAMA: Fungsi-fungsi utilitas pendukung (Helper Functions).
+ * 
+ * DETAIL:
+ * - Berisi fungsi murni (pure functions) untuk pemformatan, validasi, atau komputasi umum.
+ * - Dapat dipanggil dari berbagai bagian aplikasi untuk menghindari duplikasi kode.
  */
 
-/**
- * Format string gabungan paket dalam 1 waktu makan.
- * Aturan PRD:
- * - '/' memisahkan porsi pasien & penunggu (atau jika sama digabung "Paket A 2x")
- * - '|' memisahkan Paket Utama (INCLUDE) dengan Paket Ekstra (EXCLUDE)
- * Contoh: "Paket A 2x | Paket B" atau "Paket A / Paket B | Paket A"
- *
- * @param {Array} items
- * @returns {string}
- */
+
+
 export function formatMealColumn(items = []) {
   if (!items || items.length === 0) return '-';
 
@@ -46,12 +42,7 @@ export function formatMealColumn(items = []) {
   return '-';
 }
 
-/**
- * Memeriksa apakah teks alergi pasien benar-benar memiliki riwayat alergi
- * (bukan "Tidak Ada", "-", "Nihil", "None", dsb).
- * @param {string|null} allergies
- * @returns {boolean}
- */
+
 export function hasRealAllergy(allergies) {
   if (!allergies || typeof allergies !== 'string') return false;
   const cleaned = allergies.trim().toLowerCase();
@@ -73,15 +64,11 @@ export function hasRealAllergy(allergies) {
   return cleaned.length > 0 && !nonAllergyValues.includes(cleaned);
 }
 
-/**
- * Mengelompokkan data array Order mentah menjadi format baris tabel admin.
- * @param {Array} rawOrders - Array data order flat dari DB / API
- * @returns {Array} Array baris tabel siap pakai
- */
+
 export function groupOrdersForTable(rawOrders = []) {
   if (!rawOrders || rawOrders.length === 0) return [];
 
-  // Group by orderCode (atau patientId + servingDate)
+  
   const grouped = {};
 
   rawOrders.forEach(order => {

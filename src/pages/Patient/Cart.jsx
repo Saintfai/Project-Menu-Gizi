@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: Cart.jsx
+ * FUNGSI UTAMA: Halaman antarmuka interaktif untuk Pasien Rawat Inap.
+ * 
+ * DETAIL:
+ * - Memungkinkan pasien untuk memverifikasi identitas, melihat menu, dan memesan makanan.
+ * - Didesain dengan pendekatan yang ramah pengguna dan aksesibel.
+ */
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag, Loader2 } from 'lucide-react';
@@ -8,7 +16,6 @@ import PageTransition from '../../components/PageTransition';
 import { validateNote } from '../../utils/inputValidator';
 import { secureSessionStorage } from '../../utils/secureStorage';
 
-// Time schedule labels
 const MEAL_SCHEDULE = {
   PAGI: { label: 'Pagi', time: '06:30 - 08:30 WIB', icon: Sun },
   SIANG: { label: 'Siang', time: '11:30 - 13:30 WIB', icon: Cloud },
@@ -30,10 +37,8 @@ export default function Cart() {
     secureSessionStorage.setItem('patient_cart_note', note);
   }, [note]);
 
-  // Retrieve data passed from MenuPortal
   const { quantities = {}, menuItems = [], hasOrderedMain = false } = location.state || {};
 
-  // If no data, redirect back
   if (!quantities || Object.keys(quantities).length === 0) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
@@ -50,14 +55,12 @@ export default function Cart() {
     );
   }
 
-  // Build a lookup map for menu items
   const menuMap = useMemo(() => {
     const map = {};
     menuItems.forEach(item => { map[item.id] = item; });
     return map;
   }, [menuItems]);
 
-  // Process quantities into structured order data
   const orderData = useMemo(() => {
     const pasien = { PAGI: [], SIANG: [], SORE: [] };
     const pendamping = { PAGI: [], SIANG: [], SORE: [] };
@@ -85,7 +88,7 @@ export default function Cart() {
           });
         }
       } else {
-        // Split by consumer role
+        
         const pasienCount = consumers.filter(c => c === 'PASIEN').length;
         const pendampingCount = consumers.filter(c => c === 'PENDAMPING').length;
 
@@ -109,28 +112,35 @@ export default function Cart() {
     return { pasien, pendamping, ekstra };
   }, [quantities, menuMap]);
 
-  // Check if sections have items
   const hasPasienItems = Object.values(orderData.pasien).some(arr => arr.length > 0);
   const hasPendampingItems = Object.values(orderData.pendamping).some(arr => arr.length > 0);
   const hasEkstraItems = Object.values(orderData.ekstra).some(arr => arr.length > 0);
 
-  // Render a meal time section
+  const getMealStyle = (key) => {
+    switch (key) {
+      case 'PAGI': return { bg: 'bg-[#e0ecfb]', icon: 'text-[#475569]' };
+      case 'SIANG': return { bg: 'bg-[#ffeedc]', icon: 'text-[#6a3f16]' };
+      case 'SORE': return { bg: 'bg-[#3b4758]', icon: 'text-white' };
+      default: return { bg: 'bg-[#e0ecfb]', icon: 'text-[#475569]' };
+    }
+  };
+
   const renderMealSection = (mealTimeKey, items, showIncludedBadge = true) => {
     if (items.length === 0) return null;
     const schedule = MEAL_SCHEDULE[mealTimeKey] || MEAL_SCHEDULE.PAGI;
     const IconComponent = schedule.icon;
+    const style = getMealStyle(mealTimeKey);
 
     return (
       <div key={mealTimeKey} className="mb-4 last:mb-0">
-        {/* Meal time header */}
         <div className="flex items-center justify-between mb-2.5">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-              <IconComponent size={16} className="text-[#004e8c]" />
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${style.bg}`}>
+              <IconComponent size={20} className={style.icon} strokeWidth={2} />
             </div>
             <div>
-              <p className="font-bold text-sm text-neutral-800">{schedule.label}</p>
-              <p className="text-[11px] text-neutral-400">{schedule.time}</p>
+              <p className="font-bold text-[17px] tracking-tight text-neutral-800">Makan {schedule.label}</p>
+              <p className="text-[11px] text-neutral-400 font-medium">{schedule.time}</p>
             </div>
           </div>
           {showIncludedBadge && (
@@ -140,8 +150,7 @@ export default function Cart() {
           )}
         </div>
 
-        {/* Items */}
-        <div className="pl-[42px] space-y-1.5">
+        <div className="pl-[52px] space-y-1.5">
           {items.map((entry, idx) => (
             <div key={`${entry.item.id}-${idx}`}>
               <p className="text-sm font-semibold text-neutral-700">
@@ -155,22 +164,22 @@ export default function Cart() {
     );
   };
 
-  // Render ekstra meal section with price badge
   const renderEkstraMealSection = (mealTimeKey, items) => {
     if (items.length === 0) return null;
     const schedule = MEAL_SCHEDULE[mealTimeKey] || MEAL_SCHEDULE.SIANG;
     const IconComponent = schedule.icon;
+    const style = getMealStyle(mealTimeKey);
 
     return (
       <div key={`ekstra-${mealTimeKey}`} className="mb-4 last:mb-0">
         <div className="flex items-center justify-between mb-2.5">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center">
-              <IconComponent size={16} className="text-amber-600" />
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${style.bg}`}>
+              <IconComponent size={20} className={style.icon} strokeWidth={2} />
             </div>
             <div>
-              <p className="font-bold text-sm text-neutral-800">{schedule.label}</p>
-              <p className="text-[11px] text-neutral-400">{schedule.time}</p>
+              <p className="font-bold text-[17px] tracking-tight text-neutral-800">Makan {schedule.label}</p>
+              <p className="text-[11px] text-neutral-400 font-medium">{schedule.time}</p>
             </div>
           </div>
           <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
@@ -178,7 +187,7 @@ export default function Cart() {
           </span>
         </div>
 
-        <div className="pl-[42px] space-y-1.5">
+        <div className="pl-[52px] space-y-1.5">
           {items.map((entry, idx) => (
             <div key={`ekstra-${entry.item.id}-${idx}`}>
               <p className="text-sm font-semibold text-neutral-700">
@@ -195,7 +204,7 @@ export default function Cart() {
   const handleConfirm = async () => {
     setIsSubmitting(true);
     try {
-      // ─── SECURITY FIX: Sanitize note before inserting ───
+      
       const { valid: noteValid, sanitized: sanitizedNote, error: noteError } = validateNote(note);
       if (!noteValid) {
         alert(noteError);
@@ -215,7 +224,7 @@ export default function Cart() {
       const date = String(tomorrow.getDate()).padStart(2, '0');
       const servingDateISO = `${year}-${month}-${date}T00:00:00.000Z`;
 
-      // Helper function to generate UUID (fallback for mobile/HTTP environments)
+      
       const generateUUID = () => {
         if (typeof crypto !== 'undefined' && crypto.randomUUID) {
           return crypto.randomUUID();
@@ -247,7 +256,7 @@ export default function Cart() {
         });
       };
 
-      // 1. Pesanan Utama Pasien & Pendamping (INCLUDE)
+      
       ['PAGI', 'SIANG', 'SORE'].forEach(key => {
         const pasienItems = orderData.pasien[key] || [];
         const pendampingItems = orderData.pendamping[key] || [];
@@ -256,7 +265,7 @@ export default function Cart() {
         if (pendampingItems.length > 0) addItems('INCLUDE', 'PENDAMPING', key, pendampingItems);
       });
 
-      // 2. Pesanan Ekstra (EXCLUDE)
+      
       ['SIANG', 'SORE'].forEach(key => {
         if (orderData.ekstra[key] && orderData.ekstra[key].length > 0) {
           addItems('EXCLUDE', 'PENDAMPING', key, orderData.ekstra[key]);
@@ -265,10 +274,10 @@ export default function Cart() {
 
       await createOrders(orderItemsToInsert);
 
-      // Clear the saved note upon successful submission
+      
       secureSessionStorage.removeItem('patient_cart_note');
 
-      // Create summary for receipt based on exactly what was inserted
+      
       const summaryMap = {};
       orderItemsToInsert.forEach(entry => {
          const keyName = entry.paketName || entry.menuName;
@@ -293,11 +302,11 @@ export default function Cart() {
     <PageTransition>
     <div className="min-h-screen relative bg-slate-50 flex flex-col font-sans text-neutral-900 pt-[60px] pb-8">
       
-      {/* Background Gradients */}
+      {}
       <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-blue-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
       <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-pink-200/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
 
-      {/* Header */}
+      {}
       <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-gray-100">
         <HeaderMobile 
           title={
@@ -309,10 +318,10 @@ export default function Cart() {
         />
       </div>
 
-      {/* Main Content - Centered */}
+      {}
       <div className="w-full max-w-4xl mx-auto px-4 py-4 relative z-10">
         
-        {/* Back + Title */}
+        {}
         <div className="flex items-center gap-3 mb-1">
           <button 
             onClick={() => navigate('/menu', { state: { restoredQuantities: quantities } })}
@@ -326,7 +335,7 @@ export default function Cart() {
           </div>
         </div>
 
-        {/* Pesanan Pasien */}
+        {}
         {hasPasienItems && (
           <div className="mt-5">
             <div className="flex items-center gap-2 mb-3">
@@ -341,7 +350,7 @@ export default function Cart() {
           </div>
         )}
 
-        {/* Pesanan Pendamping */}
+        {}
         {hasPendampingItems && (
           <div className="mt-5">
             <div className="flex items-center gap-2 mb-3">
@@ -356,7 +365,7 @@ export default function Cart() {
           </div>
         )}
 
-        {/* Pesanan Ekstra */}
+        {}
         {hasEkstraItems && (
           <div className="mt-5">
             <div className="flex items-center gap-2 mb-3">
@@ -371,7 +380,7 @@ export default function Cart() {
           </div>
         )}
 
-        {/* Catatan Khusus */}
+        {}
         <div className="mt-5">
           <h2 className="text-base font-bold text-neutral-800 mb-3">Catatan Khusus</h2>
           <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-4 md:p-5">
@@ -388,7 +397,7 @@ export default function Cart() {
           </div>
         </div>
 
-        {/* Confirm Button - Inline Scrollable */}
+        {}
         <div className="mt-8">
           <button
             onClick={() => setShowModal(true)}
@@ -401,7 +410,7 @@ export default function Cart() {
 
       </div>
 
-      {/* Confirmation Modal */}
+      {}
       {showModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-[2px]">
           <div className="bg-white w-full max-w-[320px] rounded-[24px] p-6 text-center shadow-xl">

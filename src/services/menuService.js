@@ -1,8 +1,14 @@
+/**
+ * NAMA FILE: menuService.js
+ * FUNGSI UTAMA: Modul Service untuk menangani logika bisnis dan integrasi API (Backend).
+ * 
+ * DETAIL:
+ * - Berinteraksi dengan database atau layanan eksternal (Supabase).
+ * - Menjalankan operasi CRUD (Create, Read, Update, Delete) terkait domain spesifik.
+ */
 import { supabase } from '../utils/supabase';
 
-/**
- * Mengambil daftar semua siklus menu (1 s.d. 11)
- */
+
 export async function getMenuCycles() {
   const { data, error } = await supabase
     .from('MenuCycle')
@@ -17,10 +23,7 @@ export async function getMenuCycles() {
   return data || [];
 }
 
-/**
- * Mengambil semua menu item untuk siklus tertentu
- * @param {number} cycleId
- */
+
 export async function getMenuItemsByCycle(cycleId) {
   const { data, error } = await supabase
     .from('MenuItem')
@@ -37,11 +40,7 @@ export async function getMenuItemsByCycle(cycleId) {
   return data || [];
 }
 
-/**
- * Memperbarui data menu item
- * @param {string} id
- * @param {object} updates - { name, description, paketName, mealTime }
- */
+
 export async function updateMenuItem(id, updates) {
   const { data, error } = await supabase
     .from('MenuItem')
@@ -61,10 +60,7 @@ export async function updateMenuItem(id, updates) {
   return data;
 }
 
-/**
- * Menambahkan item menu baru ke dalam siklus
- * @param {object} newItem - { cycleId, mealTime, paketName, name, description }
- */
+
 export async function createMenuItem(newItem) {
   const { data, error } = await supabase
     .from('MenuItem')
@@ -86,10 +82,7 @@ export async function createMenuItem(newItem) {
   return data;
 }
 
-/**
- * Menghapus item menu berdasarkan ID
- * @param {string} id
- */
+
 export async function deleteMenuItem(id) {
   const { error } = await supabase
     .from('MenuItem')

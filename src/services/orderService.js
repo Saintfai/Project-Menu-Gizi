@@ -1,11 +1,15 @@
+/**
+ * NAMA FILE: orderService.js
+ * FUNGSI UTAMA: Modul Service untuk menangani logika bisnis dan integrasi API (Backend).
+ * 
+ * DETAIL:
+ * - Berinteraksi dengan database atau layanan eksternal (Supabase).
+ * - Menjalankan operasi CRUD (Create, Read, Update, Delete) terkait domain spesifik.
+ */
 import { supabase } from '../utils/supabase';
 import { sanitizeText } from '../utils/inputValidator';
 
-/**
- * Mengambil semua pesanan dari database Supabase (tabel Order dengan relasi Patient).
- * @param {object} options - Opsi filter seperti { servingDate, orderCode }
- * @returns {Promise<Array>}
- */
+
 export async function getOrders(options = {}) {
   let query = supabase
     .from('Order')
@@ -56,12 +60,9 @@ export async function getOrders(options = {}) {
   return data || [];
 }
 
-/**
- * Menyimpan transaksi pesanan baru ke tabel Order
- * @param {Array<object>} orderItems - Array item pesanan yang akan diinsert
- */
+
 export async function createOrders(orderItems) {
-  // ─── SECURITY FIX: Defense-in-depth sanitization at service layer ───
+  
   const sanitizedItems = orderItems.map(item => ({
     ...item,
     notes: item.notes ? sanitizeText(item.notes, 300) : null,

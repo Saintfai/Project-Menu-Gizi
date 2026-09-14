@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: Dashboard.jsx
+ * FUNGSI UTAMA: Halaman antarmuka khusus untuk staf/Admin Gizi Rumah Sakit.
+ * 
+ * DETAIL:
+ * - Membutuhkan otentikasi admin.
+ * - Digunakan untuk memantau pesanan, mengelola siklus menu, atau melihat laporan statistik dapur.
+ */
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { 
   Sun, 
@@ -17,7 +25,7 @@ import { getOrders } from '../../services/orderService';
 import { supabase } from '../../utils/supabase';
 import PageTransition from '../../components/PageTransition';
 
-// Helper date strings (YYYY-MM-DD)
+
 const toDateInputString = (d) => {
   const pad = (n) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -33,7 +41,7 @@ export default function Dashboard() {
   const [selectedNoteData, setSelectedNoteData] = useState(null);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
 
-  // Fetch orders from database
+  
   const fetchOrderData = useCallback(async () => {
     try {
       setLoading(true);
@@ -48,11 +56,11 @@ export default function Dashboard() {
     }
   }, []);
 
-  // Initial fetch and Supabase Realtime subscription
+  
   useEffect(() => {
     fetchOrderData();
 
-    // Subscribe to real-time changes on the Order table
+    
     const subscription = supabase
       .channel('public:Order')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'Order' }, () => {
@@ -65,7 +73,7 @@ export default function Dashboard() {
     };
   }, [fetchOrderData]);
 
-  // Tanggal penyajian operasional dapur gizi selalu besok (T+1)
+  
   const tomorrowObj = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
@@ -74,7 +82,7 @@ export default function Dashboard() {
 
   const tomorrowStr = useMemo(() => toDateInputString(tomorrowObj), [tomorrowObj]);
 
-  // Hitung siklus aktif penyajian besok (T+1)
+  
   const cycleNumber = useMemo(() => {
     const day = tomorrowObj.getDate();
     let num = day % 10;
@@ -83,7 +91,7 @@ export default function Dashboard() {
     return num;
   }, [tomorrowObj]);
 
-  // Filter raw orders khusus untuk jadwal penyajian besok (T+1)
+  
   const filteredDailyOrders = useMemo(() => {
     return rawOrders.filter((order) => {
       const dateVal = order.servingDate || order.createdAt;
@@ -144,10 +152,10 @@ export default function Dashboard() {
     };
   }, [filteredDailyOrders]);
 
-  // Filter dan pencarian tabel
+  
   const filteredData = useMemo(() => {
     return tableData.filter((row) => {
-      // Search
+      
       const query = searchQuery.toLowerCase().trim();
       const matchesSearch =
         !query ||
@@ -161,7 +169,7 @@ export default function Dashboard() {
 
       if (!matchesSearch) return false;
 
-      // Filter categories
+      
       if (selectedFilter === 'ALLERGY') return row.hasAllergy;
       if (selectedFilter === 'NOTE') return row.hasCatatan;
       if (selectedFilter === 'VIP') return row.kamar.toLowerCase().includes('vip');
@@ -189,9 +197,9 @@ export default function Dashboard() {
   return (
     <PageTransition>
     <div className="space-y-6 w-full">
-      {/* Header Info & Real-Time Status Bar */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-200">
-        {/* Status Siklus Aktif & Keterangan Hari Penyajian Besok */}
+        {}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200">
             <span className="w-2 h-2 rounded-full bg-primary-600 animate-pulse"></span>
@@ -205,7 +213,7 @@ export default function Dashboard() {
           </span>
         </div>
 
-        {/* Refresh Action */}
+        {}
         <div className="flex items-center gap-3">
           <button
             onClick={fetchOrderData}
@@ -219,7 +227,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Error Alert */}
+      {}
       {error && (
         <div className="bg-red-50 border border-red-200 p-3 rounded-lg flex items-center gap-2 text-xs text-red-700">
           <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
@@ -227,9 +235,9 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* 4 Card Widget Informasi Real-time Harian */}
+      {}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
-        {/* Makan Pagi */}
+        {}
         <RekapCard
           title="Makan Pagi"
           icon={<Sun className="w-4 h-4 text-amber-500" />}
@@ -241,7 +249,7 @@ export default function Dashboard() {
           ]}
         />
 
-        {/* Makan Siang */}
+        {}
         <RekapCard
           title="Makan Siang"
           icon={<Utensils className="w-4 h-4 text-primary-600" />}
@@ -253,7 +261,7 @@ export default function Dashboard() {
           ]}
         />
 
-        {/* Makan Sore */}
+        {}
         <RekapCard
           title="Makan Sore"
           icon={<Moon className="w-4 h-4 text-indigo-600" />}
@@ -265,7 +273,7 @@ export default function Dashboard() {
           ]}
         />
 
-        {/* Paket Ekstra */}
+        {}
         <RekapCard
           title="Ekstra"
           icon={<PlusCircle className="w-4 h-4 text-emerald-600" />}
@@ -277,14 +285,14 @@ export default function Dashboard() {
         />
       </section>
 
-      {/* Detail Rekap Pesanan Header & Search/Filter Bar */}
+      {}
       <section className="space-y-3 pt-2">
         <h2 className="text-base sm:text-lg font-bold text-slate-900">
           Detail Rekap Pesanan
         </h2>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full">
-          {/* Input Search */}
+          {}
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
@@ -296,7 +304,7 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* Select Dropdown */}
+          {}
           <div className="relative w-full sm:w-44">
             <select
               value={selectedFilter}
@@ -311,7 +319,7 @@ export default function Dashboard() {
             <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
 
-          {/* Search Button */}
+          {}
           <button
             type="button"
             className="flex items-center justify-center gap-2 px-5 py-2 bg-[#00558F] hover:bg-[#004778] active:bg-[#003c66] text-white rounded-lg text-xs sm:text-sm font-medium transition-colors shadow-sm cursor-pointer flex-shrink-0"
@@ -322,7 +330,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Tabel Rekapitulasi Pesanan (Full Width & Responsif) */}
+      {}
       <section className="w-full">
         {loading && tableData.length === 0 ? (
           <div className="w-full bg-white rounded-xl border border-neutral-200 p-12 text-center text-xs text-neutral-500 shadow-sm flex flex-col items-center justify-center gap-2">
@@ -334,7 +342,7 @@ export default function Dashboard() {
         )}
       </section>
 
-      {/* Modal Popup Catatan Khusus & Detail Pesanan */}
+      {}
       <NoteDetailModal
         isOpen={isNoteModalOpen}
         onClose={handleCloseNote}

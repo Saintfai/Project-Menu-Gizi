@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: MenuCycle.jsx
+ * FUNGSI UTAMA: Halaman antarmuka khusus untuk staf/Admin Gizi Rumah Sakit.
+ * 
+ * DETAIL:
+ * - Membutuhkan otentikasi admin.
+ * - Digunakan untuk memantau pesanan, mengelola siklus menu, atau melihat laporan statistik dapur.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { 
   RotateCw, 
@@ -34,12 +42,12 @@ export default function MenuCycle() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Modal states
+  
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // Form states
+  
   const [currentMealTime, setCurrentMealTime] = useState('PAGI');
   const [selectedItem, setSelectedItem] = useState(null);
   const [formData, setFormData] = useState({
@@ -79,12 +87,12 @@ export default function MenuCycle() {
   const siangItems = menuItems.filter((item) => item.mealTime === 'SIANG');
   const soreItems = menuItems.filter((item) => item.mealTime === 'SORE');
 
-  // Handle Open Add Modal
+  
   const handleOpenAdd = (mealTime) => {
     setCurrentMealTime(mealTime);
-    // Suggest next paket name based on existing count
+    
     const existing = menuItems.filter((m) => m.mealTime === mealTime);
-    const nextLetter = String.fromCharCode(65 + existing.length); // A, B, C...
+    const nextLetter = String.fromCharCode(65 + existing.length); 
     setFormData({
       paketName: `Paket ${nextLetter}`,
       name: '',
@@ -199,7 +207,7 @@ export default function MenuCycle() {
 
     return (
       <div className="bg-neutral-0 rounded-xl border border-neutral-200 shadow-xs flex flex-col h-full overflow-hidden transition-all duration-200 hover:shadow-sm">
-        {/* Column Header */}
+        {}
         <div className="p-4 sm:p-5 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/40">
           <div className="flex items-center gap-3">
             <div className={`p-2.5 rounded-lg ${iconWrapper}`}>
@@ -217,7 +225,7 @@ export default function MenuCycle() {
           </span>
         </div>
 
-        {/* Column Body - Items List */}
+        {}
         <div className="p-4 sm:p-5 flex-1 space-y-3.5 overflow-y-auto">
           {isLoading ? (
             <div className="py-12 flex flex-col items-center justify-center text-neutral-400 space-y-2">
@@ -238,13 +246,13 @@ export default function MenuCycle() {
                 key={item.id}
                 className="group relative p-4 rounded-xl border border-neutral-200/80 bg-white hover:border-primary-300 hover:shadow-xs transition-all duration-200 space-y-2.5"
               >
-                {/* Header Paket + Actions */}
+                {}
                 <div className="flex items-center justify-between gap-2">
                   <span className={`text-xs font-bold px-2.5 py-0.5 rounded-md border ${tagBorder}`}>
                     {item.paketName || 'Paket'}
                   </span>
                   
-                  {/* Action Buttons */}
+                  {}
                   <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                     <button
                       type="button"
@@ -265,12 +273,12 @@ export default function MenuCycle() {
                   </div>
                 </div>
 
-                {/* Dish Name */}
+                {}
                 <h3 className="font-bold text-neutral-900 text-sm leading-snug">
                   {item.name}
                 </h3>
 
-                {/* Description / Detail Lauk */}
+                {}
                 {item.description && (
                   <div className="text-xs text-neutral-600 bg-neutral-50/90 rounded-lg p-2.5 border border-neutral-100 leading-relaxed font-normal">
                     {item.description}
@@ -281,7 +289,7 @@ export default function MenuCycle() {
           )}
         </div>
 
-        {/* Column Footer - Add Button */}
+        {}
         <div className="p-4 border-t border-neutral-100 bg-neutral-50/30">
           <Button
             variant="outline"
@@ -301,7 +309,7 @@ export default function MenuCycle() {
   return (
     <PageTransition>
     <div className="space-y-6 w-full pb-10">
-      {/* Top Header Section */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
@@ -312,7 +320,7 @@ export default function MenuCycle() {
           </p>
         </div>
 
-        {/* Active Cycle Badge & Refresh Button */}
+        {}
         <div className="flex items-center gap-2">
           <div className="inline-flex items-center gap-2 px-3.5 py-2 bg-sky-50/70 border border-sky-200 rounded-lg text-slate-800 text-sm font-semibold shadow-xs">
             <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
@@ -331,9 +339,9 @@ export default function MenuCycle() {
         </div>
       </div>
 
-      {/* Cycle Selector & Permanent Info Banner */}
+      {}
       <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
-        {/* Cycle Selector Dropdown */}
+        {}
         <div className="flex items-center gap-3 shrink-0 bg-white p-2.5 rounded-xl border border-neutral-200 shadow-xs">
           <label htmlFor="cycle-select" className="text-sm font-bold text-slate-700 select-none whitespace-nowrap pl-1">
             Pilih Siklus:
@@ -375,7 +383,7 @@ export default function MenuCycle() {
           'amber'
         )}
 
-        {/* Makan Siang */}
+        {}
         {renderMealColumn(
           'Makan Siang',
           siangItems,
@@ -384,7 +392,7 @@ export default function MenuCycle() {
           'sky'
         )}
 
-        {/* Makan Sore */}
+        {}
         {renderMealColumn(
           'Makan Sore',
           soreItems,
@@ -394,7 +402,7 @@ export default function MenuCycle() {
         )}
       </div>
 
-      {/* ================= MODAL: TAMBAH MENU ================= */}
+      {}
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => !isSubmitting && setIsAddModalOpen(false)}
@@ -455,7 +463,7 @@ export default function MenuCycle() {
         </form>
       </Modal>
 
-      {/* ================= MODAL: EDIT MENU ================= */}
+      {}
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => !isSubmitting && setIsEditModalOpen(false)}
@@ -516,7 +524,7 @@ export default function MenuCycle() {
         </form>
       </Modal>
 
-      {/* ================= MODAL: KONFIRMASI HAPUS ================= */}
+      {}
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => !isSubmitting && setIsDeleteModalOpen(false)}

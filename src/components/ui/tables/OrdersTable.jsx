@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: OrdersTable.jsx
+ * FUNGSI UTAMA: Komponen UI Tabel untuk menyajikan data dalam bentuk baris dan kolom.
+ * 
+ * DETAIL:
+ * - Mendukung penampilan daftar data yang terstruktur.
+ * - Mengatur tampilan kolom dan sel data secara proporsional.
+ */
 import React from 'react';
 import PropTypes from 'prop-types';
 
@@ -12,7 +20,7 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
       return <span>{String(mealStr)}</span>;
     }
 
-    // Split by '|' (Include vs Exclude)
+    
     if (mealStr.includes('|')) {
       const [includePart, excludePart] = mealStr.split('|').map((s) => s.trim());
       return (
@@ -123,7 +131,7 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
         </table>
       </div>
       
-      {/* Footer / Pagination */}
+      {}
       <div className="px-4 py-3 bg-primary-50 border-t border-neutral-200 flex items-center justify-between">
         <span className="text-xs font-medium text-neutral-500">
           {data.length === 0 ? 'Menampilkan 0 data' : `Page 1 of ${Math.ceil(data.length / 10) || 1}`}

@@ -1,34 +1,42 @@
+/**
+ * NAMA FILE: App.jsx
+ * FUNGSI UTAMA: Titik temu pusat (Root Component) yang membungkus struktur utama ekosistem React.
+ * 
+ * DETAIL:
+ * - Memetakan sistem rute (Router) yang mengendalikan pergantian halaman berdasarkan alamat URL (misal: /admin, /login).
+ * - Menyuntikkan Provider utama (Context) agar tersedia di seluruh aplikasi.
+ */
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
 
-// Providers
+
 import { AuthProvider } from './context/AuthContext';
 import { PatientProvider } from './context/PatientContext';
 import { CartProvider } from './context/CartContext';
 
-// Layouts
+
 import PatientLayout from './layouts/PatientLayout';
 import AdminLayout from './layouts/AdminLayout';
 
-// Guards
+
 import PatientRoute from './components/guards/PatientRoute';
 import AdminRoute from './components/guards/AdminRoute';
 
-// Patient Pages
+
 import PatientLogin from './pages/Patient/Login';
 import Onboarding from './pages/Patient/Onboarding';
 import MenuPortal from './pages/Patient/MenuPortal';
 import Cart from './pages/Patient/Cart';
 import OrderSuccess from './pages/Patient/OrderSuccess';
 
-// Admin Pages
+
 import AdminLogin from './pages/Admin/Login';
 import AdminDashboard from './pages/Admin/Dashboard';
 import MenuCycle from './pages/Admin/MenuCycle';
 import Statistics from './pages/Admin/Statistics';
 
-// Showcase Page
+
 import ComponentsShowcase from './pages/ComponentsShowcase';
 
 function App() {
@@ -41,12 +49,12 @@ function App() {
           <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
-              {/* ================= PUBLIC PATIENT ================= */}
-              {/* Direct QR scan or RM search */}
+              {}
+              {}
               <Route path="/login" element={<PatientLogin />} />
 
-              {/* ================= PROTECTED PATIENT ================= */}
-              {/* Requires verified patient session */}
+              {}
+              {}
               <Route element={<PatientRoute />}>
                 <Route element={<PatientLayout />}>
                   <Route path="/onboarding" element={<Onboarding />} />
@@ -56,11 +64,11 @@ function App() {
                 </Route>
               </Route>
 
-              {/* ================= PUBLIC ADMIN ================= */}
+              {}
               <Route path="/menu/admin/login" element={<AdminLogin />} />
 
-              {/* ================= PROTECTED ADMIN ================= */}
-              {/* Requires dietary staff authentication */}
+              {}
+              {}
               <Route element={<AdminRoute />}>
                 <Route path="/menu/admin" element={<AdminLayout />}>
                   <Route index element={<Navigate to="/menu/admin/dashboard" replace />} />
@@ -73,10 +81,10 @@ function App() {
                 </Route>
               </Route>
 
-              {/* Components Showcase */}
+              {}
               <Route path="/components" element={<ComponentsShowcase />} />
 
-              {/* ================= ROOT & FALLBACK ================= */}
+              {}
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>

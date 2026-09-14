@@ -1,8 +1,24 @@
+/**
+ * NAMA FILE: Accordion.jsx
+ * FUNGSI UTAMA: Komponen UI untuk menampilkan data secara terstruktur.
+ * 
+ * DETAIL:
+ * - Menyajikan data statis atau dinamis dalam format yang mudah dibaca.
+ * - Mendukung layout yang responsif.
+ */
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export const Accordion = ({ title, icon, defaultExpanded = false, children, className = '' }) => {
+export const Accordion = ({ 
+  title, 
+  icon, 
+  iconBg = 'bg-primary-50', 
+  iconColor = 'text-primary-600', 
+  defaultExpanded = false, 
+  children, 
+  className = '' 
+}) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
@@ -14,11 +30,11 @@ export const Accordion = ({ title, icon, defaultExpanded = false, children, clas
       >
         <div className="flex items-center gap-3">
           {icon && (
-            <div className="w-8 h-8 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${iconBg} ${iconColor}`}>
               {icon}
             </div>
           )}
-          <span className="font-bold text-neutral-900">{title}</span>
+          <span className="font-bold text-[17px] text-neutral-900">{title}</span>
         </div>
         <svg 
           className={`w-5 h-5 text-neutral-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} 
@@ -52,6 +68,8 @@ export const Accordion = ({ title, icon, defaultExpanded = false, children, clas
 Accordion.propTypes = {
   title: PropTypes.string.isRequired,
   icon: PropTypes.node,
+  iconBg: PropTypes.string,
+  iconColor: PropTypes.string,
   defaultExpanded: PropTypes.bool,
   children: PropTypes.node,
   className: PropTypes.string,

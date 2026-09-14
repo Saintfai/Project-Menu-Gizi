@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: AdminNavbar.jsx
+ * FUNGSI UTAMA: Komponen UI untuk navigasi aplikasi.
+ * 
+ * DETAIL:
+ * - Memfasilitasi perpindahan antar halaman atau tab.
+ * - Menunjukkan status langkah atau halaman yang sedang aktif.
+ */
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { NavLink, useNavigate } from 'react-router-dom';
@@ -22,7 +30,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
     navigate('/menu/admin/login', { replace: true });
   };
 
-  // Format Date: e.g. "JUMAT, 31 JULI 2026"
+  
   const formattedDate = currentDateTime
     .toLocaleDateString('id-ID', {
       weekday: 'long',
@@ -32,7 +40,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
     })
     .toUpperCase();
 
-  // Format Time: e.g. "10:15 WIB"
+  
   const formattedTime = `${String(currentDateTime.getHours()).padStart(2, '0')}:${String(
     currentDateTime.getMinutes()
   ).padStart(2, '0')} WIB`;
@@ -41,7 +49,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
     <header
       className={`no-print print:hidden relative flex items-center justify-between px-4 sm:px-8 py-3 bg-neutral-0 border-b border-neutral-100 shadow-sm ${className}`}
     >
-      {/* Left: Brand Logo & Title */}
+      {}
       <div className="flex-1 flex items-center justify-start">
         <div
           onClick={handleLogoClick}
@@ -57,7 +65,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
         </div>
       </div>
 
-      {/* Center: Navigation Links */}
+      {}
       <nav
         className="flex items-center justify-center gap-6 sm:gap-8"
         aria-label="Menu Admin"
@@ -102,7 +110,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
         </NavLink>
       </nav>
 
-      {/* Right: Realtime Date & Time Info */}
+      {}
       <div className="flex-1 flex items-center justify-end">
         <div className="text-right pr-4 border-r border-neutral-300">
           <div className="text-[11px] sm:text-xs font-semibold text-neutral-700 tracking-tight">

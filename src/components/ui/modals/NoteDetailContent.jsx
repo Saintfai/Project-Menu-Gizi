@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: NoteDetailContent.jsx
+ * FUNGSI UTAMA: Komponen UI Modal (Pop-up/Dialog).
+ * 
+ * DETAIL:
+ * - Menampilkan konten atau konfirmasi aksi di atas lapisan halaman utama.
+ * - Mencegah interaksi dengan latar belakang saat modal aktif.
+ */
 import React from 'react';
 import PropTypes from 'prop-types';
 
@@ -6,7 +14,7 @@ export const NoteDetailContent = ({ data }) => {
 
   return (
     <div className="space-y-4">
-      {/* Header Box */}
+      {}
       <div className="bg-neutral-50 p-4 rounded-lg border border-neutral-200">
         <div className="flex justify-between items-start mb-3">
           <div>
@@ -32,7 +40,7 @@ export const NoteDetailContent = ({ data }) => {
         )}
       </div>
 
-      {/* Order Level Special Note (PRD 3.2 / FR-007) */}
+      {}
       <div className="bg-amber-50/70 border border-amber-200 p-3 rounded-lg text-amber-900">
         <div className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1 flex items-center gap-1.5">
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,7 +53,7 @@ export const NoteDetailContent = ({ data }) => {
         </div>
       </div>
 
-      {/* Rincian Menu */}
+      {}
       <div className="divide-y divide-neutral-100 text-sm">
         <div className="py-2.5 flex justify-between items-center text-xs">
           <span className="font-bold text-primary-700">Makan Pagi:</span>

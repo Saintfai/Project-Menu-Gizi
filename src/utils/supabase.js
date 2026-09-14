@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: supabase.js
+ * FUNGSI UTAMA: Fungsi-fungsi utilitas pendukung (Helper Functions).
+ * 
+ * DETAIL:
+ * - Berisi fungsi murni (pure functions) untuk pemformatan, validasi, atau komputasi umum.
+ * - Dapat dipanggil dari berbagai bagian aplikasi untuk menghindari duplikasi kode.
+ */
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;

@@ -1,8 +1,12 @@
 /**
- * Formats a number to Indonesian Rupiah currency format.
- * @param {number} amount
- * @returns {string} e.g. "Rp 25.000"
+ * NAMA FILE: formatters.js
+ * FUNGSI UTAMA: Fungsi-fungsi utilitas pendukung (Helper Functions).
+ * 
+ * DETAIL:
+ * - Berisi fungsi murni (pure functions) untuk pemformatan, validasi, atau komputasi umum.
+ * - Dapat dipanggil dari berbagai bagian aplikasi untuk menghindari duplikasi kode.
  */
+
 export function formatRupiah(amount) {
   if (typeof amount !== 'number') return 'Rp 0';
   return new Intl.NumberFormat('id-ID', {
@@ -13,11 +17,7 @@ export function formatRupiah(amount) {
   }).format(amount);
 }
 
-/**
- * Formats a Date object or date string into Indonesian formatted date.
- * @param {Date|string} date
- * @returns {string} e.g. "Selasa, 2 September 2026"
- */
+
 export function formatIndonesianDate(date) {
   if (!date) return '-';
   const d = new Date(date);

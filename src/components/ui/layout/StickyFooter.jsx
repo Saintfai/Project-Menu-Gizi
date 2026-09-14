@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: StickyFooter.jsx
+ * FUNGSI UTAMA: Komponen UI untuk menyusun tata letak (layout) halaman.
+ * 
+ * DETAIL:
+ * - Menyediakan kerangka struktur halaman (Header, Footer, Sidebar).
+ * - Memastikan konsistensi tampilan antar halaman.
+ */
 import React from 'react';
 import PropTypes from 'prop-types';
 import Button from '../buttons/Button';
@@ -12,7 +20,7 @@ export const StickyFooter = ({
 }) => {
   return (
     <div className={`fixed bottom-4 left-4 right-4 bg-neutral-0 rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-4 z-fixed md:max-w-md md:mx-auto md:left-auto md:right-auto md:w-[calc(100%-2rem)] ${className}`}>
-      {/* Info Row */}
+      {}
       <div className="flex justify-between items-center mb-4">
         <div className="text-[13px] font-medium text-neutral-600">
           Total Paket: <span className="font-bold text-primary-600 ml-1">{currentStep}/{totalSteps}</span>
@@ -28,7 +36,7 @@ export const StickyFooter = ({
         </button>
       </div>
 
-      {/* Action Button */}
+      {}
       <Button 
         variant="primary" 
         fullWidth 

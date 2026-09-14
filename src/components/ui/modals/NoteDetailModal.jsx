@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: NoteDetailModal.jsx
+ * FUNGSI UTAMA: Komponen UI Modal (Pop-up/Dialog).
+ * 
+ * DETAIL:
+ * - Menampilkan konten atau konfirmasi aksi di atas lapisan halaman utama.
+ * - Mencegah interaksi dengan latar belakang saat modal aktif.
+ */
 import React from 'react';
 import PropTypes from 'prop-types';
 import Modal from './Modal';

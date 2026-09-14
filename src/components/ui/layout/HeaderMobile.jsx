@@ -1,3 +1,11 @@
+/**
+ * NAMA FILE: HeaderMobile.jsx
+ * FUNGSI UTAMA: Komponen UI untuk menyusun tata letak (layout) halaman.
+ * 
+ * DETAIL:
+ * - Menyediakan kerangka struktur halaman (Header, Footer, Sidebar).
+ * - Memastikan konsistensi tampilan antar halaman.
+ */
 import React from 'react';
 import PropTypes from 'prop-types';
 import logoEdhos from '../../../assets/logoedhos.png';

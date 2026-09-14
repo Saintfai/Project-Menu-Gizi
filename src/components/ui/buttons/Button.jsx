@@ -1,10 +1,15 @@
+/**
+ * NAMA FILE: Button.jsx
+ * FUNGSI UTAMA: Komponen UI Tombol (Button) yang dapat digunakan ulang (reusable).
+ * 
+ * DETAIL:
+ * - Menyediakan berbagai variasi tombol (primary, secondary, outline, dsb).
+ * - Menangani interaksi klik dan state loading/disabled.
+ */
 import React from 'react';
 import PropTypes from 'prop-types';
 
-/**
- * Reusable Button component
- * Menggunakan utility classes dari Tailwind yang sudah di-mapping ke theme.css
- */
+
 const Button = ({
   children,
   variant = 'primary',
@@ -16,18 +21,18 @@ const Button = ({
   type = 'button',
   ...props
 }) => {
-  // Base classes (transisi, font-weight, fix browser defaults)
+  
   const baseClasses = 'inline-flex items-center justify-center font-semibold transition-normal ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 border border-transparent appearance-none';
   const radiusClass = pill ? 'rounded-full' : 'rounded-md';
   
-  // Size variations
+  
   const sizeClasses = {
     sm: 'px-3 py-1.5 text-xs',
     md: 'px-4 py-2 text-sm',
     lg: 'px-6 py-3 text-base',
   };
 
-  // Variant variations (menggunakan warna dari theme.css via tailwind.config)
+  
   const variantClasses = {
     primary: 'bg-primary-600 text-neutral-0 hover:bg-primary-700 border border-transparent',
     danger: 'bg-danger-600 text-neutral-0 hover:bg-danger-700 border border-transparent',
@@ -39,7 +44,7 @@ const Button = ({
   const widthClass = fullWidth ? 'w-full' : '';
   const disabledClass = disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'cursor-pointer';
 
-  // Gabungkan semua class
+  
   const combinedClasses = [
     baseClasses,
     radiusClass,
