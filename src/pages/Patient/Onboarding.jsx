@@ -7,6 +7,7 @@ import {
   User, 
   Calendar, 
   MapPin,
+  Phone,
   Building, 
   AlertTriangle, 
   Info 
@@ -38,6 +39,64 @@ export default function Onboarding() {
     const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
     const y = dateObj.getFullYear();
     return `${d}/${m}/${y}`;
+  };
+
+  // Mask address helper
+  const maskAddress = (address) => {
+    if (!address || address.trim() === '' || address === '-') return '-';
+
+    const parts = address.split(',').map((p) => p.trim()).filter(Boolean);
+
+    if (parts.length >= 3) {
+      // Keep primary area/street and final city/regency, masking detailed middle segments
+      const first = parts[0]
+        .replace(/\b(no\.?|blok|kav\.?|rt|rw|unit|lt\.?)\s*[\w\d\/-]+/gi, '')
+        .replace(/\b\d+[\w\d\/-]*/g, '')
+        .trim();
+      const last = parts[parts.length - 1];
+      return `${first || parts[0]}, ****, ${last}`;
+    } else if (parts.length === 2) {
+      // For 2 segments like "Jl. Raya Cibiru No. 123, Bandung"
+      let first = parts[0];
+      if (/\b(no\.?|blok|kav\.?|rt|rw|unit|lt\.?)\s*[\w\d\/-]+/i.test(first) || /\d+/.test(first)) {
+        first = first.replace(/\b(no\.?|blok|kav\.?|rt|rw|unit|lt\.?)\s*[\w\d\/-]+/gi, '****');
+        first = first.replace(/\b\d+[\w\d\/-]*/g, '****');
+      } else {
+        const words = first.split(' ');
+        if (words.length > 2) {
+          first = `${words.slice(0, 2).join(' ')} ****`;
+        } else {
+          first = `${first} ****`;
+        }
+      }
+      return `${first}, ${parts[1]}`;
+    } else {
+      // Single continuous string
+      let masked = address
+        .replace(/\b(no\.?|blok|kav\.?|rt|rw|unit|lt\.?)\s*[\w\d\/-]+/gi, '****')
+        .replace(/\b\d+[\w\d\/-]*/g, '****');
+      if (masked === address && address.length > 10) {
+        const words = address.split(' ');
+        if (words.length >= 3) {
+          return `${words[0]} **** ${words[words.length - 1]}`;
+        }
+        return `${address.slice(0, 4)} **** ${address.slice(-4)}`;
+      }
+      return masked;
+    }
+  };
+
+  // Mask phone number for privacy (e.g., 081234567890 → 0812****7890)
+  const maskPhone = (phone) => {
+    if (!phone || phone.trim() === '' || phone === '-') return '-';
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length <= 4) return phone;
+    // Show first 4 and last 4 digits, mask the middle
+    const visibleStart = digits.slice(0, 4);
+    const visibleEnd = digits.slice(-4);
+    const maskedLength = Math.max(digits.length - 8, 0);
+    const masked = '*'.repeat(maskedLength || 4);
+    return `${visibleStart}${masked}${visibleEnd}`;
   };
 
   // Construct allergy string
@@ -103,10 +162,10 @@ export default function Onboarding() {
 
         {/* Data Card */}
         <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="w-full bg-white/90 backdrop-blur-xl rounded-[20px] p-5 shadow-xl shadow-slate-200/50 border border-white mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="w-full bg-white rounded-[20px] p-5 shadow-xl shadow-slate-200/50 border border-white mb-8"
         >
           {/* Patient Details */}
           <div className="space-y-4 mb-6">
@@ -144,9 +203,18 @@ export default function Onboarding() {
                 <MapPin size={16} strokeWidth={2} />
                 <span className="text-xs font-medium">Alamat</span>
               </div>
-              <span className="text-xs font-bold text-slate-800 text-right pl-3 truncate max-w-[200px]" title={patient.address || '-'}>
-                {patient.address || '-'}
+              <span className="text-xs font-bold text-slate-800 text-right pl-3 truncate max-w-[200px]" title={maskAddress(patient.address)}>
+                {maskAddress(patient.address)}
               </span>
+            </div>
+
+            {/* Row: Telepon */}
+            <div className="flex items-center justify-between border-b border-slate-50 pb-3">
+              <div className="flex items-center gap-2.5 text-slate-500">
+                <Phone size={16} strokeWidth={2} />
+                <span className="text-xs font-medium">Telepon</span>
+              </div>
+              <span className="text-xs font-bold text-slate-800">{maskPhone(patient.phone)}</span>
             </div>
 
             {/* Row: Ruangan */}
@@ -186,9 +254,9 @@ export default function Onboarding() {
 
         {/* Action Button */}
         <motion.button
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.1, ease: "easeOut" }}
           onClick={() => navigate('/menu')}
           className="w-full bg-[#00529B] hover:bg-[#004280] text-white py-3.5 rounded-xl font-bold text-sm transition-all active:scale-[0.98] shadow-lg shadow-blue-900/20 border-none outline-none"
         >

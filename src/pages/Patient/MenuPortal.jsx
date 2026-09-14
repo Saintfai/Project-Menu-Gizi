@@ -411,7 +411,7 @@ export default function MenuPortal() {
             </Accordion>
 
             <Accordion 
-              title="Makan Malam" 
+              title="Makan Sore" 
               icon={
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
@@ -475,11 +475,11 @@ export default function MenuPortal() {
               <div className="bg-amber-50 p-2 rounded-full">
                 <AlertCircle size={20} className="text-amber-600" />
               </div>
-              <span className="text-[14px] font-bold text-slate-700">Batas order ekstra malam habis (14:00 WIB)</span>
+              <span className="text-[14px] font-bold text-slate-700">Batas order ekstra sore habis (14:00 WIB)</span>
             </div>
           ) : (
             <Accordion 
-              title="Makan Malam" 
+              title="Makan Sore" 
               icon={
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />

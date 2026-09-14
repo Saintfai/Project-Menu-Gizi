@@ -19,26 +19,42 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    const validPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
+    try {
+      // ─── SECURITY FIX: Validate password server-side via Edge Function ───
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-login`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password }),
+        }
+      );
 
-    setTimeout(() => {
-      if (password === validPassword) {
-        login({
-          id: 'adm-001',
-          name: 'Staf Dapur Gizi',
-          role: 'admin_gizi',
-        });
-        navigate('/menu/admin/dashboard', { replace: true });
-      } else {
-        setError('Kata sandi yang Anda masukkan salah. Silakan coba lagi.');
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError(body.error || 'Kata sandi yang Anda masukkan salah. Silakan coba lagi.');
+        return;
       }
+
+      const { token } = await res.json();
+      login({
+        id: 'adm-001',
+        name: 'Staf Dapur Gizi',
+        role: 'admin_gizi',
+        token,
+      });
+      navigate('/menu/admin/dashboard', { replace: true });
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Gagal terhubung ke server. Silakan coba lagi.');
+    } finally {
       setIsLoading(false);
-    }, 350);
+    }
   };
 
   return (

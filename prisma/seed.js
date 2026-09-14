@@ -233,11 +233,26 @@ async function main() {
   // 1. Pastikan kolom description pada MenuItem ada di PostgreSQL & izin akses Supabase diberikan
   try {
     await pool.query('ALTER TABLE "MenuItem" ADD COLUMN IF NOT EXISTS "description" TEXT;');
-    await pool.query('GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;');
-    await pool.query('GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;');
-    await pool.query('ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;');
-    await pool.query('ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;');
-    console.log('✅ Verifikasi struktur tabel & izin akses Supabase berhasil.');
+
+    // ─── SECURITY FIX: Minimal privilege grants (no more GRANT ALL to anon) ───
+    // Revoke previous overly-permissive grants first
+    await pool.query('REVOKE ALL ON ALL TABLES IN SCHEMA public FROM anon, authenticated;');
+    await pool.query('REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM anon, authenticated;');
+
+    // anon/authenticated: Read-only on master data
+    await pool.query('GRANT SELECT ON "MenuCycle", "MenuItem" TO anon, authenticated;');
+    // anon/authenticated: Read patients (for login lookup)
+    await pool.query('GRANT SELECT ON "Patient" TO anon, authenticated;');
+    // anon/authenticated: Read + Insert orders (patients placing orders)
+    await pool.query('GRANT SELECT, INSERT ON "Order" TO anon, authenticated;');
+    // anon/authenticated: Sequence usage for UUID generation
+    await pool.query('GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;');
+
+    // service_role keeps full access (used only server-side, never in frontend)
+    await pool.query('GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;');
+    await pool.query('GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO service_role;');
+
+    console.log('✅ Verifikasi struktur tabel & izin akses Supabase berhasil (minimal privileges).');
   } catch (err) {
     console.warn('⚠️ Catatan DDL / Permissions check:', err.message);
   }

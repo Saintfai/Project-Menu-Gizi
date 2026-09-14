@@ -27,12 +27,20 @@ export function PatientProvider({ children }) {
       const normalizedInput = identifier.replace(/\s+/g, '').toLowerCase();
       const isRM = /\d/.test(normalizedInput);
 
-      let query = supabase.from('Patient').select('*');
+      // ─── SECURITY FIX: Select only needed columns (no select('*')) ───
+      let query = supabase.from('Patient').select(
+        'id, rmNumber, name, dob, phone, address, roomName, roomClass, allergies'
+      );
       
       if (isRM) {
         const numericInput = normalizedInput.replace(/[^0-9]/g, '');
-        query = query.ilike('rmNumber', `%${numericInput}%`);
+        const formattedRM = `RM-${numericInput}`;
+        query = query.eq('rmNumber', formattedRM);
       } else {
+        // ─── SECURITY FIX: Require DOB for name-based lookups ───
+        if (!dob) {
+          throw new Error('Tanggal lahir wajib diisi untuk pencarian berdasarkan nama.');
+        }
         query = query.eq('dob', dob);
       }
 
@@ -47,7 +55,7 @@ export function PatientProvider({ children }) {
         throw new Error('Data pasien tidak ditemukan.');
       }
 
-      // 2. Cari pasien yang cocok (No RM atau Nama) secara fleksibel
+      // ─── SECURITY FIX: Exact match only (no partial match via includes) ───
       const matchedPatients = data.filter((p) => {
         if (isRM) {
           const pNumeric = (p.rmNumber || '').replace(/[^0-9]/g, '');
@@ -55,7 +63,7 @@ export function PatientProvider({ children }) {
           return pNumeric === inputNumeric;
         } else {
           const normName = (p.name || '').replace(/\s+/g, '').toLowerCase();
-          return normName === normalizedInput || normName.includes(normalizedInput);
+          return normName === normalizedInput;
         }
       });
 
