@@ -2,7 +2,7 @@
 
 Dokumen ini berisi penjelasan lengkap mengenai struktur tabel (Data Dictionary) yang digunakan pada aplikasi pemesanan menu gizi. Skema database dibangun menggunakan **PostgreSQL** (Supabase) dan dikelola melalui **Prisma ORM**.
 
-> **Catatan Autentikasi Admin:** Sesuai PRD v1.6, Dashboard Admin tidak memerlukan tabel akun database (`Admin`). Autentikasi staf dapur menggunakan verifikasi satu password hardcode melalui Environment Variable aplikasi.
+> **Catatan Autentikasi Admin:** Sesuai PRD v1.9, Dashboard Admin tidak memerlukan tabel akun database (`Admin`). Autentikasi staf dapur menggunakan verifikasi password melalui Environment Variable dan **Supabase Edge Functions**.
 >
 > **Catatan Keranjang Pasien:** Keranjang belanja dikelola sepenuhnya di sisi pengguna via `sessionStorage` (tanpa menulis ke DB saat memilih menu). Data baru masuk ke tabel `Order` saat pasien menekan tombol **Checkout**.
 
@@ -41,7 +41,7 @@ Katalog makanan yang tersedia pada tiap siklus. Semua makanan (baik jatah gratis
 Tabel-tabel ini menyimpan data operasional harian yang dinamis, seperti data pasien masuk dan pesanan mereka.
 
 ### 2.1. `Patient`
-Data identitas dan kondisi pasien. Data ini **di-fetch dari API SIMRS** saat login/onboarding menggunakan No. RM (atau Nama + Tgl Lahir), kemudian disimpan/disinkronkan ke sistem ini sebagai referensi pemesanan.
+Data identitas dan kondisi pasien. Data ini **di-fetch dari Supabase** saat login/onboarding menggunakan No. RM (atau Nama + Tgl Lahir), kemudian disimpan/disinkronkan ke sistem ini sebagai referensi pemesanan.
 
 | Kolom | Tipe Data | Keterangan |
 |-------|-----------|------------|
@@ -50,10 +50,10 @@ Data identitas dan kondisi pasien. Data ini **di-fetch dari API SIMRS** saat log
 | `name` | String | Nama lengkap pasien. |
 | `dob` | DateTime | Tanggal lahir pasien (digunakan untuk validasi login alternatif). |
 | `phone` | String? | Nomor telepon pasien atau keluarga pendamping (opsional). |
+| `address` | String? | Alamat lengkap pasien (sesuai skema Prisma saat ini). |
 | `roomName`| String | Nama/nomor kamar pasien yang ditarik dari SIMRS. |
 | `roomClass`| String | Kelas kamar saat login (misal: VIP A, Kelas 1). Sangat penting untuk validasi kuota porsi harian. |
 | `allergies`| String? | Catatan riwayat alergi yang dikonfirmasi pasien (PRD FR-002). |
-| `medicalConditions`| String?| Penyakit atau kondisi medis khusus yang berdampak pada pembatasan diet. |
 | `createdAt`| DateTime | Waktu pertama kali pasien login ke aplikasi. |
 
 ### 2.2. `Order`

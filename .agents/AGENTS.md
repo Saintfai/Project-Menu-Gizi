@@ -5,10 +5,13 @@
 **Application Food Ordering & Nutrition Management System (Hospital Dietary System)**
 
   ----------------------------------- -----------------------------------
-  **Dokumen Versi**                   1.8
-  **Status**                          Approved / Ready for Development
+  **Dokumen Versi**                   1.9
+  **Status**                          Approved / Development in Progress
                                       --- Fleksibilitas Pemilihan Waktu
                                       Makan & Representasi Rekap Tabel
+  **Perubahan dari v1.8**             - Penyesuaian batas cut-off time Paket Ekstra (Siang: 10:00 WIB, Sore: 14:00 WIB).
+                                      - Mengubah terminologi "Makan Sore" menjadi "Makan Sore" pada seluruh antarmuka dan laporan.
+                                      - Penambahan dokumentasi penggunaan Supabase sebagai database & backend utama pada tahap pengembangan saat ini.
   **Perubahan dari v1.7**             - Pasien tidak wajib memesan ketiga
                                         waktu makan (boleh memesan parsial,
                                         misal hanya Makan Pagi).
@@ -38,7 +41,7 @@ sakit.
     identitas pasien, lokasi kamar, riwayat alergi (dengan indikator
     visual), serta catatan khusus per menu.
 -   Menyediakan data rekapitulasi kebutuhan porsi/paket gizi secara
-    otomatis dan instan (real-time summary 4 kartu: Pagi, Siang, Malam,
+    otomatis dan instan (real-time summary 4 kartu: Pagi, Siang, Sore,
     Ekstra) di dapur gizi.
 -   Menyajikan visualisasi penjadwalan pengantaran yang ringkas dalam
     satu tampilan kolom terintegrasi untuk tim gizi.
@@ -109,12 +112,12 @@ sakit.
     -   Tanggal 31: Khusus Siklus Menu 11
 -   Batas Kuota Porsi (Qty) Paket Utama:
     -   Kelas VIP A ke Atas (VIP A, VVIP, Suite): Maksimal 2 porsi per
-        waktu makan (Pagi: 2, Siang: 2, Malam: 2).
+        waktu makan (Pagi: 2, Siang: 2, Sore: 2).
     -   Kelas VIP B ke Bawah (VIP B, Kelas 1, 2, 3): Pagi: 2 porsi,
-        Siang: 1 porsi, Malam: 1 porsi.
+        Siang: 1 porsi, Sore: 1 porsi.
 -   **Fleksibilitas Pemilihan Waktu Makan & Pesanan Parsial:**
     -   Pasien **tidak diwajibkan** memesan ketiga waktu makan sekaligus.
-    -   Pasien diperbolehkan memilih hanya satu atau dua waktu makan saja (misalnya hanya memesan Makan Pagi, atau hanya Makan Siang dan Malam).
+    -   Pasien diperbolehkan memilih hanya satu atau dua waktu makan saja (misalnya hanya memesan Makan Pagi, atau hanya Makan Siang dan Sore).
     -   Slot waktu makan yang tidak dipesan akan ditampilkan sebagai tanda strip (`-`) pada tabel rekapitulasi dapur gizi.
 -   **Ketentuan Pemesanan vs Tampilan Tabel:**
     -   Hanya transaksi pesanan yang telah di-checkout oleh pasien yang masuk dan ditampilkan pada Dashboard Rekap Dapur Gizi.
@@ -237,7 +240,7 @@ Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
     -   Kartu Ringkasan Real-Time (4 Cards):
         -   **Makan Pagi:** Total Porsi & Rincian Paket A/B.
         -   **Makan Siang:** Total Porsi & Rincian Paket A/B.
-        -   **Makan Malam:** Total Porsi & Rincian Paket A/B.
+        -   **Makan Sore:** Total Porsi & Rincian Paket A/B.
         -   **Ekstra:** Total Item & Jumlah Jenis Menu.
     -   Pencarian & Filter: Search bar (Nama Pasien / No. RM / Nomor
         Kamar) dan Filter Kategori/Status.
@@ -247,7 +250,7 @@ Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
         -   Format Pemisah & Status Kolom Makan:
             -   Garis Miring (`/`): Memisahkan porsi Pasien dan Penunggu (contoh: `Paket A / Paket B` atau jika sama `Paket A 2x`).
             -   Garis Tegak (`|`): Memisahkan Paket Utama dengan Paket Ekstra (contoh: `Paket A 2x | Paket B` atau `Paket A / Paket B | Paket A`).
-            -   Tanda Strip (`-`): Ditampilkan pada slot waktu makan yang tidak dipesan oleh pasien (contoh: pasien hanya memesan Makan Pagi, maka kolom Makan Siang dan Malam terisi `-`).
+            -   Tanda Strip (`-`): Ditampilkan pada slot waktu makan yang tidak dipesan oleh pasien (contoh: pasien hanya memesan Makan Pagi, maka kolom Makan Siang dan Sore terisi `-`).
         -   Indikator Alergi: Pasien dengan riwayat alergi memiliki tanda
             lingkaran merah (🔴) di samping Nama Pasien.
         -   Kolom Tanggal & Waktu: Memuat jadwal T+1 untuk seluruh
@@ -258,7 +261,7 @@ Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
 
 2.  **Siklus (Manajemen 11 Siklus Menu):**
     -   Kelola daftar paket dan hidangan pada Siklus 1 s.d. 11.
-    -   Pengaturan komponen makanan per waktu makan (Pagi, Siang, Malam).
+    -   Pengaturan komponen makanan per waktu makan (Pagi, Siang, Sore).
 
 3.  **Statistik (Laporan & Analitik Gizi):**
     -   Visualisasi grafik tren pemesanan menu gizi harian, mingguan, dan
@@ -419,8 +422,8 @@ Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
                             sama (maksimal 1 kali transaksi).
 
   Pemesanan    **FR-006**   Sistem menerapkan kuota porsi berdasarkan kelas
-                            kamar: VIP A ke atas (Pagi 2, Siang 2, Malam 2) dan
-                            VIP B ke bawah (Pagi 2, Siang 1, Malam 1).
+                            kamar: VIP A ke atas (Pagi 2, Siang 2, Sore 2) dan
+                            VIP B ke bawah (Pagi 2, Siang 1, Sore 1).
 
   Pemesanan    **FR-007**   Sistem menyediakan 1 kolom catatan khusus per
                             pesanan (bukan per item menu atau per porsi).
@@ -457,7 +460,7 @@ Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
 
   Dashboard    **FR-010**   Dashboard Dapur menampilkan real-time summary rekap
   Admin                     akumulasi 4 kartu ringkasan (Makan Pagi, Makan
-                            Siang, Makan Malam, dan Paket Ekstra).
+                            Siang, Makan Sore, dan Paket Ekstra).
 
   Dashboard    **FR-011**   Dashboard Admin menampilkan 1 kolom jadwal
   Admin                     terintegrasi yang memuat Tanggal Pengantaran Menu
@@ -508,6 +511,8 @@ Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
     password memiliki hak akses yang sama (lihat Bagian 3.9).
 
 **7. Integrasi & Ketergantungan Eksternal**
+
+**Catatan Pengembangan Saat Ini**: Sistem ini secara arsitektur menggunakan **Supabase (PostgreSQL)** sebagai penyedia backend, otentikasi (Edge Functions & anon key), dan database real-time. Pada tahap *development* ini, tabel-tabel di Supabase (`Patient`, `MenuItem`, `Order`) bertindak sebagai sumber data utama (Source of Truth).
 
 Sistem ini bukan sistem yang berdiri sendiri (standalone); beberapa
 fungsi utamanya bergantung pada integrasi dengan sistem/API yang telah
