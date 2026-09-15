@@ -8,7 +8,7 @@
  */
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag, Loader2, Info } from 'lucide-react';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import { usePatient } from '../../context/PatientContext';
 import { createOrders } from '../../services/orderService';
@@ -115,6 +115,18 @@ export default function Cart() {
   const hasPasienItems = Object.values(orderData.pasien).some(arr => arr.length > 0);
   const hasPendampingItems = Object.values(orderData.pendamping).some(arr => arr.length > 0);
   const hasEkstraItems = Object.values(orderData.ekstra).some(arr => arr.length > 0);
+
+  const totalExtraQuantity = useMemo(() => {
+    let total = 0;
+    ['SIANG', 'SORE'].forEach(key => {
+      if (orderData.ekstra[key]) {
+        orderData.ekstra[key].forEach(entry => {
+          total += entry.qty;
+        });
+      }
+    });
+    return total;
+  }, [orderData.ekstra]);
 
   const getMealStyle = (key) => {
     switch (key) {
@@ -396,6 +408,30 @@ export default function Cart() {
             </p>
           </div>
         </div>
+
+        {}
+        {hasEkstraItems && (
+          <div className="mt-5">
+            <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-4 md:p-5">
+              <div className="bg-neutral-50 border border-neutral-200 rounded-xl overflow-hidden">
+                <div className="px-4 py-3 flex items-center justify-between border-b border-neutral-200 bg-white">
+                  <span className="font-bold text-[15px] text-[#1e293b]">Total Extra</span>
+                  <span className="font-bold text-[16px] text-[#004e8c]">
+                    Rp {(totalExtraQuantity * 15000).toLocaleString('id-ID')}
+                  </span>
+                </div>
+                <div className="px-4 py-3 flex gap-3">
+                  <div className="text-[#004e8c] flex-shrink-0 mt-[1px]">
+                    <Info size={18} strokeWidth={2.2} />
+                  </div>
+                  <p className="text-[13px] text-[#475569] leading-relaxed">
+                    Biaya ekstra akan ditambahkan ke Tagihan Kamar / Billing RS saat Anda melakukan Check-out.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {}
         <div className="mt-8">
