@@ -18,13 +18,11 @@ import {
   UserX,
   Phone,
   RotateCcw,
-  ChevronRight,
   Hash,
   User,
   MapPin,
   Building,
   AlertTriangle,
-  ArrowLeft,
   Users,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -35,92 +33,23 @@ import PatientFooter from '../../components/ui/layout/PatientFooter';
 
 
 import { usePatient } from '../../context/PatientContext';
+import { formatDate, maskAddress, maskPhone, formatRoomClass } from '../../utils/formatters';
 
 export default function PatientLogin() {
   const navigate = useNavigate();
   const location = useLocation();
   const { loginPatient, selectPatient } = usePatient();
 
-  
   const [activeTab, setActiveTab] = useState('rm');
-
-  
   const [rmNumber, setRmNumber] = useState(location.state?.identifier || '');
-
   const [name, setName] = useState('');
   const [dob, setDob] = useState('');
-
   const [isLoading, setIsLoading] = useState(false);
   const [showNotFound, setShowNotFound] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [multiplePatients, setMultiplePatients] = useState(location.state?.multiplePatients || []);
   const [showMultiple, setShowMultiple] = useState(location.state?.showMultiple || false);
   const [selectedPatientId, setSelectedPatientId] = useState(null);
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    const dateObj = new Date(dateString);
-    if (isNaN(dateObj)) return dateString;
-    const d = dateObj.getDate().toString().padStart(2, '0');
-    const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-    const y = dateObj.getFullYear();
-    return `${d}/${m}/${y}`;
-  };
-
-  const maskAddress = (address) => {
-    if (!address || address.trim() === '' || address === '-') return '-';
-    const parts = address.split(',').map((p) => p.trim()).filter(Boolean);
-    if (parts.length >= 3) {
-      const first = parts[0]
-        .replace(/\b(no\.?|blok|kav\.?|rt|rw|unit|lt\.?)\s*[\w\d\/-]+/gi, '')
-        .replace(/\b\d+[\w\d\/-]*/g, '')
-        .trim();
-      const last = parts[parts.length - 1];
-      return `${first || parts[0]}, ****, ${last}`;
-    } else if (parts.length === 2) {
-      let first = parts[0];
-      if (/\b(no\.?|blok|kav\.?|rt|rw|unit|lt\.?)\s*[\w\d\/-]+/i.test(first) || /\d+/.test(first)) {
-        first = first.replace(/\b(no\.?|blok|kav\.?|rt|rw|unit|lt\.?)\s*[\w\d\/-]+/gi, '****');
-        first = first.replace(/\b\d+[\w\d\/-]*/g, '****');
-      } else {
-        const words = first.split(' ');
-        if (words.length > 2) {
-          first = `${words.slice(0, 2).join(' ')} ****`;
-        } else {
-          first = `${first} ****`;
-        }
-      }
-      return `${first}, ${parts[1]}`;
-    } else {
-      let masked = address
-        .replace(/\b(no\.?|blok|kav\.?|rt|rw|unit|lt\.?)\s*[\w\d\/-]+/gi, '****')
-        .replace(/\b\d+[\w\d\/-]*/g, '****');
-      if (masked === address && address.length > 10) {
-        const words = address.split(' ');
-        if (words.length >= 3) {
-          return `${words[0]} **** ${words[words.length - 1]}`;
-        }
-        return `${address.slice(0, 4)} **** ${address.slice(-4)}`;
-      }
-      return masked;
-    }
-  };
-
-  const maskPhone = (phone) => {
-    if (!phone || phone.trim() === '' || phone === '-') return '-';
-    const digits = phone.replace(/\D/g, '');
-    if (digits.length <= 4) return phone;
-    const visibleStart = digits.slice(0, 4);
-    const visibleEnd = digits.slice(-4);
-    const maskedLength = Math.max(digits.length - 8, 0);
-    const masked = '*'.repeat(maskedLength || 4);
-    return `${visibleStart}${masked}${visibleEnd}`;
-  };
-
-  const formatRoomClass = (cls) => {
-    if (!cls) return '';
-    return cls.replace(/_/g, ' ');
-  };
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -132,7 +61,7 @@ export default function PatientLogin() {
     e.preventDefault();
     setErrorMsg('');
 
-    let identifier = '';
+    let identifier;
     let dobValue = null;
 
     if (activeTab === 'rm') {
@@ -197,19 +126,15 @@ export default function PatientLogin() {
             title={
               <div className="flex flex-col">
                 <span>Menu Gizi</span>
-                <span className="text-[10px] text-neutral-500 font-normal">Kesehatan Anda, Prioritas Kami</span>
+                <span className="text-xs text-neutral-500 font-normal">Kesehatan Anda, Prioritas Kami</span>
               </div>
             }
           />
         </div>
       )}
 
-      {/* Background Gradients */}
-      <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-primary-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
-      <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-secondary-100/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
-
       {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-4 z-10 relative pb-12">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-6 z-10 relative pb-12">
 
         <AnimatePresence mode="wait">
           {showMultiple ? (
@@ -265,7 +190,7 @@ export default function PatientLogin() {
                         <div>
                           <div className="flex items-center gap-1.5 mb-1">
                             <User size={12} strokeWidth={2} className={isSelected ? 'text-primary-600' : 'text-neutral-400'} />
-                            <span className="text-[10px] font-medium text-neutral-400 uppercase tracking-wider">Nama</span>
+                            <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Nama</span>
                           </div>
                           <p className="text-xs font-bold text-neutral-800 pl-[18px]">{p.name}</p>
                         </div>
@@ -273,8 +198,8 @@ export default function PatientLogin() {
                         {/* Tanggal Lahir */}
                         <div>
                           <div className="flex items-center gap-1.5 mb-1">
-                            <Calendar size={12} strokeWidth={2} className={isSelected ? 'text-primary-600' : 'text-neutral-400'} />
-                            <span className="text-[10px] font-medium text-neutral-400 uppercase tracking-wider">Tgl Lahir</span>
+                            <Calendar size={13} strokeWidth={2} className={isSelected ? 'text-primary-600' : 'text-neutral-400'} />
+                            <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Tgl Lahir</span>
                           </div>
                           <p className="text-xs font-bold text-neutral-800 pl-[18px]">{formatDate(p.dob)}</p>
                         </div>
@@ -282,8 +207,8 @@ export default function PatientLogin() {
                         {/* Telepon */}
                         <div>
                           <div className="flex items-center gap-1.5 mb-1">
-                            <Phone size={12} strokeWidth={2} className={isSelected ? 'text-primary-600' : 'text-neutral-400'} />
-                            <span className="text-[10px] font-medium text-neutral-400 uppercase tracking-wider">Telepon</span>
+                            <Phone size={13} strokeWidth={2} className={isSelected ? 'text-primary-600' : 'text-neutral-400'} />
+                            <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Telepon</span>
                           </div>
                           <p className="text-xs font-bold text-neutral-800 pl-[18px]">{maskPhone(p.phone)}</p>
                         </div>
@@ -291,8 +216,8 @@ export default function PatientLogin() {
                         {/* Alamat - full width */}
                         <div className="col-span-2">
                           <div className="flex items-center gap-1.5 mb-1">
-                            <MapPin size={12} strokeWidth={2} className={isSelected ? 'text-primary-600' : 'text-neutral-400'} />
-                            <span className="text-[10px] font-medium text-neutral-400 uppercase tracking-wider">Alamat</span>
+                            <MapPin size={13} strokeWidth={2} className={isSelected ? 'text-primary-600' : 'text-neutral-400'} />
+                            <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Alamat</span>
                           </div>
                           <p className="text-xs font-bold text-neutral-800 pl-[18px] truncate" title={maskAddress(p.address)}>{maskAddress(p.address)}</p>
                         </div>
@@ -300,8 +225,8 @@ export default function PatientLogin() {
                         {/* Ruangan - full width */}
                         <div className="col-span-2">
                           <div className="flex items-center gap-1.5 mb-1">
-                            <Building size={12} strokeWidth={2} className={isSelected ? 'text-primary-600' : 'text-neutral-400'} />
-                            <span className="text-[10px] font-medium text-neutral-400 uppercase tracking-wider">Ruangan</span>
+                            <Building size={13} strokeWidth={2} className={isSelected ? 'text-primary-600' : 'text-neutral-400'} />
+                            <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Ruangan</span>
                           </div>
                           <p className="text-xs font-bold text-neutral-800 pl-[18px]">{p.roomName} - {formatRoomClass(p.roomClass)}</p>
                         </div>
@@ -310,15 +235,15 @@ export default function PatientLogin() {
                       {/* Allergy Warning */}
                       {hasAllergies && (
                         <div className={`mt-3 rounded-lg p-2.5 flex items-center gap-2 border ${isSelected ? 'bg-danger-50 border-danger-200' : 'bg-danger-50/50 border-danger-100'}`}>
-                          <AlertTriangle size={13} className="text-danger-500 flex-shrink-0" strokeWidth={2.5} />
-                          <span className="text-[10px] font-bold text-danger-600">Alergi: {p.allergies}</span>
+                          <AlertTriangle size={14} className="text-danger-500 flex-shrink-0" strokeWidth={2.5} />
+                          <span className="text-xs font-bold text-danger-700">Alergi: {p.allergies}</span>
                         </div>
                       )}
 
                       {/* Info Note */}
                       <div className={`mt-2.5 rounded-lg p-2.5 flex items-center gap-2 ${isSelected ? 'bg-primary-50/80' : 'bg-neutral-50/80'}`}>
-                        <Info size={13} className={`flex-shrink-0 ${isSelected ? 'text-primary-600' : 'text-neutral-400'}`} strokeWidth={2.5} />
-                        <p className={`text-[10px] font-medium ${isSelected ? 'text-primary-700' : 'text-neutral-500'}`}>
+                        <Info size={14} className={`flex-shrink-0 ${isSelected ? 'text-primary-600' : 'text-neutral-400'}`} strokeWidth={2.5} />
+                        <p className={`text-xs font-medium ${isSelected ? 'text-primary-700' : 'text-neutral-600'}`}>
                           Menu disesuaikan dengan kebutuhan gizi pasien
                         </p>
                       </div>
@@ -359,7 +284,7 @@ export default function PatientLogin() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="w-full max-w-[320px] mx-auto flex flex-col items-center text-center relative z-20 bg-white rounded-2xl p-5 shadow-2xl border border-white"
+              className="w-full max-w-[360px] mx-auto flex flex-col items-center text-center relative z-20 bg-white rounded-2xl p-6 shadow-xl shadow-neutral-200/50 border border-neutral-100"
             >
               <div className="relative mb-6">
                 <div className="w-28 h-28 bg-danger-50 rounded-full flex items-center justify-center">
@@ -403,12 +328,12 @@ export default function PatientLogin() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="w-full max-w-[320px] mx-auto flex flex-col bg-white rounded-2xl p-5 shadow-2xl border border-white relative z-20"
+              className="w-full max-w-[360px] mx-auto flex flex-col bg-white rounded-2xl p-6 shadow-xl shadow-neutral-200/50 border border-neutral-100 relative z-20"
             >
-              {}
+              {/* Card Header */}
               <div className="flex flex-col items-center mb-5">
-                <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center mb-3 text-primary-800 shadow-inner">
-                  <IdCard size={20} strokeWidth={1.5} />
+                <div className="w-12 h-12 bg-primary-50 rounded-2xl flex items-center justify-center mb-3.5 text-primary-700 shadow-xs">
+                  <IdCard size={22} strokeWidth={1.75} />
                 </div>
                 <h2 className="text-lg font-bold text-neutral-800 text-center tracking-tight mb-1.5">
                   Masukkan Identitas
@@ -418,36 +343,36 @@ export default function PatientLogin() {
                 </p>
               </div>
 
-              {}
-              <div className="flex bg-neutral-100 rounded-xl p-1 mb-4 gap-1">
+              {/* Tab Selector */}
+              <div className="flex bg-neutral-100/90 rounded-xl p-1 mb-5 gap-1">
                 <button
                   type="button"
                   onClick={() => handleTabChange('rm')}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 outline-none border-none cursor-pointer ${
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold transition-all duration-200 outline-none border-none cursor-pointer ${
                     activeTab === 'rm'
-                      ? 'bg-white text-primary-600 shadow-sm'
-                      : 'text-neutral-400 hover:text-neutral-600 bg-transparent'
+                      ? 'bg-white text-primary-700 shadow-xs'
+                      : 'text-neutral-500 hover:text-neutral-700 bg-transparent'
                   }`}
                 >
-                  <Hash size={12} strokeWidth={2.5} />
+                  <Hash size={13} strokeWidth={2.5} />
                   Nomor RM
                 </button>
                 <button
                   type="button"
                   onClick={() => handleTabChange('name')}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 outline-none border-none cursor-pointer ${
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold transition-all duration-200 outline-none border-none cursor-pointer ${
                     activeTab === 'name'
-                      ? 'bg-white text-primary-600 shadow-sm'
-                      : 'text-neutral-400 hover:text-neutral-600 bg-transparent'
+                      ? 'bg-white text-primary-700 shadow-xs'
+                      : 'text-neutral-500 hover:text-neutral-700 bg-transparent'
                   }`}
                 >
-                  <User size={12} strokeWidth={2.5} />
+                  <User size={13} strokeWidth={2.5} />
                   Nama &amp; Tgl Lahir
                 </button>
               </div>
 
-              {}
-              <form onSubmit={handleSearch} className="space-y-3">
+              {/* Form Input */}
+              <form onSubmit={handleSearch} className="space-y-4">
 
                 <AnimatePresence mode="wait">
                   {activeTab === 'rm' ? (
@@ -458,17 +383,17 @@ export default function PatientLogin() {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
                     >
-                      <label className="block text-xs font-semibold text-neutral-700 mb-1.5 ml-1">
+                      <label className="block text-xs font-semibold text-neutral-700 mb-1.5 ml-0.5">
                         Nomor Rekam Medis
                       </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
-                          <Hash size={15} strokeWidth={2} />
+                          <Hash size={16} strokeWidth={2} />
                         </div>
                         <input
                           type="text"
                           placeholder="Contoh: RM-12345"
-                          className="w-full pl-9 pr-3 py-2.5 bg-neutral-100/80 border-none outline-none ring-0 rounded-xl text-sm transition-all placeholder:text-neutral-400"
+                          className="w-full h-11 pl-10 pr-3.5 bg-neutral-100/80 border border-transparent focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded-xl text-sm transition-all placeholder:text-neutral-400"
                           value={rmNumber}
                           onChange={(e) => setRmNumber(e.target.value)}
                           autoFocus
@@ -483,21 +408,20 @@ export default function PatientLogin() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
-                      className="space-y-3"
+                      className="space-y-4"
                     >
-                      {}
                       <div>
-                        <label className="block text-xs font-semibold text-neutral-700 mb-1.5 ml-1">
+                        <label className="block text-xs font-semibold text-neutral-700 mb-1.5 ml-0.5">
                           Nama Pasien
                         </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
-                            <UserSearch size={15} strokeWidth={1.5} />
+                            <UserSearch size={16} strokeWidth={1.75} />
                           </div>
                           <input
                             type="text"
                             placeholder="Contoh: Andi Pratama"
-                            className="w-full pl-9 pr-3 py-2.5 bg-neutral-100/80 border-none outline-none ring-0 rounded-xl text-sm transition-all placeholder:text-neutral-400"
+                            className="w-full h-11 pl-10 pr-3.5 bg-neutral-100/80 border border-transparent focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded-xl text-sm transition-all placeholder:text-neutral-400"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             autoFocus
@@ -505,20 +429,19 @@ export default function PatientLogin() {
                         </div>
                       </div>
 
-                      {}
                       <div>
-                        <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-700 mb-1.5 ml-1">
+                        <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-700 mb-1.5 ml-0.5">
                           <Calendar size={13} className="text-neutral-400" />
                           Tanggal Lahir
                         </label>
                         <input
                           type="date"
-                          className="w-full px-3 py-2.5 bg-neutral-100/80 border-none outline-none ring-0 rounded-xl text-sm text-neutral-700 transition-all"
+                          className="w-full h-11 px-3.5 bg-neutral-100/80 border border-transparent focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded-xl text-sm text-neutral-700 transition-all"
                           value={dob}
                           onChange={(e) => setDob(e.target.value)}
                           max={new Date().toISOString().split('T')[0]}
                         />
-                        <p className="text-[10px] text-neutral-400 mt-1 ml-1">
+                        <p className="text-xs text-neutral-400 mt-1.5 ml-0.5">
                           Jika nama sama, sistem akan meminta konfirmasi.
                         </p>
                       </div>
@@ -526,37 +449,35 @@ export default function PatientLogin() {
                   )}
                 </AnimatePresence>
 
-                {}
                 {errorMsg && (
-                  <div className="text-danger-500 text-xs font-medium text-center bg-danger-50 py-1.5 rounded-lg border border-danger-100">
+                  <div className="text-danger-600 text-xs font-medium text-center bg-danger-50 py-2 px-3 rounded-xl border border-danger-100">
                     {errorMsg}
                   </div>
                 )}
 
-                {}
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full mt-1 bg-primary-600 hover:bg-primary-700 text-white py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-primary-900/20 text-xs border-none outline-none disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                  className="w-full mt-4 bg-primary-600 hover:bg-primary-700 text-white h-11 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-md shadow-primary-900/15 text-sm border-none outline-none disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 size={14} className="animate-spin" />
+                      <Loader2 size={16} className="animate-spin" />
                       <span>Mencari...</span>
                     </>
                   ) : (
                     <>
-                      <Search size={14} strokeWidth={2.5} />
+                      <Search size={16} strokeWidth={2.5} />
                       <span>Cari Pasien</span>
                     </>
                   )}
                 </button>
               </form>
 
-              {}
-              <div className="mt-auto pt-3.5 border-t border-neutral-100 flex items-start gap-2 mt-4">
-                <Info size={14} className="text-neutral-400 mt-0.5 flex-shrink-0" />
-                <p className="text-[10px] text-neutral-500 leading-relaxed">
+              {/* Security/Privacy note */}
+              <div className="pt-4 border-t border-neutral-100 flex items-start gap-2.5 mt-6">
+                <Info size={15} className="text-neutral-400 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-neutral-500 leading-relaxed">
                   Data pasien digunakan untuk menyesuaikan menu gizi.
                 </p>
               </div>

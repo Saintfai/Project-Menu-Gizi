@@ -374,7 +374,7 @@ export default function MenuPortal() {
 
         {}
         {hasOrderedMain || isMainMenuLockedTime ? (
-          <div className="bg-white shadow-sm border border-neutral-200 border-l-[4px] border-l-primary-600 rounded-xl p-4 flex items-center gap-3 mt-2 mb-4">
+          <div className="bg-white shadow-xs border border-neutral-200 border-l-[4px] border-l-primary-600 rounded-xl p-4 flex items-center gap-3 my-4">
             <div className="bg-primary-50 p-2 rounded-full">
               <Info size={20} className="text-primary-600" />
             </div>
@@ -384,7 +384,7 @@ export default function MenuPortal() {
           </div>
         ) : (
           <div className="space-y-4 pt-2">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-3.5">
               <UtensilsCrossed size={20} className="text-primary-500" />
               <h2 className="text-lg md:text-xl font-bold text-neutral-900">Menu Utama</h2>
             </div>
@@ -431,9 +431,9 @@ export default function MenuPortal() {
           </div>
         )}
 
-        {}
+        {/* Ekstra Section */}
         <div className="space-y-4 pt-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-3.5">
             <ShoppingCart size={20} className="text-primary-500" />
             <h2 className="text-lg md:text-xl font-bold text-neutral-900">Ekstra</h2>
           </div>
@@ -552,7 +552,7 @@ export default function MenuPortal() {
             
             <button
               onClick={() => setValidationAlert(null)}
-              className="w-full bg-primary-600 text-white font-semibold py-3 rounded-2xl text-sm hover:bg-primary-700 active:scale-[0.98] transition-all outline-none focus:outline-none border-none ring-0 cursor-pointer"
+              className="w-full bg-primary-600 text-white font-semibold py-3 rounded-xl text-sm hover:bg-primary-700 active:scale-[0.98] transition-all outline-none focus:outline-none border-none ring-0 cursor-pointer"
             >
               Oke, Mengerti
             </button>
@@ -560,13 +560,13 @@ export default function MenuPortal() {
         </div>
       )}
 
-      {}
+      {/* Floating Cart Bar */}
       {totalItems > 0 && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-4xl bg-primary-700 text-white rounded-2xl shadow-xl z-40 p-3 md:px-6 md:py-4 flex items-center justify-between animate-in slide-in-from-bottom-5">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-4xl bg-primary-700 text-white rounded-2xl shadow-xl z-40 p-3.5 sm:px-6 sm:py-4 flex items-center justify-between animate-in slide-in-from-bottom-5">
           <div className="flex items-center gap-3">
             <div className="relative ml-1">
               <ShoppingBag size={24} className="text-white opacity-90" />
-              <span className="absolute -top-2.5 -right-2.5 bg-danger-600 text-white text-[10px] font-bold w-[22px] h-[22px] flex items-center justify-center rounded-full border-2 border-primary-700">
+              <span className="absolute -top-2.5 -right-2.5 bg-danger-600 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-primary-700 shadow-xs">
                 {totalItems}
               </span>
             </div>
@@ -578,7 +578,7 @@ export default function MenuPortal() {
           
           <button 
             onClick={handleProceedToCart}
-            className="bg-white text-primary-700 font-bold px-4 py-2 rounded-lg text-sm hover:bg-neutral-50 transition-colors flex items-center gap-1.5 border-0 outline-none shadow-none cursor-pointer"
+            className="bg-white text-primary-700 font-bold px-4 py-2.5 rounded-xl text-sm hover:bg-neutral-50 active:scale-[0.98] transition-all flex items-center gap-1.5 border-0 outline-none cursor-pointer"
           >
             Lanjut ke Ringkasan
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
