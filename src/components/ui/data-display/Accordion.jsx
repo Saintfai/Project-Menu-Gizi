@@ -22,7 +22,7 @@ export const Accordion = ({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
-    <div className={`bg-white border border-slate-200 shadow-sm rounded-[16px] overflow-hidden transition-all duration-300 ${isExpanded ? 'pb-4 mb-4' : 'mb-3'} ${className}`}>
+    <div className={`bg-neutral-0 border border-neutral-200 shadow-sm rounded-xl overflow-hidden transition-all duration-300 ${isExpanded ? 'pb-4 mb-4' : 'mb-3'} ${className}`}>
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
@@ -34,7 +34,7 @@ export const Accordion = ({
               {icon}
             </div>
           )}
-          <span className="font-bold text-[17px] text-neutral-900">{title}</span>
+          <span className="font-bold text-base text-neutral-900">{title}</span>
         </div>
         <svg 
           className={`w-5 h-5 text-neutral-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} 

@@ -67,11 +67,11 @@ export default function AdminLogin() {
 
   return (
     <PageTransition>
-    <div className="min-h-screen relative overflow-hidden bg-slate-50 flex flex-col font-sans text-gray-800">
+    <div className="min-h-screen relative overflow-hidden bg-neutral-50 flex flex-col font-sans text-neutral-800">
       
       {}
-      <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-blue-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
-      <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-pink-200/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
+      <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-primary-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
+      <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-secondary-100/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
 
       {}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 z-10 relative">
@@ -79,7 +79,7 @@ export default function AdminLogin() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="w-full max-w-[360px] bg-white/90 backdrop-blur-xl rounded-[24px] p-6 shadow-2xl border border-white"
+          className="w-full max-w-[360px] bg-white/90 backdrop-blur-xl rounded-2xl p-6 shadow-2xl border border-white"
         >
           {}
           <div className="flex flex-col items-center mb-6">
@@ -88,10 +88,10 @@ export default function AdminLogin() {
               alt="Logo RS Edelweiss" 
               className="h-12 w-auto object-contain mb-3" 
             />
-            <h2 className="text-xl font-bold text-slate-800 text-center tracking-tight mb-1">
+            <h2 className="text-xl font-bold text-neutral-800 text-center tracking-tight mb-1">
               Portal Dapur Gizi
             </h2>
-            <p className="text-xs text-slate-500 text-center leading-relaxed">
+            <p className="text-xs text-neutral-500 text-center leading-relaxed">
               Masukkan kata sandi untuk mengakses dashboard rekap dan manajemen gizi.
             </p>
           </div>
@@ -101,9 +101,9 @@ export default function AdminLogin() {
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mb-4 flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200/80 p-3 text-xs text-rose-600"
+              className="mb-4 flex items-center gap-2 rounded-xl bg-danger-50 border border-danger-100 p-3 text-xs text-danger-600"
             >
-              <AlertCircle size={15} className="shrink-0 text-rose-500" />
+              <AlertCircle size={15} className="shrink-0 text-danger-500" />
               <span>{error}</span>
             </motion.div>
           )}
@@ -112,17 +112,17 @@ export default function AdminLogin() {
           <form onSubmit={handleLogin} className="space-y-4">
             {}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5 ml-1">
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5 ml-1">
                 Kata Sandi
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
                   <Lock size={16} strokeWidth={1.5} />
                 </div>
                 <input
                   type="password"
                   placeholder="Masukkan kata sandi..."
-                  className="w-full pl-9 pr-3 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800 placeholder:text-slate-400"
+                  className="w-full pl-9 pr-3 py-2.5 bg-neutral-50/50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all text-neutral-800 placeholder:text-neutral-400"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoFocus
@@ -135,7 +135,7 @@ export default function AdminLogin() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-2 bg-[#00529B] hover:bg-[#004280] text-white py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-blue-900/20 text-xs border-none outline-none disabled:opacity-60 cursor-pointer"
+              className="w-full mt-2 bg-primary-600 hover:bg-primary-700 text-white py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-primary-900/20 text-xs border-none outline-none disabled:opacity-60 cursor-pointer"
             >
               {isLoading ? (
                 <span>Memverifikasi...</span>
@@ -149,9 +149,9 @@ export default function AdminLogin() {
           </form>
 
           {}
-          <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-start gap-2">
-            <Info size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
-            <p className="text-[10px] text-slate-500 leading-relaxed">
+          <div className="mt-5 pt-3.5 border-t border-neutral-100 flex items-start gap-2">
+            <Info size={14} className="text-neutral-400 mt-0.5 flex-shrink-0" />
+            <p className="text-[10px] text-neutral-500 leading-relaxed">
               Akses terbatas untuk Petugas Dapur dan Dietisien RS Edelweiss.
             </p>
           </div>
@@ -159,8 +159,8 @@ export default function AdminLogin() {
 
         {}
         <div className="mt-8 text-center flex flex-col gap-1 opacity-70">
-          <p className="text-[10px] text-slate-500">© 2026 RS Edelweiss. All Rights Reserved.</p>
-          <p className="text-[10px] text-slate-400">Dashboard Manajemen & Produksi Gizi</p>
+          <p className="text-[10px] text-neutral-500">© 2026 RS Edelweiss. All Rights Reserved.</p>
+          <p className="text-[10px] text-neutral-400">Dashboard Manajemen & Produksi Gizi</p>
         </div>
       </div>
 

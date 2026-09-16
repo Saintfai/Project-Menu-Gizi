@@ -15,8 +15,8 @@ export default function AdminRoute() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="text-sm font-medium text-slate-500 animate-pulse">
+      <div className="flex min-h-screen items-center justify-center bg-neutral-50">
+        <div className="text-sm font-medium text-neutral-500 animate-pulse">
           Memverifikasi akses admin...
         </div>
       </div>

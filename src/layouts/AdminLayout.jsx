@@ -12,7 +12,7 @@ import AdminNavbar from '../components/ui/navigation/AdminNavbar';
 
 export default function AdminLayout() {
   return (
-    <div className="h-screen overflow-hidden bg-slate-50 flex flex-col font-sans text-neutral-800">
+    <div className="h-screen overflow-hidden bg-neutral-50 flex flex-col font-sans text-neutral-800">
       {}
       <AdminNavbar />
 

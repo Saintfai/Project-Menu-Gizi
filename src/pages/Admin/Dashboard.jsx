@@ -227,20 +227,20 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {}
+      {/* Error Banner */}
       {error && (
-        <div className="bg-red-50 border border-red-200 p-3 rounded-lg flex items-center gap-2 text-xs text-red-700">
-          <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+        <div className="bg-danger-50 border border-danger-200 p-3 rounded-lg flex items-center gap-2 text-xs text-danger-700">
+          <AlertCircle className="w-4 h-4 text-danger-500 flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      {}
+      {/* 4 Cards Summary */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
-        {}
+        {/* Card Makan Pagi */}
         <RekapCard
           title="Makan Pagi"
-          icon={<Sun className="w-4 h-4 text-amber-500" />}
+          icon={<Sun className="w-4 h-4 text-warning-500" />}
           total={stats.pagi.total}
           totalLabel="Total Porsi"
           details={[
@@ -249,7 +249,7 @@ export default function Dashboard() {
           ]}
         />
 
-        {}
+        {/* Card Makan Siang */}
         <RekapCard
           title="Makan Siang"
           icon={<Utensils className="w-4 h-4 text-primary-600" />}
@@ -261,7 +261,7 @@ export default function Dashboard() {
           ]}
         />
 
-        {}
+        {/* Card Makan Sore */}
         <RekapCard
           title="Makan Sore"
           icon={<Moon className="w-4 h-4 text-indigo-600" />}
@@ -273,10 +273,10 @@ export default function Dashboard() {
           ]}
         />
 
-        {}
+        {/* Card Ekstra */}
         <RekapCard
           title="Ekstra"
-          icon={<PlusCircle className="w-4 h-4 text-emerald-600" />}
+          icon={<PlusCircle className="w-4 h-4 text-success-600" />}
           total={stats.ekstra.total}
           totalLabel="Total Item"
           details={[
@@ -285,44 +285,44 @@ export default function Dashboard() {
         />
       </section>
 
-      {}
+      {/* Search & Filter Controls */}
       <section className="space-y-3 pt-2">
-        <h2 className="text-base sm:text-lg font-bold text-slate-900">
+        <h2 className="text-base sm:text-lg font-bold text-neutral-900">
           Detail Rekap Pesanan
         </h2>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full">
-          {}
+          {/* Search Input */}
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Cari Nama Pasien, No. RM, atau Nomor Kamar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-sm"
+              className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-neutral-0 border border-neutral-300 rounded-lg text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-sm"
             />
           </div>
 
-          {}
+          {/* Filter Dropdown */}
           <div className="relative w-full sm:w-44">
             <select
               value={selectedFilter}
               onChange={(e) => setSelectedFilter(e.target.value)}
-              className="w-full appearance-none bg-white border border-slate-300 rounded-lg px-3.5 py-2 pr-9 text-xs sm:text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-sm cursor-pointer"
+              className="w-full appearance-none bg-neutral-0 border border-neutral-300 rounded-lg px-3.5 py-2 pr-9 text-xs sm:text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-sm cursor-pointer"
             >
               <option value="ALL">Semua</option>
               <option value="ALLERGY">Alergi</option>
               <option value="NOTE">Ada Catatan</option>
               <option value="VIP">Kelas VIP</option>
             </select>
-            <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
 
-          {}
+          {/* Search Button */}
           <button
             type="button"
-            className="flex items-center justify-center gap-2 px-5 py-2 bg-[#00558F] hover:bg-[#004778] active:bg-[#003c66] text-white rounded-lg text-xs sm:text-sm font-medium transition-colors shadow-sm cursor-pointer flex-shrink-0"
+            className="flex items-center justify-center gap-2 px-5 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-neutral-0 rounded-lg text-xs sm:text-sm font-medium transition-colors shadow-sm cursor-pointer flex-shrink-0"
           >
             <Search className="w-4 h-4" />
             <span>Cari Data</span>

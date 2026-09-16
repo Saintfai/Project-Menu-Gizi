@@ -32,7 +32,7 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
           )}
           <span className="text-neutral-300 font-bold px-0.5">|</span>
           {excludePart && (
-            <span className="font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[11px] border border-emerald-200/60">
+            <span className="font-semibold text-success-700 bg-success-50 px-1.5 py-0.5 rounded text-[11px] border border-success-200/60">
               {excludePart}
             </span>
           )}
@@ -81,8 +81,8 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-1.5 font-semibold text-neutral-900">
                         {row.hasAllergy && (
-                          <div className="w-4 h-4 rounded-full bg-neutral-300 flex items-center justify-center flex-shrink-0" title={row.allergyNote || 'Riwayat Alergi'}>
-                            <div className="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></div>
+                          <div className="w-4 h-4 rounded-full bg-danger-100 flex items-center justify-center flex-shrink-0" title={row.allergyNote || 'Riwayat Alergi'}>
+                            <div className="w-2 h-2 rounded-full bg-danger-600"></div>
                           </div>
                         )}
                         <span>{displayName}</span>
@@ -114,9 +114,12 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
                     </td>
                     <td className="px-4 py-4 text-center">
                       <button 
+                        type="button"
                         onClick={() => row.hasCatatan && onNoteClick && onNoteClick(row)}
                         className={`p-1.5 rounded-md transition-colors ${row.hasCatatan ? 'text-primary-600 bg-primary-50 hover:bg-primary-100 cursor-pointer' : 'text-neutral-300 cursor-default'}`}
                         disabled={!row.hasCatatan}
+                        aria-label={row.hasCatatan ? `Lihat catatan ${displayName}` : 'Tidak ada catatan'}
+                        title={row.hasCatatan ? 'Lihat catatan khusus' : 'Tidak ada catatan'}
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -131,23 +134,14 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
         </table>
       </div>
       
-      {}
+      {/* Table Footer */}
       <div className="px-4 py-3 bg-primary-50 border-t border-neutral-200 flex items-center justify-between">
-        <span className="text-xs font-medium text-neutral-500">
-          {data.length === 0 ? 'Menampilkan 0 data' : `Page 1 of ${Math.ceil(data.length / 10) || 1}`}
+        <span className="text-xs font-medium text-neutral-600">
+          Menampilkan <strong className="text-neutral-900">{data.length}</strong> pesanan pasien
         </span>
-        <div className="flex items-center gap-4 text-neutral-400">
-          <button className="hover:text-neutral-700 transition-colors">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <button className="hover:text-neutral-700 transition-colors">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
+        <span className="text-xs text-neutral-500 font-medium">
+          Dapur Gizi RS Edelweiss
+        </span>
       </div>
     </div>
   );

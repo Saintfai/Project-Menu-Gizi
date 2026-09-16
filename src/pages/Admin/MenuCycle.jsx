@@ -201,13 +201,13 @@ export default function MenuCycle() {
     const isPagi = mealTime === 'PAGI';
     const isSiang = mealTime === 'SIANG';
 
-    const bgBadge = isPagi ? 'bg-amber-50 text-amber-700 border-amber-200' : isSiang ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-indigo-50 text-indigo-700 border-indigo-200';
-    const iconWrapper = isPagi ? 'bg-amber-100/70 text-amber-600' : isSiang ? 'bg-sky-100/70 text-sky-600' : 'bg-indigo-100/70 text-indigo-600';
-    const tagBorder = isPagi ? 'border-amber-200 bg-amber-50/50 text-amber-800' : isSiang ? 'border-sky-200 bg-sky-50/50 text-sky-800' : 'border-indigo-200 bg-indigo-50/50 text-indigo-800';
+    const bgBadge = isPagi ? 'bg-amber-50 text-amber-700 border-amber-200' : isSiang ? 'bg-primary-50 text-primary-700 border-primary-200' : 'bg-indigo-50 text-indigo-700 border-indigo-200';
+    const iconWrapper = isPagi ? 'bg-amber-100/70 text-amber-600' : isSiang ? 'bg-primary-100/70 text-primary-600' : 'bg-indigo-100/70 text-indigo-600';
+    const tagBorder = isPagi ? 'border-amber-200 bg-amber-50/50 text-amber-800' : isSiang ? 'border-primary-200 bg-primary-50/50 text-primary-800' : 'border-indigo-200 bg-indigo-50/50 text-indigo-800';
 
     return (
       <div className="bg-neutral-0 rounded-xl border border-neutral-200 shadow-xs flex flex-col h-full overflow-hidden transition-all duration-200 hover:shadow-sm">
-        {}
+        {/* Column Header */}
         <div className="p-4 sm:p-5 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/40">
           <div className="flex items-center gap-3">
             <div className={`p-2.5 rounded-lg ${iconWrapper}`}>
@@ -225,7 +225,7 @@ export default function MenuCycle() {
           </span>
         </div>
 
-        {}
+        {/* List of Items */}
         <div className="p-4 sm:p-5 flex-1 space-y-3.5 overflow-y-auto">
           {isLoading ? (
             <div className="py-12 flex flex-col items-center justify-center text-neutral-400 space-y-2">
@@ -246,13 +246,13 @@ export default function MenuCycle() {
                 key={item.id}
                 className="group relative p-4 rounded-xl border border-neutral-200/80 bg-white hover:border-primary-300 hover:shadow-xs transition-all duration-200 space-y-2.5"
               >
-                {}
+                {/* Header item: Badge & Actions */}
                 <div className="flex items-center justify-between gap-2">
                   <span className={`text-xs font-bold px-2.5 py-0.5 rounded-md border ${tagBorder}`}>
                     {item.paketName || 'Paket'}
                   </span>
                   
-                  {}
+                  {/* Action Buttons */}
                   <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                     <button
                       type="button"
@@ -273,12 +273,12 @@ export default function MenuCycle() {
                   </div>
                 </div>
 
-                {}
+                {/* Name */}
                 <h3 className="font-bold text-neutral-900 text-sm leading-snug">
                   {item.name}
                 </h3>
 
-                {}
+                {/* Description */}
                 {item.description && (
                   <div className="text-xs text-neutral-600 bg-neutral-50/90 rounded-lg p-2.5 border border-neutral-100 leading-relaxed font-normal">
                     {item.description}
@@ -289,7 +289,7 @@ export default function MenuCycle() {
           )}
         </div>
 
-        {}
+        {/* Footer Button Add */}
         <div className="p-4 border-t border-neutral-100 bg-neutral-50/30">
           <Button
             variant="outline"
@@ -309,21 +309,21 @@ export default function MenuCycle() {
   return (
     <PageTransition>
     <div className="space-y-6 w-full pb-10">
-      {}
+      {/* Header Info */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-xl font-bold text-neutral-900 tracking-tight flex items-center gap-2">
             Kelola Siklus Menu
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-sm text-neutral-500 mt-0.5">
             Daftar dan konfigurasi paket makanan pasien berdasarkan siklus gizi (Siklus 1 - 11).
           </p>
         </div>
 
-        {}
+        {/* Active Badge & Refresh */}
         <div className="flex items-center gap-2">
-          <div className="inline-flex items-center gap-2 px-3.5 py-2 bg-sky-50/70 border border-sky-200 rounded-lg text-slate-800 text-sm font-semibold shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-2 bg-primary-50 border border-primary-200 rounded-lg text-neutral-800 text-sm font-semibold shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
             <span>Siklus Aktif Hari Ini: <strong>Siklus {activeCycle}</strong></span>
           </div>
 
@@ -331,7 +331,7 @@ export default function MenuCycle() {
             type="button"
             onClick={() => loadCycleItems(selectedCycle, true)}
             disabled={isRefreshing || isLoading}
-            className="p-2 bg-white border border-neutral-200 text-neutral-600 hover:text-primary-600 hover:bg-neutral-50 rounded-lg shadow-xs transition-all disabled:opacity-50"
+            className="p-2 bg-neutral-0 border border-neutral-200 text-neutral-600 hover:text-primary-600 hover:bg-neutral-50 rounded-lg shadow-xs transition-all disabled:opacity-50"
             title="Refresh Data"
           >
             <RotateCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-primary-600' : ''}`} />
@@ -339,11 +339,11 @@ export default function MenuCycle() {
         </div>
       </div>
 
-      {}
+      {/* Cycle Switcher & Information Banner */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
-        {}
-        <div className="flex items-center gap-3 shrink-0 bg-white p-2.5 rounded-xl border border-neutral-200 shadow-xs">
-          <label htmlFor="cycle-select" className="text-sm font-bold text-slate-700 select-none whitespace-nowrap pl-1">
+        {/* Cycle Dropdown */}
+        <div className="flex items-center gap-3 shrink-0 bg-neutral-0 p-2.5 rounded-xl border border-neutral-200 shadow-xs">
+          <label htmlFor="cycle-select" className="text-sm font-bold text-neutral-700 select-none whitespace-nowrap pl-1">
             Pilih Siklus:
           </label>
           <div className="relative">
@@ -351,7 +351,7 @@ export default function MenuCycle() {
               id="cycle-select"
               value={selectedCycle}
               onChange={(e) => setSelectedCycle(Number(e.target.value))}
-              className="appearance-none bg-neutral-50 hover:bg-neutral-100/80 border border-neutral-300 rounded-lg pl-3.5 pr-9 py-2 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 cursor-pointer transition-colors min-w-[170px]"
+              className="appearance-none bg-neutral-50 hover:bg-neutral-100/80 border border-neutral-300 rounded-lg pl-3.5 pr-9 py-2 text-sm font-bold text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 cursor-pointer transition-colors min-w-[170px]"
             >
               {Array.from({ length: 11 }, (_, i) => i + 1).map((c) => (
                 <option key={c} value={c}>
@@ -359,14 +359,14 @@ export default function MenuCycle() {
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-neutral-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
 
         {/* Info Banner */}
-        <div className="flex-1 flex items-center gap-3 px-4 py-3 bg-[#e8f1fd] border-l-4 border-primary-600 rounded-r-xl text-slate-800 text-sm shadow-xs">
+        <div className="flex-1 flex items-center gap-3 px-4 py-3 bg-primary-50 border-l-4 border-primary-600 rounded-r-xl text-neutral-800 text-sm shadow-xs">
           <Info className="w-5 h-5 text-primary-600 shrink-0" />
-          <p className="leading-snug text-xs sm:text-sm text-slate-700">
+          <p className="leading-snug text-xs sm:text-sm text-neutral-700">
             Sistem otomatis menerapkan paket menu dari <strong>Siklus {selectedCycle}</strong> untuk pemesanan pasien. Anda dapat mengubah detail menu atau menambah paket baru melalui tombol di bawah.
           </p>
         </div>

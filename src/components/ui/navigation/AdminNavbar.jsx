@@ -30,7 +30,6 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
     navigate('/menu/admin/login', { replace: true });
   };
 
-  
   const formattedDate = currentDateTime
     .toLocaleDateString('id-ID', {
       weekday: 'long',
@@ -40,7 +39,6 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
     })
     .toUpperCase();
 
-  
   const formattedTime = `${String(currentDateTime.getHours()).padStart(2, '0')}:${String(
     currentDateTime.getMinutes()
   ).padStart(2, '0')} WIB`;
@@ -49,7 +47,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
     <header
       className={`no-print print:hidden relative flex items-center justify-between px-4 sm:px-8 py-3 bg-neutral-0 border-b border-neutral-100 shadow-sm ${className}`}
     >
-      {}
+      {/* Logo & Title (Klik untuk logout) */}
       <div className="flex-1 flex items-center justify-start">
         <div
           onClick={handleLogoClick}
@@ -65,7 +63,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
         </div>
       </div>
 
-      {}
+      {/* Navigasi Menu Admin */}
       <nav
         className="flex items-center justify-center gap-6 sm:gap-8"
         aria-label="Menu Admin"
@@ -110,7 +108,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
         </NavLink>
       </nav>
 
-      {}
+      {/* Tanggal & Waktu Realtime */}
       <div className="flex-1 flex items-center justify-end">
         <div className="text-right pr-4 border-r border-neutral-300">
           <div className="text-[11px] sm:text-xs font-semibold text-neutral-700 tracking-tight">
