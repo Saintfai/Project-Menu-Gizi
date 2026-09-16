@@ -1,10 +1,11 @@
 /**
  * NAMA FILE: MenuCard.jsx
- * FUNGSI UTAMA: Komponen UI Card untuk menampilkan blok informasi atau data.
+ * FUNGSI UTAMA: Komponen kartu hidangan untuk menu paket dan ekstra.
  * 
  * DETAIL:
- * - Membungkus konten dengan gaya visual standar (border, shadow, radius).
- * - Digunakan untuk menampilkan menu, rekap data, atau identitas pasien.
+ * - Menampilkan gambar hidangan, nama menu, rincian komponen, dan harga/keterangan paket.
+ * - Mengintegrasikan Stepper untuk pemilihan kuantitas.
+ * - Menjaga tipografi yang mudah dibaca (minimum text-xs / 12px) dengan kontras tinggi.
  */
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -16,36 +17,46 @@ export const MenuCard = ({
   image, 
   title, 
   subtitle, 
-  description,
+  description, 
   price, 
-  quantity = 0,
-  maxQuantity = 2,
-  sessionMaxQuantity,
-  onQuantityChange,
+  quantity = 0, 
+  maxQuantity = 2, 
+  sessionMaxQuantity, 
+  onQuantityChange, 
   className = '' 
 }) => {
   return (
-    <div className={`flex flex-col bg-neutral-0 rounded-xl border border-neutral-200 overflow-hidden shadow-sm h-full ${className}`}>
+    <div className={`flex flex-col bg-white rounded-xl border border-neutral-200/90 overflow-hidden shadow-sm hover:shadow-md transition-shadow h-full ${className}`}>
       {/* Image Container */}
-      <div className="w-full h-24 sm:h-32 bg-neutral-100 flex-shrink-0">
+      <div className="w-full h-28 sm:h-36 bg-neutral-100 flex-shrink-0 relative overflow-hidden">
         {image ? (
           <img src={image} alt={title} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-neutral-400 bg-neutral-200/50">
-            <Utensils className="w-6 h-6 sm:w-8 sm:h-8 opacity-50" />
+          <div className="w-full h-full flex items-center justify-center text-neutral-400 bg-neutral-100">
+            <Utensils className="w-7 h-7 opacity-40" />
           </div>
         )}
       </div>
 
       {/* Content */}
-      <div className="p-3 sm:p-4 flex flex-col flex-1">
+      <div className="p-3.5 sm:p-4 flex flex-col flex-1">
         {type === 'paket' ? (
           <>
-            <span className="text-[10px] sm:text-[11px] font-bold text-primary-600 mb-0.5 sm:mb-1">{subtitle}</span>
-            <h4 className="font-semibold text-neutral-900 text-xs sm:text-sm leading-snug mb-1 line-clamp-2">{title}</h4>
-            {description && <p className="text-[10px] sm:text-[11px] text-neutral-500 line-clamp-2 mb-3 sm:mb-4">{description}</p>}
+            {subtitle && (
+              <span className="text-xs font-bold text-primary-700 uppercase tracking-wider mb-1">
+                {subtitle}
+              </span>
+            )}
+            <h4 className="font-bold text-neutral-900 text-sm leading-snug mb-1 line-clamp-2">
+              {title}
+            </h4>
+            {description && (
+              <p className="text-xs text-neutral-600 line-clamp-2 mb-3.5 leading-relaxed">
+                {description}
+              </p>
+            )}
             
-            <div className="mt-auto">
+            <div className="mt-auto pt-1">
               <Stepper 
                 value={quantity} 
                 min={0} 
@@ -53,9 +64,9 @@ export const MenuCard = ({
                 onChange={onQuantityChange} 
                 className="w-full"
               />
-              <div className="h-4 sm:h-5 mt-1 sm:mt-1.5 flex items-start justify-center text-center">
+              <div className="min-h-[20px] mt-1.5 flex items-center justify-center text-center">
                 {quantity >= maxQuantity && maxQuantity !== Infinity && (
-                  <p className="text-[9px] sm:text-[10px] text-danger-500 font-medium leading-none">
+                  <p className="text-xs text-danger-600 font-semibold leading-tight">
                     {maxQuantity === 0 ? `Kuota ${sessionMaxQuantity || ''} porsi terpenuhi` : `Maksimal ${maxQuantity} porsi`}
                   </p>
                 )}
@@ -64,12 +75,24 @@ export const MenuCard = ({
           </>
         ) : (
           <>
-            {subtitle && <span className="text-[10px] sm:text-[11px] font-bold text-primary-600 mb-0.5 sm:mb-1">{subtitle}</span>}
-            <h4 className="font-semibold text-neutral-900 text-xs sm:text-sm leading-snug mb-1 line-clamp-2">{title}</h4>
-            {description && <p className="text-[10px] sm:text-[11px] text-neutral-500 line-clamp-2 mb-1.5 sm:mb-2">{description}</p>}
-            <span className="text-[11px] sm:text-xs font-bold text-primary-600 mb-3 sm:mb-4">{price}</span>
+            {subtitle && (
+              <span className="text-xs font-bold text-primary-700 uppercase tracking-wider mb-1">
+                {subtitle}
+              </span>
+            )}
+            <h4 className="font-bold text-neutral-900 text-sm leading-snug mb-1 line-clamp-2">
+              {title}
+            </h4>
+            {description && (
+              <p className="text-xs text-neutral-600 line-clamp-2 mb-2 leading-relaxed">
+                {description}
+              </p>
+            )}
+            <span className="text-xs sm:text-sm font-bold text-primary-700 mb-3.5 block">
+              {price}
+            </span>
             
-            <div className="mt-auto">
+            <div className="mt-auto pt-1">
               <Stepper 
                 value={quantity} 
                 min={0} 
@@ -90,6 +113,7 @@ MenuCard.propTypes = {
   image: PropTypes.string,
   title: PropTypes.string.isRequired,
   subtitle: PropTypes.string,
+  description: PropTypes.string,
   price: PropTypes.string,
   quantity: PropTypes.number,
   maxQuantity: PropTypes.number,
