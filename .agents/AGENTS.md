@@ -5,22 +5,31 @@
 **Application Food Ordering & Nutrition Management System (Hospital Dietary System)**
 
   ----------------------------------- -----------------------------------
-  **Dokumen Versi**                   1.9
+  **Dokumen Versi**                   2.0
   **Status**                          Approved / Development in Progress
-                                      --- Fleksibilitas Pemilihan Waktu
-                                      Makan & Representasi Rekap Tabel
+                                      --- Penegasan Aturan Sesi Tunggal
+                                      Pemesanan Paket Utama & Rekapitulasi
+  **Perubahan dari v1.9**             - Penegasan aturan Sesi Pemesanan
+                                        Tunggal (Single Checkout Session):
+                                        Pasien hanya memiliki 1 kali
+                                        kesempatan checkout Paket Utama per
+                                        hari untuk jadwal besok (T+1).
+                                      - Pasien bebas memilih waktu makan
+                                        secara fleksibel dalam sesi tunggal
+                                        tersebut (boleh memilih hanya Pagi,
+                                        atau Siang & Sore, dsb).
+                                      - Waktu makan yang tidak dipilih pada
+                                        sesi tersebut otomatis diset tidak
+                                        dipesan (default dapur) dan
+                                        ditampilkan sebagai tanda strip (`-`)
+                                        pada rekapitulasi dapur gizi.
+                                      - Setelah checkout berhasil, menu utama
+                                        langsung terkunci permanen untuk hari
+                                        tersebut (tidak ada pemesanan susulan
+                                        untuk waktu makan yang dilewati).
   **Perubahan dari v1.8**             - Penyesuaian batas cut-off time Paket Ekstra (Siang: 10:00 WIB, Sore: 14:00 WIB).
-                                      - Mengubah terminologi "Makan Sore" menjadi "Makan Sore" pada seluruh antarmuka dan laporan.
+                                      - Mengubah terminologi "Makan Malam" menjadi "Makan Sore" pada seluruh antarmuka dan laporan.
                                       - Penambahan dokumentasi penggunaan Supabase sebagai database & backend utama pada tahap pengembangan saat ini.
-  **Perubahan dari v1.7**             - Pasien tidak wajib memesan ketiga
-                                        waktu makan (boleh memesan parsial,
-                                        misal hanya Makan Pagi).
-                                      - Kolom waktu makan yang tidak
-                                        dipesan ditampilkan tanda strip
-                                        (`-`) di tabel rekap dapur.
-                                      - Pasien yang tidak memesan sama
-                                        sekali tidak akan muncul di tabel
-                                        rekap dashboard dapur.
   ----------------------------------- -----------------------------------
 
 **1. Ringkasan Produk & Tujuan**
@@ -103,8 +112,15 @@ sakit.
 -   Batas Waktu (Cut-Off Time): Pemesanan Paket Utama maksimal pukul
     15:00 WIB. Lewat dari pukul 15:00 WIB, pemesanan paket utama
     ditutup.
--   Batas Frekuensi: Pemesanan Paket Utama hanya dapat dilakukan 1 kali
-    per hari untuk jadwal besok.
+-   **Batas Frekuensi & Sesi Pemesanan Tunggal (Single Checkout Session):**
+    -   Pemesanan Paket Utama **hanya dapat dilakukan 1 (satu) kali per hari** untuk jadwal penyajian besok (T+1).
+    -   Pasien menuntaskan seluruh pilihan waktu makannya dalam **satu sesi transaksi checkout tunggal**.
+    -   **Fleksibilitas Pemilihan Waktu Makan & Pesanan Parsial:**
+        -   Pasien **tidak diwajibkan** memesan ketiga waktu makan sekaligus.
+        -   Pasien diperbolehkan hanya memilih 1 atau 2 waktu makan saja (misalnya hanya memilih Makan Pagi, atau hanya Makan Siang dan Sore).
+        -   Slot waktu makan yang **tidak dipilih/dipesan pada sesi tersebut** otomatis berstatus tidak dipesan oleh pasien (dianggap default/nihil) dan akan ditampilkan sebagai tanda strip (`-`) pada tabel rekapitulasi dapur gizi.
+        -   **Penguncian Menu Utama Pasca-Checkout:** Setelah pasien berhasil melakukan checkout, akses ke pemilihan Paket Utama untuk tanggal tersebut **langsung terkunci permanen** (ditandai dengan keterangan *"Menu utama sudah dipesan"*).
+        -   Pasien **tidak dapat melakukan pemesanan susulan** untuk waktu makan yang dilewati/tidak dipilih pada sesi checkout sebelumnya.
 -   Logika Siklus Menu (11 Siklus):
     -   Tanggal 1--10: Siklus Menu 1--10
     -   Tanggal 11--20: Berulang ke Siklus Menu 1--10
@@ -115,10 +131,6 @@ sakit.
         waktu makan (Pagi: 2, Siang: 2, Sore: 2).
     -   Kelas VIP B ke Bawah (VIP B, Kelas 1, 2, 3): Pagi: 2 porsi,
         Siang: 1 porsi, Sore: 1 porsi.
--   **Fleksibilitas Pemilihan Waktu Makan & Pesanan Parsial:**
-    -   Pasien **tidak diwajibkan** memesan ketiga waktu makan sekaligus.
-    -   Pasien diperbolehkan memilih hanya satu atau dua waktu makan saja (misalnya hanya memesan Makan Pagi, atau hanya Makan Siang dan Sore).
-    -   Slot waktu makan yang tidak dipesan akan ditampilkan sebagai tanda strip (`-`) pada tabel rekapitulasi dapur gizi.
 -   **Ketentuan Pemesanan vs Tampilan Tabel:**
     -   Hanya transaksi pesanan yang telah di-checkout oleh pasien yang masuk dan ditampilkan pada Dashboard Rekap Dapur Gizi.
     -   Jika pasien **tidak melakukan pemesanan / tidak memilih makanan sama sekali**, maka data pasien tersebut **tidak akan muncul sama sekali di tabel rekap dashboard dapur**.
@@ -142,10 +154,11 @@ ranap (misal untuk pendamping atau porsi ekstra pasien).
 -   **Batasan Waktu Makan (Meal Time):** Paket Ekstra **HANYA** tersedia
     untuk **Makan Siang** dan **Makan Sore** (Makan Pagi tidak tersedia
     untuk Paket Ekstra).
--   **Batas Waktu Pemesanan (Cut-Off Time):** Seluruh pesanan (Paket
-    Utama maupun Paket Ekstra) harus diselesaikan maksimal pukul
-    **15:00 WIB** untuk penyajian besok. Lewat dari pukul 15:00 WIB,
-    pemesanan untuk semua jenis paket ditutup.
+-   **Batas Waktu Pemesanan (Cut-Off Time):**
+    -   Paket Utama: Maksimal pukul **15:00 WIB**.
+    -   Paket Ekstra Makan Siang: Maksimal pukul **10:00 WIB**.
+    -   Paket Ekstra Makan Sore: Maksimal pukul **14:00 WIB**.
+    -   Lewat dari batas waktu masing-masing, pemesanan untuk sesi/waktu makan tersebut ditutup.
 -   **Skema Pembayaran:** Seluruh tagihan Paket Ekstra otomatis
     dimasukkan ke dalam Hospital Billing / Tagihan Kamar Pasien melalui
     integrasi API real-time (lihat Bagian 7).
@@ -333,10 +346,12 @@ Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
 | *  | **Checkout**                                                    |
 | *7 |                                                                 |
 | ** | Pasien menyelesaikan pemesanan. Sistem memvalidasi cut-off      |
-|    | time tunggal pukul 15:00 WIB untuk semua jenis pesanan          |
-|    | (Paket Utama dan Paket Ekstra). Semua pesanan diantarkan        |
-|    | besok (T+1). Pesanan yang sudah checkout **tidak dapat diedit   |
-|    | maupun dibatalkan**.                                            |
+|    | time (Utama: 15:00 WIB, Ekstra Siang: 10:00 WIB, Ekstra Sore:   |
+|    | 14:00 WIB). Semua pesanan diantarkan besok (T+1). Checkout      |
+|    | Paket Utama hanya dapat dilakukan 1 kali; waktu makan utama     |
+|    | yang tidak dipilih otomatis berstatus tidak dipesan (`-`), dan  |
+|    | menu utama langsung terkunci permanen. Pesanan yang sudah       |
+|    | checkout **tidak dapat diedit maupun dibatalkan**.              |
 +----+-----------------------------------------------------------------+
 
 +----+-----------------------------------------------------------------+
@@ -417,9 +432,11 @@ Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
   Pemesanan    **FR-004**   Sistem membatasi waktu pemesanan Paket Utama hingga
                             pukul 15:00 WIB untuk jadwal makan besok (T+1).
 
-  Pemesanan    **FR-005**   Sistem mengunci pemesanan Paket Utama jika pasien
-                            sudah pernah memesan untuk tanggal penyajian yang
-                            sama (maksimal 1 kali transaksi).
+  Pemesanan    **FR-005**   Sistem menerapkan batas frekuensi pemesanan Paket
+                            Utama maksimal 1 (satu) kali sesi checkout per hari
+                            untuk jadwal penyajian besok (T+1). Setelah pesanan
+                            dikonfirmasi/checkout, seluruh akses menu utama
+                            langsung dikunci permanen.
 
   Pemesanan    **FR-006**   Sistem menerapkan kuota porsi berdasarkan kelas
                             kamar: VIP A ke atas (Pagi 2, Siang 2, Sore 2) dan
@@ -434,9 +451,10 @@ Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
   Pemesanan    **FR-014**   Sistem hanya menampilkan data pesanan aktif pasien
                             yang telah checkout pada tabel rekap dapur; pasien
                             yang tidak memesan sama sekali tidak akan muncul di
-                            tabel. Untuk pesanan parsial, kolom waktu makan
-                            yang tidak dipesan direpresentasikan dengan tanda
-                            strip (`-`).
+                            tabel. Pada sesi pemesanan tunggal Paket Utama,
+                            slot waktu makan yang sengaja tidak dipilih oleh
+                            pasien dianggap tidak dipesan (default dapur) dan
+                            ditampilkan dengan tanda strip (`-`).
 
   Pemesanan    **FR-016**   Sistem menerapkan mekanisme keranjang (cart): item
                             pemesanan dapat diedit bebas sebelum checkout;
@@ -445,11 +463,10 @@ Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
 
   Paket        **FR-008**   Sistem memfasilitasi pemesanan Paket Ekstra (dari
   Ekstra                    katalog siklus menu berjalan) untuk waktu Makan
-                            Siang dan Makan Sore, dengan pengantaran besok
-                            (T+1). Cut-off berlaku sama dengan Paket Utama
-                            yaitu pukul 15:00 WIB. Tidak ada menu jajan/a la
-                            carte bebas dan tidak ada Paket Ekstra untuk
-                            Makan Pagi.
+                            Siang (cut-off 10:00 WIB) dan Makan Sore (cut-off
+                            14:00 WIB), dengan pengantaran besok (T+1). Tidak
+                            ada menu jajan/a la carte bebas dan tidak ada
+                            Paket Ekstra untuk Makan Pagi.
 
   Billing      **FR-009**   Sistem mencatatkan seluruh transaksi Paket Ekstra
                             ke skema tagihan kamar pasien (hospital billing).
