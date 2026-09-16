@@ -28,7 +28,7 @@ export default function MenuPortal() {
   
   const currentHour = new Date().getHours();
   const isMainMenuLockedTime = currentHour >= 15;
-  const isExtraSiangLockedTime = currentHour >= 9;
+  const isExtraSiangLockedTime = currentHour >= 10;
   const isExtraSoreLockedTime = currentHour >= 14;
   
   
@@ -311,7 +311,7 @@ export default function MenuPortal() {
         const item = menuItems.find(m => m.id === baseKey);
         if (item) {
           const mealTime = item.mealTime?.toUpperCase();
-          if (mealTime === 'SIANG' && isExtraSiangLockedTime) invalidLock = 'Ekstra Siang (maks 09:00 WIB)';
+          if (mealTime === 'SIANG' && isExtraSiangLockedTime) invalidLock = 'Ekstra Siang (maks 10:00 WIB)';
           if ((mealTime === 'MALAM' || mealTime === 'SORE') && isExtraSoreLockedTime) invalidLock = 'Ekstra Sore (maks 14:00 WIB)';
         }
       } else {
@@ -453,7 +453,7 @@ export default function MenuPortal() {
                 </svg>
               }
             >
-              Batas order untuk makan siang pukul 09.00 WIB, dan untuk makan sore 14.00 WIB.
+              Batas order untuk makan siang pukul 10.00 WIB, dan untuk makan sore 14.00 WIB.
             </Alert>
           )}
 
@@ -462,7 +462,7 @@ export default function MenuPortal() {
               <div className="bg-warning-50 p-2 rounded-full">
                 <AlertCircle size={20} className="text-warning-600" />
               </div>
-              <span className="text-sm font-bold text-neutral-700">Batas order ekstra siang habis (09:00 WIB)</span>
+              <span className="text-sm font-bold text-neutral-700">Batas order ekstra siang habis (10:00 WIB)</span>
             </div>
           ) : (
             <Accordion 
