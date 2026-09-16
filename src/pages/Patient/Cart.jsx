@@ -9,6 +9,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import { usePatient } from '../../context/PatientContext';
 import { createOrders } from '../../services/orderService';
@@ -41,13 +42,13 @@ export default function Cart() {
 
   if (!quantities || Object.keys(quantities).length === 0) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-6 text-center">
         <ShoppingBag size={48} className="text-neutral-300 mb-4" />
         <h2 className="text-lg font-bold text-neutral-700 mb-2">Keranjang Kosong</h2>
         <p className="text-sm text-neutral-500 mb-6">Belum ada menu yang dipilih. Silakan pilih menu terlebih dahulu.</p>
         <button
           onClick={() => navigate('/menu')}
-          className="bg-[#004e8c] text-white font-semibold px-6 py-2.5 rounded-xl text-sm hover:bg-[#003d6f] transition-colors"
+          className="bg-primary-600 text-white font-semibold px-6 py-2.5 rounded-xl text-sm hover:bg-primary-700 transition-colors cursor-pointer border-none outline-none"
         >
           Kembali ke Menu
         </button>
@@ -118,10 +119,10 @@ export default function Cart() {
 
   const getMealStyle = (key) => {
     switch (key) {
-      case 'PAGI': return { bg: 'bg-[#e0ecfb]', icon: 'text-[#475569]' };
-      case 'SIANG': return { bg: 'bg-[#ffeedc]', icon: 'text-[#6a3f16]' };
-      case 'SORE': return { bg: 'bg-[#3b4758]', icon: 'text-white' };
-      default: return { bg: 'bg-[#e0ecfb]', icon: 'text-[#475569]' };
+      case 'PAGI': return { bg: 'bg-primary-50', icon: 'text-neutral-600' };
+      case 'SIANG': return { bg: 'bg-warning-50', icon: 'text-warning-700' };
+      case 'SORE': return { bg: 'bg-neutral-700', icon: 'text-white' };
+      default: return { bg: 'bg-primary-50', icon: 'text-neutral-600' };
     }
   };
 
@@ -139,12 +140,12 @@ export default function Cart() {
               <IconComponent size={20} className={style.icon} strokeWidth={2} />
             </div>
             <div>
-              <p className="font-bold text-[17px] tracking-tight text-neutral-800">Makan {schedule.label}</p>
-              <p className="text-[11px] text-neutral-400 font-medium">{schedule.time}</p>
+              <p className="font-bold text-base tracking-tight text-neutral-800">Makan {schedule.label}</p>
+              <p className="text-xs text-neutral-400 font-medium">{schedule.time}</p>
             </div>
           </div>
           {showIncludedBadge && (
-            <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
+            <span className="text-xs font-semibold text-success-600 bg-success-50 px-2.5 py-1 rounded-full">
               Included
             </span>
           )}
@@ -178,11 +179,11 @@ export default function Cart() {
               <IconComponent size={20} className={style.icon} strokeWidth={2} />
             </div>
             <div>
-              <p className="font-bold text-[17px] tracking-tight text-neutral-800">Makan {schedule.label}</p>
-              <p className="text-[11px] text-neutral-400 font-medium">{schedule.time}</p>
+              <p className="font-bold text-base tracking-tight text-neutral-800">Makan {schedule.label}</p>
+              <p className="text-xs text-neutral-400 font-medium">{schedule.time}</p>
             </div>
           </div>
-          <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
+          <span className="text-xs font-semibold text-warning-600 bg-warning-50 px-2.5 py-1 rounded-full">
             Berbayar
           </span>
         </div>
@@ -207,7 +208,7 @@ export default function Cart() {
       
       const { valid: noteValid, sanitized: sanitizedNote, error: noteError } = validateNote(note);
       if (!noteValid) {
-        alert(noteError);
+        toast.error(noteError);
         setIsSubmitting(false);
         return;
       }
@@ -290,7 +291,7 @@ export default function Cart() {
 
       navigate('/order-success', { state: { summary } });
     } catch (error) {
-      alert(`Terjadi kesalahan saat menyimpan pesanan: ${error.message || 'Silakan coba lagi.'}`);
+      toast.error(`Terjadi kesalahan saat menyimpan pesanan: ${error.message || 'Silakan coba lagi.'}`);
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -300,14 +301,14 @@ export default function Cart() {
 
   return (
     <PageTransition>
-    <div className="min-h-screen relative bg-slate-50 flex flex-col font-sans text-neutral-900 pt-[60px] pb-8">
+    <div className="min-h-screen relative bg-neutral-50 flex flex-col font-sans text-neutral-900 pt-[60px] pb-8">
       
       {}
-      <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-blue-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
-      <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-pink-200/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
+      <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-primary-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
+      <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-secondary-100/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
 
       {}
-      <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-gray-100">
+      <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-neutral-100">
         <HeaderMobile 
           title={
             <div className="flex flex-col">
@@ -325,7 +326,7 @@ export default function Cart() {
         <div className="flex items-center gap-3 mb-1">
           <button 
             onClick={() => navigate('/menu', { state: { restoredQuantities: quantities } })}
-            className="flex items-center justify-center bg-transparent border-none outline-none p-0 hover:opacity-70 transition-opacity"
+            className="flex items-center justify-center bg-transparent border-none outline-none p-0 hover:opacity-70 transition-opacity cursor-pointer"
           >
             <ArrowLeft size={20} strokeWidth={2.5} className="text-neutral-700" />
           </button>
@@ -339,8 +340,8 @@ export default function Cart() {
         {hasPasienItems && (
           <div className="mt-5">
             <div className="flex items-center gap-2 mb-3">
-              <User size={18} className="text-[#004e8c]" />
-              <h2 className="text-base font-bold text-[#004e8c]">Pesanan Pasien</h2>
+              <User size={18} className="text-primary-600" />
+              <h2 className="text-base font-bold text-primary-700">Pesanan Pasien</h2>
             </div>
             <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-4 md:p-5">
               {['PAGI', 'SIANG', 'SORE'].map(key => 
@@ -354,8 +355,8 @@ export default function Cart() {
         {hasPendampingItems && (
           <div className="mt-5">
             <div className="flex items-center gap-2 mb-3">
-              <Users size={18} className="text-[#004e8c]" />
-              <h2 className="text-base font-bold text-[#004e8c]">Pesanan Pendamping</h2>
+              <Users size={18} className="text-primary-600" />
+              <h2 className="text-base font-bold text-primary-700">Pesanan Pendamping</h2>
             </div>
             <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-4 md:p-5">
               {['PAGI', 'SIANG', 'SORE'].map(key => 
@@ -369,8 +370,8 @@ export default function Cart() {
         {hasEkstraItems && (
           <div className="mt-5">
             <div className="flex items-center gap-2 mb-3">
-              <ShoppingBag size={18} className="text-amber-600" />
-              <h2 className="text-base font-bold text-amber-600">Pesanan Ekstra</h2>
+              <ShoppingBag size={18} className="text-warning-600" />
+              <h2 className="text-base font-bold text-warning-600">Pesanan Ekstra</h2>
             </div>
             <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-4 md:p-5">
               {['SIANG', 'SORE'].map(key => 
@@ -389,9 +390,9 @@ export default function Cart() {
               onChange={(e) => setNote(e.target.value)}
               placeholder="Contoh: tanpa pedas, porsi kecil, dll."
               rows={3}
-              className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-sm text-neutral-700 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#004e8c]/20 focus:border-[#004e8c]/50 resize-none transition-all"
+              className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-sm text-neutral-700 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500/50 resize-none transition-all"
             />
-            <p className="text-[11px] text-neutral-400 mt-1.5">
+            <p className="text-xs text-neutral-400 mt-1.5">
               Catatan ini berlaku untuk seluruh pesanan dalam satu kali checkout.
             </p>
           </div>
@@ -401,7 +402,7 @@ export default function Cart() {
         <div className="mt-8">
           <button
             onClick={() => setShowModal(true)}
-            className="w-full bg-[#004e8c] text-white font-bold py-3.5 rounded-2xl text-sm hover:bg-[#003d6f] active:scale-[0.98] transition-all flex items-center justify-center gap-2 border-none outline-none"
+            className="w-full bg-primary-600 text-white font-bold py-3.5 rounded-2xl text-sm hover:bg-primary-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 border-none outline-none cursor-pointer"
           >
             <Send size={18} className="rotate-45" />
             Konfirmasi & Kirim Pesanan
@@ -412,17 +413,17 @@ export default function Cart() {
 
       {}
       {showModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-[2px]">
-          <div className="bg-white w-full max-w-[320px] rounded-[24px] p-6 text-center shadow-xl">
-            <div className="mx-auto w-14 h-14 bg-[#eef4f9] rounded-full flex items-center justify-center mb-5">
-              <Send size={24} className="text-[#004e8c] rotate-45 -ml-1 mt-1" />
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-[320px] rounded-2xl p-6 text-center shadow-xl">
+            <div className="mx-auto w-14 h-14 bg-primary-50 rounded-full flex items-center justify-center mb-5">
+              <Send size={24} className="text-primary-600 rotate-45 -ml-1 mt-1" />
             </div>
             
-            <h3 className="text-lg font-bold text-[#1a202c] mb-2.5">
+            <h3 className="text-lg font-bold text-neutral-900 mb-2.5">
               Kirim Pesanan Sekarang?
             </h3>
             
-            <p className="text-[13px] text-slate-500 mb-6 leading-relaxed">
+            <p className="text-sm text-neutral-500 mb-6 leading-relaxed">
               Pastikan menu yang Anda pilih sudah sesuai. Pesanan yang telah dikirim tidak dapat diubah kembali.
             </p>
             
@@ -430,7 +431,7 @@ export default function Cart() {
               <button
                 onClick={() => handleConfirm()}
                 disabled={isSubmitting}
-                className="w-full bg-[#004e8c] text-white font-semibold py-3 rounded-full text-sm hover:bg-[#003d6f] transition-colors outline-none focus:outline-none border-none ring-0 disabled:opacity-70 flex items-center justify-center"
+                className="w-full bg-primary-600 text-white font-semibold py-3 rounded-full text-sm hover:bg-primary-700 transition-colors outline-none focus:outline-none border-none ring-0 disabled:opacity-70 flex items-center justify-center cursor-pointer"
               >
                 {isSubmitting ? (
                   <>
@@ -445,7 +446,7 @@ export default function Cart() {
               <button
                 onClick={() => setShowModal(false)}
                 disabled={isSubmitting}
-                className="w-full bg-white text-[#004e8c] font-semibold py-3 rounded-full text-sm border border-solid border-[#004e8c] hover:bg-[#f8fafc] transition-colors outline-none focus:outline-none ring-0 disabled:opacity-50"
+                className="w-full bg-white text-primary-600 font-semibold py-3 rounded-full text-sm border border-solid border-primary-600 hover:bg-neutral-50 transition-colors outline-none focus:outline-none ring-0 disabled:opacity-50 cursor-pointer"
               >
                 Periksa Kembali
               </button>

@@ -29,7 +29,7 @@ export default function MenuPortal() {
   const currentHour = new Date().getHours();
   const isMainMenuLockedTime = currentHour >= 15;
   const isExtraSiangLockedTime = currentHour >= 10;
-  const isExtraMalamLockedTime = currentHour >= 14;
+  const isExtraSoreLockedTime = currentHour >= 14;
   
   
   const [menuItems, setMenuItems] = useState([]);
@@ -58,7 +58,7 @@ export default function MenuPortal() {
   
   const maxQtyPagi = 2;
   const maxQtySiang = isVip ? 2 : 1;
-  const maxQtyMalam = isVip ? 2 : 1;
+  const maxQtySore = isVip ? 2 : 1;
 
   useEffect(() => {
     async function fetchMenus() {
@@ -187,7 +187,7 @@ export default function MenuPortal() {
   
   const menuPagi = menuItems.filter(item => item.mealTime?.toUpperCase() === 'PAGI');
   const menuSiang = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SIANG');
-  const menuMalam = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SORE' || item.mealTime?.toUpperCase() === 'MALAM');
+  const menuSore = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SORE' || item.mealTime?.toUpperCase() === 'MALAM');
 
   
   const filteredEkstraSiang = menuSiang.filter(item => 
@@ -195,7 +195,7 @@ export default function MenuPortal() {
     item.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
-  const filteredEkstraMalam = menuMalam.filter(item => 
+  const filteredEkstraSore = menuSore.filter(item => 
     item.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
     item.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -203,7 +203,7 @@ export default function MenuPortal() {
   
   const renderMenuGrid = (items, maxSessionQty) => {
     if (loading) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Memuat menu...</div>;
-    if (error) return <div className="p-3 text-sm text-danger-500 italic bg-red-50 rounded-lg border border-red-100 mt-2">Gagal memuat menu.</div>;
+    if (error) return <div className="p-3 text-sm text-danger-500 italic bg-danger-50 rounded-lg border border-danger-100 mt-2">Gagal memuat menu.</div>;
     if (items.length === 0) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Data menu belum tersedia.</div>;
 
     const totalUsedQty = items.reduce((sum, item) => sum + (quantities[item.id]?.length || 0), 0);
@@ -241,7 +241,7 @@ export default function MenuPortal() {
   
   const renderEkstraGrid = (items) => {
     if (loading) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Memuat menu ekstra...</div>;
-    if (error) return <div className="p-3 text-sm text-danger-500 italic bg-red-50 rounded-lg border border-red-100 mt-2">Gagal memuat menu.</div>;
+    if (error) return <div className="p-3 text-sm text-danger-500 italic bg-danger-50 rounded-lg border border-danger-100 mt-2">Gagal memuat menu.</div>;
     if (items.length === 0) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Data menu ekstra belum tersedia.</div>;
 
     return (
@@ -277,7 +277,7 @@ export default function MenuPortal() {
   const handleProceedToCart = () => {
     let hasPagi = false;
     let hasSiang = false;
-    let hasMalam = false;
+    let hasSore = false;
 
     Object.entries(quantities).forEach(([key, consumers]) => {
       if (!consumers || consumers.length === 0) return;
@@ -289,7 +289,7 @@ export default function MenuPortal() {
       const mealTime = item.mealTime?.toUpperCase();
       if (mealTime === 'PAGI') hasPagi = true;
       if (mealTime === 'SIANG') hasSiang = true;
-      if (mealTime === 'MALAM' || mealTime === 'SORE') hasMalam = true;
+      if (mealTime === 'MALAM' || mealTime === 'SORE') hasSore = true;
     });
 
     if (totalItems === 0) {
@@ -312,7 +312,7 @@ export default function MenuPortal() {
         if (item) {
           const mealTime = item.mealTime?.toUpperCase();
           if (mealTime === 'SIANG' && isExtraSiangLockedTime) invalidLock = 'Ekstra Siang (maks 10:00 WIB)';
-          if ((mealTime === 'MALAM' || mealTime === 'SORE') && isExtraMalamLockedTime) invalidLock = 'Ekstra Malam (maks 14:00 WIB)';
+          if ((mealTime === 'MALAM' || mealTime === 'SORE') && isExtraSoreLockedTime) invalidLock = 'Ekstra Sore (maks 14:00 WIB)';
         }
       } else {
         if (isMainMenuLockedTime) invalidLock = 'Menu Utama (maks 15:00 WIB)';
@@ -329,19 +329,19 @@ export default function MenuPortal() {
 
   return (
     <PageTransition>
-    <div className="min-h-screen relative bg-slate-50 flex flex-col font-sans text-neutral-900 pt-[60px] pb-24">
+    <div className="min-h-screen relative bg-neutral-50 flex flex-col font-sans text-neutral-900 pt-[60px] pb-24">
       
       {}
-      <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-blue-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
-      <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-pink-200/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
+      <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-primary-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
+      <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-secondary-100/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
 
       {}
-      <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-gray-100">
+      <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-neutral-100">
         <HeaderMobile 
           title={
             <div className="flex flex-col">
               <span>Menu Gizi</span>
-              <span className="text-[10px] text-gray-500 font-normal">Kesehatan Anda, Prioritas Kami</span>
+              <span className="text-[10px] text-neutral-500 font-normal">Kesehatan Anda, Prioritas Kami</span>
             </div>
           }
         />
@@ -374,11 +374,11 @@ export default function MenuPortal() {
 
         {}
         {hasOrderedMain || isMainMenuLockedTime ? (
-          <div className="bg-white shadow-sm border border-slate-200 border-l-[4px] border-l-[#004e8c] rounded-xl p-4 flex items-center gap-3 mt-2 mb-4">
-            <div className="bg-[#eef4f9] p-2 rounded-full">
-              <Info size={20} className="text-[#004e8c]" />
+          <div className="bg-white shadow-sm border border-neutral-200 border-l-[4px] border-l-primary-600 rounded-xl p-4 flex items-center gap-3 mt-2 mb-4">
+            <div className="bg-primary-50 p-2 rounded-full">
+              <Info size={20} className="text-primary-600" />
             </div>
-            <span className="text-[14px] font-bold text-slate-700">
+            <span className="text-sm font-bold text-neutral-700">
               {hasOrderedMain ? "Menu utama sudah dipesan" : "Batas waktu pemesanan menu utama habis (15:00 WIB)"}
             </span>
           </div>
@@ -391,8 +391,8 @@ export default function MenuPortal() {
 
             <Accordion 
               title="Makan Pagi" 
-              iconBg="bg-[#e0ecfb]"
-              iconColor="text-[#475569]"
+              iconBg="bg-primary-50"
+              iconColor="text-neutral-600"
               defaultExpanded={true}
               icon={
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -405,8 +405,8 @@ export default function MenuPortal() {
 
             <Accordion 
               title="Makan Siang" 
-              iconBg="bg-[#ffeedc]"
-              iconColor="text-[#6a3f16]"
+              iconBg="bg-warning-50"
+              iconColor="text-warning-700"
               icon={
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -418,7 +418,7 @@ export default function MenuPortal() {
 
             <Accordion 
               title="Makan Sore" 
-              iconBg="bg-[#3b4758]"
+              iconBg="bg-neutral-700"
               iconColor="text-white"
               icon={
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -426,7 +426,7 @@ export default function MenuPortal() {
                 </svg>
               }
             >
-              {renderMenuGrid(menuMalam, maxQtyMalam)}
+              {renderMenuGrid(menuSore, maxQtySore)}
             </Accordion>
           </div>
         )}
@@ -444,7 +444,7 @@ export default function MenuPortal() {
           />
 
           {}
-          {(!isExtraSiangLockedTime || !isExtraMalamLockedTime) && (
+          {(!isExtraSiangLockedTime || !isExtraSoreLockedTime) && (
             <Alert 
               variant="danger" 
               icon={
@@ -453,22 +453,22 @@ export default function MenuPortal() {
                 </svg>
               }
             >
-              Batas order untuk makan siang pukul 10.00 WIB, dan untuk makan malam 14.00 WIB.
+              Batas order untuk makan siang pukul 10.00 WIB, dan untuk makan sore 14.00 WIB.
             </Alert>
           )}
 
           {isExtraSiangLockedTime ? (
-            <div className="bg-white shadow-sm border border-slate-200 border-l-[4px] border-l-amber-600 rounded-xl p-4 flex items-center gap-3 mt-2 mb-4">
-              <div className="bg-amber-50 p-2 rounded-full">
-                <AlertCircle size={20} className="text-amber-600" />
+            <div className="bg-white shadow-sm border border-neutral-200 border-l-[4px] border-l-warning-600 rounded-xl p-4 flex items-center gap-3 mt-2 mb-4">
+              <div className="bg-warning-50 p-2 rounded-full">
+                <AlertCircle size={20} className="text-warning-600" />
               </div>
-              <span className="text-[14px] font-bold text-slate-700">Batas order ekstra siang habis (10:00 WIB)</span>
+              <span className="text-sm font-bold text-neutral-700">Batas order ekstra siang habis (10:00 WIB)</span>
             </div>
           ) : (
             <Accordion 
               title="Makan Siang" 
-              iconBg="bg-[#ffeedc]"
-              iconColor="text-[#6a3f16]"
+              iconBg="bg-warning-50"
+              iconColor="text-warning-700"
               defaultExpanded={true}
               icon={
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -480,17 +480,17 @@ export default function MenuPortal() {
             </Accordion>
           )}
 
-          {isExtraMalamLockedTime ? (
-            <div className="bg-white shadow-sm border border-slate-200 border-l-[4px] border-l-amber-600 rounded-xl p-4 flex items-center gap-3 mt-2 mb-4">
-              <div className="bg-amber-50 p-2 rounded-full">
-                <AlertCircle size={20} className="text-amber-600" />
+          {isExtraSoreLockedTime ? (
+            <div className="bg-white shadow-sm border border-neutral-200 border-l-[4px] border-l-warning-600 rounded-xl p-4 flex items-center gap-3 mt-2 mb-4">
+              <div className="bg-warning-50 p-2 rounded-full">
+                <AlertCircle size={20} className="text-warning-600" />
               </div>
-              <span className="text-[14px] font-bold text-slate-700">Batas order ekstra sore habis (14:00 WIB)</span>
+              <span className="text-sm font-bold text-neutral-700">Batas order ekstra sore habis (14:00 WIB)</span>
             </div>
           ) : (
             <Accordion 
               title="Makan Sore" 
-              iconBg="bg-[#3b4758]"
+              iconBg="bg-neutral-700"
               iconColor="text-white"
               icon={
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -498,7 +498,7 @@ export default function MenuPortal() {
                 </svg>
               }
             >
-              {renderEkstraGrid(filteredEkstraMalam)}
+              {renderEkstraGrid(filteredEkstraSore)}
             </Accordion>
           )}
         </div>
@@ -536,23 +536,23 @@ export default function MenuPortal() {
 
       {}
       {validationAlert && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-[2px]">
-          <div className="bg-white w-full max-w-[320px] rounded-[24px] p-6 text-center shadow-xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="mx-auto w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center mb-4">
-              <AlertCircle size={28} className="text-amber-500" />
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-[320px] rounded-2xl p-6 text-center shadow-xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="mx-auto w-14 h-14 bg-warning-50 rounded-full flex items-center justify-center mb-4">
+              <AlertCircle size={28} className="text-warning-500" />
             </div>
             
             <h3 className="text-lg font-bold text-neutral-900 mb-2">
               Lengkapi Pesanan
             </h3>
             
-            <p className="text-[13px] text-slate-500 mb-6 leading-relaxed">
+            <p className="text-sm text-neutral-500 mb-6 leading-relaxed">
               {validationAlert}
             </p>
             
             <button
               onClick={() => setValidationAlert(null)}
-              className="w-full bg-[#004e8c] text-white font-semibold py-3 rounded-2xl text-sm hover:bg-[#003d6f] active:scale-[0.98] transition-all outline-none focus:outline-none border-none ring-0"
+              className="w-full bg-primary-600 text-white font-semibold py-3 rounded-2xl text-sm hover:bg-primary-700 active:scale-[0.98] transition-all outline-none focus:outline-none border-none ring-0 cursor-pointer"
             >
               Oke, Mengerti
             </button>
@@ -562,11 +562,11 @@ export default function MenuPortal() {
 
       {}
       {totalItems > 0 && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-4xl bg-[#004e8c] text-white rounded-2xl shadow-xl z-40 p-3 md:px-6 md:py-4 flex items-center justify-between animate-in slide-in-from-bottom-5">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-4xl bg-primary-700 text-white rounded-2xl shadow-xl z-40 p-3 md:px-6 md:py-4 flex items-center justify-between animate-in slide-in-from-bottom-5">
           <div className="flex items-center gap-3">
             <div className="relative ml-1">
               <ShoppingBag size={24} className="text-white opacity-90" />
-              <span className="absolute -top-2.5 -right-2.5 bg-danger-600 text-white text-[10px] font-bold w-[22px] h-[22px] flex items-center justify-center rounded-full border-2 border-[#004e8c]">
+              <span className="absolute -top-2.5 -right-2.5 bg-danger-600 text-white text-[10px] font-bold w-[22px] h-[22px] flex items-center justify-center rounded-full border-2 border-primary-700">
                 {totalItems}
               </span>
             </div>
@@ -578,7 +578,7 @@ export default function MenuPortal() {
           
           <button 
             onClick={handleProceedToCart}
-            className="bg-white text-[#004e8c] font-bold px-4 py-2 rounded-[10px] text-sm hover:bg-neutral-50 transition-colors flex items-center gap-1.5 border-0 outline-none shadow-none"
+            className="bg-white text-primary-700 font-bold px-4 py-2 rounded-lg text-sm hover:bg-neutral-50 transition-colors flex items-center gap-1.5 border-0 outline-none shadow-none cursor-pointer"
           >
             Lanjut ke Ringkasan
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -591,4 +591,3 @@ export default function MenuPortal() {
     </PageTransition>
   );
 }
-

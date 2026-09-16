@@ -21,6 +21,7 @@ import {
   Info 
 } from 'lucide-react';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
+import PatientFooter from '../../components/ui/layout/PatientFooter';
 import { usePatient } from '../../context/PatientContext';
 
 export default function Onboarding() {
@@ -125,18 +126,18 @@ export default function Onboarding() {
 
   return (
     <PageTransition>
-    <div className="min-h-screen relative bg-slate-50 flex flex-col font-sans text-gray-800 pt-[60px]">
+    <div className="min-h-screen relative bg-neutral-50 flex flex-col font-sans text-neutral-800 pt-[60px]">
       {/* Background Gradients */}
-      <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-blue-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
-      <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-pink-200/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
+      <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-primary-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
+      <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-secondary-100/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
 
       {/* Header */}
-      <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-gray-100">
+      <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-neutral-100">
         <HeaderMobile 
           title={
             <div className="flex flex-col">
               <span>Menu Gizi</span>
-              <span className="text-[10px] text-gray-500 font-normal">Kesehatan Anda, Prioritas Kami</span>
+              <span className="text-[10px] text-neutral-500 font-normal">Kesehatan Anda, Prioritas Kami</span>
             </div>
           }
         />
@@ -154,15 +155,15 @@ export default function Onboarding() {
                 navigate('/login');
               }
             }}
-            className="mt-0.5 text-slate-700 hover:text-blue-700 transition-colors border-none outline-none ring-0 bg-transparent p-0"
+            className="mt-0.5 text-neutral-700 hover:text-primary-700 transition-colors border-none outline-none ring-0 bg-transparent p-0 cursor-pointer"
           >
             <ArrowLeft size={20} strokeWidth={2.5} />
           </button>
           <div>
-            <h1 className="text-lg font-bold text-slate-800 tracking-tight mb-1">
+            <h1 className="text-lg font-bold text-neutral-800 tracking-tight mb-1">
               Data Pasien Ditemukan
             </h1>
-            <p className="text-xs text-slate-500 leading-relaxed pr-2">
+            <p className="text-xs text-neutral-500 leading-relaxed pr-2">
               Silakan verifikasi data pasien sebelum melanjutkan ke pemilihan menu nutrisi.
             </p>
           </div>
@@ -173,77 +174,77 @@ export default function Onboarding() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
-          className="w-full bg-white rounded-[20px] p-5 shadow-xl shadow-slate-200/50 border border-white mb-8"
+          className="w-full bg-white rounded-2xl p-5 shadow-xl shadow-neutral-200/50 border border-white mb-8"
         >
           {}
           <div className="space-y-4 mb-6">
             
             {}
-            <div className="flex items-center justify-between border-b border-slate-50 pb-3">
-              <div className="flex items-center gap-2.5 text-slate-500">
+            <div className="flex items-center justify-between border-b border-neutral-50 pb-3">
+              <div className="flex items-center gap-2.5 text-neutral-500">
                 <User size={16} strokeWidth={2} />
                 <span className="text-xs font-medium">No. RM</span>
               </div>
-              <span className="text-xs font-bold text-slate-800">{patient.rmNumber}</span>
+              <span className="text-xs font-bold text-neutral-800">{patient.rmNumber}</span>
             </div>
 
             {}
-            <div className="flex items-center justify-between border-b border-slate-50 pb-3">
-              <div className="flex items-center gap-2.5 text-slate-500">
+            <div className="flex items-center justify-between border-b border-neutral-50 pb-3">
+              <div className="flex items-center gap-2.5 text-neutral-500">
                 <User size={16} strokeWidth={2} />
                 <span className="text-xs font-medium">Nama Pasien</span>
               </div>
-              <span className="text-xs font-bold text-slate-800">{patient.name}</span>
+              <span className="text-xs font-bold text-neutral-800">{patient.name}</span>
             </div>
 
             {}
-            <div className="flex items-center justify-between border-b border-slate-50 pb-3">
-              <div className="flex items-center gap-2.5 text-slate-500">
+            <div className="flex items-center justify-between border-b border-neutral-50 pb-3">
+              <div className="flex items-center gap-2.5 text-neutral-500">
                 <Calendar size={16} strokeWidth={2} />
                 <span className="text-xs font-medium">Tanggal Lahir</span>
               </div>
-              <span className="text-xs font-bold text-slate-800">{formatDate(patient.dob)}</span>
+              <span className="text-xs font-bold text-neutral-800">{formatDate(patient.dob)}</span>
             </div>
 
             {}
-            <div className="flex items-center justify-between border-b border-slate-50 pb-3">
-              <div className="flex items-center gap-2.5 text-slate-500 flex-shrink-0">
+            <div className="flex items-center justify-between border-b border-neutral-50 pb-3">
+              <div className="flex items-center gap-2.5 text-neutral-500 flex-shrink-0">
                 <MapPin size={16} strokeWidth={2} />
                 <span className="text-xs font-medium">Alamat</span>
               </div>
-              <span className="text-xs font-bold text-slate-800 text-right pl-3 truncate max-w-[200px]" title={maskAddress(patient.address)}>
+              <span className="text-xs font-bold text-neutral-800 text-right pl-3 truncate max-w-[200px]" title={maskAddress(patient.address)}>
                 {maskAddress(patient.address)}
               </span>
             </div>
 
             {}
-            <div className="flex items-center justify-between border-b border-slate-50 pb-3">
-              <div className="flex items-center gap-2.5 text-slate-500">
+            <div className="flex items-center justify-between border-b border-neutral-50 pb-3">
+              <div className="flex items-center gap-2.5 text-neutral-500">
                 <Phone size={16} strokeWidth={2} />
                 <span className="text-xs font-medium">Telepon</span>
               </div>
-              <span className="text-xs font-bold text-slate-800">{maskPhone(patient.phone)}</span>
+              <span className="text-xs font-bold text-neutral-800">{maskPhone(patient.phone)}</span>
             </div>
 
             {}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5 text-slate-500">
+              <div className="flex items-center gap-2.5 text-neutral-500">
                 <Building size={16} strokeWidth={2} />
                 <span className="text-xs font-medium">Ruangan</span>
               </div>
-              <span className="text-xs font-bold text-slate-800 text-right">{patient.roomName} - {formatRoomClass(patient.roomClass)}</span>
+              <span className="text-xs font-bold text-neutral-800 text-right">{patient.roomName} - {formatRoomClass(patient.roomClass)}</span>
             </div>
             
           </div>
 
           {}
           {hasAllergies && (
-            <div className="bg-red-50/80 border border-red-100 rounded-xl p-4 mb-3">
+            <div className="bg-danger-50/80 border border-danger-100 rounded-xl p-4 mb-3">
               <div className="flex items-start gap-2.5">
-                <AlertTriangle size={16} className="text-red-500 mt-0.5 flex-shrink-0" strokeWidth={2.5} />
+                <AlertTriangle size={16} className="text-danger-500 mt-0.5 flex-shrink-0" strokeWidth={2.5} />
                 <div>
-                  <h3 className="text-xs font-bold text-red-700 mb-1">Catatan Riwayat Alergi</h3>
-                  <p className="text-[11px] text-red-600/90 leading-relaxed font-medium">
+                  <h3 className="text-xs font-bold text-danger-700 mb-1">Catatan Riwayat Alergi</h3>
+                  <p className="text-xs text-danger-600/90 leading-relaxed font-medium">
                     {warningText}
                   </p>
                 </div>
@@ -252,9 +253,9 @@ export default function Onboarding() {
           )}
 
           {}
-          <div className="bg-blue-50/80 border border-blue-100 rounded-xl p-3 flex items-start gap-2.5">
-            <Info size={16} className="text-blue-500 mt-0.5 flex-shrink-0" strokeWidth={2.5} />
-            <p className="text-[11px] text-blue-700/90 font-medium leading-relaxed">
+          <div className="bg-primary-50/80 border border-primary-100 rounded-xl p-3 flex items-start gap-2.5">
+            <Info size={16} className="text-primary-500 mt-0.5 flex-shrink-0" strokeWidth={2.5} />
+            <p className="text-xs text-primary-700/90 font-medium leading-relaxed">
               Menu disesuaikan dengan kebutuhan gizi pasien
             </p>
           </div>
@@ -270,17 +271,14 @@ export default function Onboarding() {
           <button
             onClick={() => navigate('/menu')}
             style={{ WebkitTapHighlightColor: 'transparent' }}
-            className="w-full bg-[#00529B] text-white py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-900/20 border-none outline-none transition-transform duration-150 active:scale-[0.96] active:bg-[#004280] sm:hover:bg-[#004280]"
+            className="w-full bg-primary-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-primary-900/20 border-none outline-none transition-transform duration-150 active:scale-[0.96] active:bg-primary-700 sm:hover:bg-primary-700 cursor-pointer"
           >
             Lanjut ke Pilih Menu
           </button>
         </motion.div>
         
         {}
-        <div className="mt-5 pt-4 text-center flex flex-col gap-1 opacity-70">
-          <p className="text-[10px] text-slate-500">© 2026 RS Edelweiss. All Rights Reserved.</p>
-          <p className="text-[10px] text-slate-400">Sistem Pemesanan Menu Gizi Pasien Rawat Inap</p>
-        </div>
+        <PatientFooter />
 
       </div>
     </div>
