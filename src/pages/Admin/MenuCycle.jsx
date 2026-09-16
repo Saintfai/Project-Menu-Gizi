@@ -38,6 +38,7 @@ import { validateMenuItemFields } from '../../utils/inputValidator';
 export default function MenuCycle() {
   const activeCycle = getMenuCycleByDate();
   const [selectedCycle, setSelectedCycle] = useState(activeCycle);
+  const isActiveCycle = selectedCycle === activeCycle;
   const [menuItems, setMenuItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -114,6 +115,10 @@ export default function MenuCycle() {
 
   // Handle Open Delete Modal
   const handleOpenDelete = (item) => {
+    if (isActiveCycle) {
+      toast.error('Menu tidak dapat dihapus saat siklus sedang aktif.');
+      return;
+    }
     setSelectedItem(item);
     setIsDeleteModalOpen(true);
   };
@@ -181,6 +186,12 @@ export default function MenuCycle() {
   // Submit Delete
   const handleConfirmDelete = async () => {
     if (!selectedItem) return;
+
+    if (isActiveCycle) {
+      toast.error('Menu tidak dapat dihapus saat siklus sedang aktif.');
+      setIsDeleteModalOpen(false);
+      return;
+    }
 
     try {
       setIsSubmitting(true);
@@ -265,8 +276,13 @@ export default function MenuCycle() {
                     <button
                       type="button"
                       onClick={() => handleOpenDelete(item)}
-                      className="p-1.5 text-neutral-500 hover:text-danger-600 hover:bg-danger-50 rounded-md transition-colors"
-                      title="Hapus Menu"
+                      disabled={isActiveCycle}
+                      className={`p-1.5 rounded-md transition-colors ${
+                        isActiveCycle
+                          ? 'text-neutral-300 cursor-not-allowed'
+                          : 'text-neutral-500 hover:text-danger-600 hover:bg-danger-50'
+                      }`}
+                      title={isActiveCycle ? "Menu tidak dapat dihapus saat siklus sedang aktif" : "Hapus Menu"}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -363,11 +379,22 @@ export default function MenuCycle() {
           </div>
         </div>
 
-        {/* Info Banner */}
-        <div className="flex-1 flex items-center gap-3 px-4 py-3 bg-primary-50 border-l-4 border-primary-600 rounded-r-xl text-neutral-800 text-sm shadow-xs">
-          <Info className="w-5 h-5 text-primary-600 shrink-0" />
+        <div className={`flex-1 flex items-center gap-3 px-4 py-3 border-l-4 rounded-r-xl text-neutral-800 text-sm shadow-xs ${
+          isActiveCycle 
+            ? 'bg-amber-50/80 border-amber-500' 
+            : 'bg-primary-50 border-primary-600'
+        }`}>
+          <Info className={`w-5 h-5 shrink-0 ${isActiveCycle ? 'text-amber-600' : 'text-primary-600'}`} />
           <p className="leading-snug text-xs sm:text-sm text-neutral-700">
-            Sistem otomatis menerapkan paket menu dari <strong>Siklus {selectedCycle}</strong> untuk pemesanan pasien. Anda dapat mengubah detail menu atau menambah paket baru melalui tombol di bawah.
+            {isActiveCycle ? (
+              <>
+                <strong>Siklus {selectedCycle}</strong> sedang aktif untuk jadwal pemesanan besok (T+1). Anda dapat <strong>mengedit</strong> atau <strong>menambah</strong> menu, namun <strong>penghapusan menu diblokir</strong> demi keamanan data & kestabilan pesanan pasien.
+              </>
+            ) : (
+              <>
+                Sistem otomatis menerapkan paket menu dari <strong>Siklus {selectedCycle}</strong> untuk pemesanan pasien. Anda dapat mengubah detail menu, menambah paket baru, atau menghapus menu.
+              </>
+            )}
           </p>
         </div>
       </div>

@@ -112,43 +112,62 @@ export default function Dashboard() {
 
   // Hitung ringkasan 4 kartu secara otomatis dari filtered daily orders
   const stats = useMemo(() => {
-    let pagiTotal = 0, pagiA = 0, pagiB = 0;
-    let siangTotal = 0, siangA = 0, siangB = 0;
-    let malamTotal = 0, malamA = 0, malamB = 0;
+    const mealStats = {
+      PAGI: { total: 0, packages: {} },
+      SIANG: { total: 0, packages: {} },
+      SORE: { total: 0, packages: {} },
+    };
     let ekstraTotal = 0;
     const ekstraNames = new Set();
 
     filteredDailyOrders.forEach(order => {
       const qty = order.quantity || 1;
       const meal = (order.mealTime || '').toUpperCase();
-      const paket = (order.paketName || '').toUpperCase();
+      const paket = (order.paketName || order.menuName || 'Paket').trim();
       const isEkstra = (order.type || '').toUpperCase() === 'EXCLUDE';
 
       if (isEkstra) {
         ekstraTotal += qty;
-        ekstraNames.add(order.menuName || order.paketName);
+        ekstraNames.add(order.menuName || order.paketName || 'Menu Ekstra');
       }
 
-      if (meal === 'PAGI') {
-        pagiTotal += qty;
-        if (paket.includes('A')) pagiA += qty;
-        if (paket.includes('B')) pagiB += qty;
-      } else if (meal === 'SIANG') {
-        siangTotal += qty;
-        if (paket.includes('A')) siangA += qty;
-        if (paket.includes('B')) siangB += qty;
-      } else if (meal === 'SORE' || meal === 'MALAM') {
-        malamTotal += qty;
-        if (paket.includes('A')) malamA += qty;
-        if (paket.includes('B')) malamB += qty;
+      const targetMeal = (meal === 'SORE' || meal === 'MALAM') ? 'SORE' : meal;
+      if (mealStats[targetMeal]) {
+        mealStats[targetMeal].total += qty;
+        mealStats[targetMeal].packages[paket] = (mealStats[targetMeal].packages[paket] || 0) + qty;
       }
     });
 
+    const formatDetails = (packagesObj) => {
+      const entries = Object.entries(packagesObj);
+      if (entries.length === 0) {
+        return [
+          { label: 'Paket A', value: 0 },
+          { label: 'Paket B', value: 0 },
+        ];
+      }
+      return entries
+        .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
+        .map(([label, value]) => ({ label, value }));
+    };
+
     return {
-      pagi: { total: pagiTotal, a: pagiA, b: pagiB },
-      siang: { total: siangTotal, a: siangA, b: siangB },
-      malam: { total: malamTotal, a: malamA, b: malamB },
-      ekstra: { total: ekstraTotal, kinds: ekstraNames.size },
+      pagi: {
+        total: mealStats.PAGI.total,
+        details: formatDetails(mealStats.PAGI.packages),
+      },
+      siang: {
+        total: mealStats.SIANG.total,
+        details: formatDetails(mealStats.SIANG.packages),
+      },
+      malam: {
+        total: mealStats.SORE.total,
+        details: formatDetails(mealStats.SORE.packages),
+      },
+      ekstra: {
+        total: ekstraTotal,
+        kinds: ekstraNames.size,
+      },
     };
   }, [filteredDailyOrders]);
 
@@ -243,10 +262,7 @@ export default function Dashboard() {
           icon={<Sun className="w-4 h-4 text-warning-500" />}
           total={stats.pagi.total}
           totalLabel="Total Porsi"
-          details={[
-            { label: 'Paket A', value: stats.pagi.a },
-            { label: 'Paket B', value: stats.pagi.b },
-          ]}
+          details={stats.pagi.details}
         />
 
         {/* Card Makan Siang */}
@@ -255,10 +271,7 @@ export default function Dashboard() {
           icon={<Utensils className="w-4 h-4 text-primary-600" />}
           total={stats.siang.total}
           totalLabel="Total Porsi"
-          details={[
-            { label: 'Paket A', value: stats.siang.a },
-            { label: 'Paket B', value: stats.siang.b },
-          ]}
+          details={stats.siang.details}
         />
 
         {/* Card Makan Sore */}
@@ -267,10 +280,7 @@ export default function Dashboard() {
           icon={<Moon className="w-4 h-4 text-indigo-600" />}
           total={stats.malam.total}
           totalLabel="Total Porsi"
-          details={[
-            { label: 'Paket A', value: stats.malam.a },
-            { label: 'Paket B', value: stats.malam.b },
-          ]}
+          details={stats.malam.details}
         />
 
         {/* Card Ekstra */}
