@@ -122,7 +122,7 @@ export default function AdminLogin() {
                 <input
                   type="password"
                   placeholder="Masukkan kata sandi..."
-                  className="w-full pl-9 pr-3 py-2.5 bg-neutral-50/50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all text-neutral-800 placeholder:text-neutral-400"
+                  className="w-full h-11 pl-10 pr-3.5 bg-neutral-50 border border-neutral-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white transition-all text-neutral-800 placeholder:text-neutral-400"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoFocus
@@ -131,36 +131,36 @@ export default function AdminLogin() {
               </div>
             </div>
 
-            {}
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-2 bg-primary-600 hover:bg-primary-700 text-white py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-primary-900/20 text-xs border-none outline-none disabled:opacity-60 cursor-pointer"
+              className="w-full mt-3 bg-primary-600 hover:bg-primary-700 text-white h-11 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-md shadow-primary-900/15 text-sm border-none outline-none disabled:opacity-60 cursor-pointer"
             >
               {isLoading ? (
                 <span>Memverifikasi...</span>
               ) : (
                 <>
-                  <LogIn size={15} strokeWidth={2.2} />
+                  <LogIn size={16} strokeWidth={2.2} />
                   <span>Masuk Dashboard</span>
                 </>
               )}
             </button>
           </form>
 
-          {}
-          <div className="mt-5 pt-3.5 border-t border-neutral-100 flex items-start gap-2">
-            <Info size={14} className="text-neutral-400 mt-0.5 flex-shrink-0" />
-            <p className="text-[10px] text-neutral-500 leading-relaxed">
+          {/* Restriction Note */}
+          <div className="mt-6 pt-4 border-t border-neutral-100 flex items-start gap-2.5">
+            <Info size={15} className="text-neutral-400 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-neutral-500 leading-relaxed">
               Akses terbatas untuk Petugas Dapur dan Dietisien RS Edelweiss.
             </p>
           </div>
         </motion.div>
 
-        {}
-        <div className="mt-8 text-center flex flex-col gap-1 opacity-70">
-          <p className="text-[10px] text-neutral-500">© 2026 RS Edelweiss. All Rights Reserved.</p>
-          <p className="text-[10px] text-neutral-400">Dashboard Manajemen & Produksi Gizi</p>
+        {/* Footer */}
+        <div className="mt-8 text-center flex flex-col gap-1">
+          <p className="text-xs font-medium text-neutral-600">© 2026 RS Edelweiss. All Rights Reserved.</p>
+          <p className="text-xs text-neutral-500">Dashboard Manajemen &amp; Produksi Gizi</p>
         </div>
       </div>
 

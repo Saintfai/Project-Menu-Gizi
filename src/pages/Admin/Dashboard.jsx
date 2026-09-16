@@ -216,15 +216,15 @@ export default function Dashboard() {
   return (
     <PageTransition>
     <div className="space-y-6 w-full">
-      {}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-200">
-        {}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200">
+      {/* Header Info */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 pb-4 border-b border-neutral-200">
+        {/* Left Meta */}
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200/80">
             <span className="w-2 h-2 rounded-full bg-primary-600 animate-pulse"></span>
             Siklus Aktif: Hari ke-{cycleNumber}
           </span>
-          <span className="text-xs font-semibold text-neutral-700 bg-neutral-100 px-2.5 py-1 rounded-lg border border-neutral-200">
+          <span className="text-xs font-semibold text-neutral-700 bg-white px-3 py-1.5 rounded-lg border border-neutral-200 shadow-2xs">
             Penyajian Besok (T+1): {formatServingDateDisplay(tomorrowObj)}
           </span>
           <span className="text-xs text-neutral-500 font-medium hidden md:inline">
@@ -232,12 +232,12 @@ export default function Dashboard() {
           </span>
         </div>
 
-        {}
+        {/* Action Buttons */}
         <div className="flex items-center gap-3">
           <button
             onClick={fetchOrderData}
             disabled={loading}
-            className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-800 bg-primary-50 hover:bg-primary-100 px-2.5 py-1 rounded-lg border border-primary-200 transition-colors disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-1.5 text-xs font-semibold text-primary-700 hover:text-primary-800 bg-primary-50 hover:bg-primary-100 active:bg-primary-200/70 px-3 py-1.5 rounded-lg border border-primary-200/80 transition-colors disabled:opacity-50 cursor-pointer"
             title="Muat ulang data dari database"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -301,7 +301,7 @@ export default function Dashboard() {
           Detail Rekap Pesanan
         </h2>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full">
           {/* Search Input */}
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -310,7 +310,7 @@ export default function Dashboard() {
               placeholder="Cari Nama Pasien, No. RM, atau Nomor Kamar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-neutral-0 border border-neutral-300 rounded-lg text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-sm"
+              className="w-full h-11 pl-10 pr-4 text-xs sm:text-sm bg-white border border-neutral-300 rounded-xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-xs"
             />
           </div>
 
@@ -319,20 +319,20 @@ export default function Dashboard() {
             <select
               value={selectedFilter}
               onChange={(e) => setSelectedFilter(e.target.value)}
-              className="w-full appearance-none bg-neutral-0 border border-neutral-300 rounded-lg px-3.5 py-2 pr-9 text-xs sm:text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-sm cursor-pointer"
+              className="w-full h-11 appearance-none bg-white border border-neutral-300 rounded-xl px-3.5 pr-9 text-xs sm:text-sm font-medium text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-xs cursor-pointer"
             >
               <option value="ALL">Semua</option>
               <option value="ALLERGY">Alergi</option>
               <option value="NOTE">Ada Catatan</option>
               <option value="VIP">Kelas VIP</option>
             </select>
-            <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
 
           {/* Search Button */}
           <button
             type="button"
-            className="flex items-center justify-center gap-2 px-5 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-neutral-0 rounded-lg text-xs sm:text-sm font-medium transition-colors shadow-sm cursor-pointer flex-shrink-0"
+            className="h-11 flex items-center justify-center gap-2 px-5 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-xs active:scale-[0.98] cursor-pointer flex-shrink-0"
           >
             <Search className="w-4 h-4" />
             <span>Cari Data</span>
