@@ -223,7 +223,7 @@ thead {
 thead th {
   color: var(--table-header-text);
   font-weight: 700;
-  font-size: 18px;
+  font-size: var(--table-header-font-size, var(--text-sm));
   text-transform: uppercase;
   letter-spacing: var(--tracking-wider);
   padding: 6px var(--space-4);
@@ -234,7 +234,7 @@ thead th {
 tbody td {
   padding: 6px var(--space-4);
   color: var(--table-text);
-  font-size: 17px;
+  font-size: var(--table-body-font-size, var(--text-sm));
   font-weight: 500;
   border-bottom: var(--border-width-thin) solid var(--table-border);
   vertical-align: middle;
@@ -429,7 +429,7 @@ tbody tr:nth-child(even):hover {
 
 .table-wrapper thead th {
   padding: 6px var(--space-4);
-  font-size: 18px;
+  font-size: var(--table-header-font-size, var(--text-sm));
   font-weight: 700;
   color: var(--table-header-text);
   text-align: left;
@@ -458,7 +458,7 @@ tbody tr:nth-child(even):hover {
 
 .table-wrapper tbody td {
   padding: 6px var(--space-4);
-  font-size: 17px;
+  font-size: var(--table-body-font-size, var(--text-sm));
   font-weight: 500;
   color: var(--color-neutral-800);
   vertical-align: middle;

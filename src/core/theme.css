@@ -61,15 +61,31 @@
 
   --color-warning-50: #FFFBEB;
   --color-warning-100: #FEF3C7;
+  --color-warning-200: #FDE68A;
+  --color-warning-300: #FCD34D;
+  --color-warning-400: #FBBF24;
   --color-warning-500: #F59E0B;
   --color-warning-600: #D97706;
   --color-warning-700: #B45309;
+  --color-warning-800: #92400E;
+  --color-warning-900: #78350F;
 
   --color-danger-50: #FEF2F2;
   --color-danger-100: #FEE2E2;
   --color-danger-500: #EF4444;
   --color-danger-600: #DC2626;
   --color-danger-700: #B91C1C;
+
+  --color-info-50: #F0F9FF;
+  --color-info-100: #E0F2FE;
+  --color-info-200: #BAE6FD;
+  --color-info-300: #7DD3FC;
+  --color-info-400: #38BDF8;
+  --color-info-500: #0EA5E9;
+  --color-info-600: #0284C7;
+  --color-info-700: #0369A1;
+  --color-info-800: #075985;
+  --color-info-900: #0C4A6E;
   
   /* Domain Specific (Menunggu, Proses, Selesai) */
   --color-menunggu-50: var(--color-warning-50);
@@ -112,19 +128,19 @@
   --font-mono: 'JetBrains Mono', monospace;
   --font-heading: 'Nunito Sans', sans-serif;
 
-  /* Font sizes (px / rem based) */
-  --text-xs: 12px;     /* Caption */
-  --text-sm: 14px;
-  --text-base: 16px;
-  --text-lg: 18px;
-  --text-xl: 20px;
-  --text-2xl: 24px;    /* H3 */
-  --text-3xl: 32px;    /* H1 */
-  --text-4xl: 36px;
-  --text-5xl: 48px;
-  --text-6xl: 60px;
-  --text-7xl: 72px;
-  --text-8xl: 96px;
+  /* Font sizes (rem based for accessibility) */
+  --text-xs: 0.75rem;    /* 12px - Caption / Badges */
+  --text-sm: 0.875rem;   /* 14px - Body Small */
+  --text-base: 1rem;     /* 16px - Body Regular */
+  --text-lg: 1.125rem;   /* 18px - Subheading */
+  --text-xl: 1.25rem;    /* 20px - H4 */
+  --text-2xl: 1.5rem;    /* 24px - H3 */
+  --text-3xl: 2rem;      /* 32px - H2 / Page Titles */
+  --text-4xl: 2.25rem;   /* 36px - H1 */
+  --text-5xl: 3rem;      /* 48px - Display */
+  --text-6xl: 3.75rem;   /* 60px */
+  --text-7xl: 4.5rem;    /* 72px */
+  --text-8xl: 6rem;      /* 96px */
 
   /* Font Weights */
   --font-regular: 400;
@@ -265,6 +281,7 @@
   --table-row-hover-bg: var(--color-neutral-50);
   --table-text: var(--color-neutral-700);
   --table-body-font-size: var(--text-sm);
+  --table-header-font-size: var(--text-sm);
 
   /* Cards */
   --card-bg: var(--color-neutral-0);
