@@ -350,10 +350,6 @@ export default function PatientLogin() {
                 </button>
               </div>
             </motion.div>
-              >
-                Pilih Pasien Ini
-              </button>
-            </motion.div>
 
           ) : showNotFound ? (
             
