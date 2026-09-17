@@ -64,12 +64,13 @@ The **Hospital Dietary Management System** replaces traditional paper-based menu
 | Rule | Specification |
 | :--- | :--- |
 | **Delivery Schedule** | Order placed on day $T$ is prepared and delivered for **Tomorrow ($T+1$)**. No same-day delivery. |
-| **Cut-Off Time** | **15:00 WIB** for all meal types (Main and Extra packages). |
+| **Cut-Off Time** | - **Paket Utama (Main Meal):** **15:00 WIB**<br>- **Ekstra Siang (Extra Lunch):** **10:00 WIB**<br>- **Ekstra Sore (Extra Afternoon):** **14:00 WIB** |
+| **Single Checkout Session** | Patients complete all meal choices in **1 single checkout session** per day for $T+1$. After checkout, main meal selection locks permanently. |
 | **11-Day Cycle Logic** | - Days 1–10: Cycles 1–10<br>- Days 11–20: Cycles 1–10<br>- Days 21–30: Cycles 1–10<br>- Day 31: **Cycle 11** |
-| **Main Package Quotas** | - **VIP A and above (VIP A, VVIP, Suite):** Up to 2 portions per mealtime (Breakfast: 2, Lunch: 2, Dinner: 2).<br>- **VIP B and below (VIP B, Kelas 1, 2, 3):** Breakfast: 2 portions, Lunch: 1 portion, Dinner: 1 portion. |
-| **Extra Package Rules** | Available only for **Lunch (Siang)** and **Dinner (Sore)**. Charged to hospital patient billing. |
-| **Partial Orders** | Patients can order 1, 2, or all 3 meals. Unselected meals are represented with `-` in the kitchen dashboard. |
-| **Order Immutability** | Once checked out, orders cannot be edited or canceled by the patient (forwarded directly to the kitchen). |
+| **Main Package Quotas** | - **VIP A and above (VIP A, Suite):** Up to 2 portions per mealtime (Breakfast: 2, Lunch: 2, Afternoon: 2).<br>- **VIP B and below (VIP B, Kelas 1, 2, 3):** Breakfast: 2 portions, Lunch: 1 portion, Afternoon: 1 portion. |
+| **Extra Package Rules** | Available only for **Lunch (Siang)** and **Afternoon (Sore)**. Charged automatically to hospital patient billing. |
+| **Partial Orders** | Patients are free to order 1, 2, or all 3 meals. Unselected meal slots default to `-` in the kitchen dashboard. |
+| **Order Immutability** | Once checked out, orders cannot be edited or canceled by the patient (forwarded directly to kitchen production). |
 
 ---
 
@@ -162,28 +163,32 @@ Project-Menu-Gizi/
 ├── prisma/
 │   ├── schema.prisma         # Database schema definition
 │   ├── seed.js               # Database seeder (11 Cycles, demo patients & orders)
-│   └── rls_policies.sql      # Supabase Row Level Security configurations
+│   └── rls_policies.sql      # Supabase Row Level Security configurations (Hardened)
 ├── public/                   # Static assets & icons
 ├── src/
 │   ├── assets/               # Local images and graphic assets
 │   ├── components/           # Reusable UI & layout components
 │   │   ├── guards/           # Route guards (AdminRoute, PatientRoute)
-│   │   ├── shared/           # Header, Sidebar, Alert Modal, etc.
-│   │   └── ui/               # Buttons, Tabs, Inputs, Cards
+│   │   └── ui/               # Buttons, Tabs, Inputs, Cards, Modals, Tables
 │   ├── context/              # React Context (AuthContext, PatientContext, CartContext)
+│   ├── hooks/                # Custom React hooks
 │   ├── layouts/              # AdminLayout & PatientLayout
 │   ├── pages/
 │   │   ├── Admin/            # Dashboard, MenuCycle, Statistics, Admin Login
 │   │   ├── Patient/          # Login, Onboarding, MenuPortal, Cart, OrderSuccess
-│   │   └── ComponentsShowcase.jsx
+│   │   └── ComponentsShowcase.jsx # Development UI gallery (DEV mode only)
 │   ├── services/             # Supabase & API services (menuService, orderService)
 │   ├── utils/                # Date formatting, cycle calculation, cut-off helpers
 │   ├── App.jsx               # Main React router configuration
 │   ├── index.css             # TailwindCSS and global styles
 │   └── main.jsx              # React entrypoint
 ├── supabase/
-│   └── functions/            # Supabase Edge Functions (admin-login, admin-verify)
-├── .env                      # Environment variables
+│   └── functions/            # Supabase Edge Functions:
+│       ├── admin-login/      # Admin password validation & JWT generation
+│       ├── admin-verify/     # Admin session JWT token verification
+│       ├── patient-lookup/   # Secure server-side patient search with rate limiting
+│       └── create-order/     # Server-side validation (cut-offs, quotas) & transactional insert
+├── .env.example              # Environment variables template
 ├── package.json
 └── vite.config.js
 ```
@@ -263,9 +268,10 @@ Open your browser and navigate to `http://localhost:5173`.
 
 ## 🔐 Security & Authentication
 
-- **Patient Authentication:** Stateless verification using Medical Record Numbers (RM) and Patient DOB matched against database records.
-- **Admin Authentication:** Protected via serverless Supabase Edge Functions (`admin-login` and `admin-verify`) using secure environment secrets (`ADMIN_PASSWORD`, `ADMIN_JWT_SECRET`) to prevent hardcoded exposure on client builds.
-- **Row Level Security (RLS):** Policies configured in `prisma/rls_policies.sql` to restrict unauthorized data mutation.
+- **Patient Lookup & Rate Limiting:** Server-side verification via Supabase Edge Function (`patient-lookup`) using IP-based sliding window rate limiting (max 10 req/min) to prevent medical record number brute-force enumeration.
+- **Server-Side Order Enforcement:** Orders are submitted and validated via Supabase Edge Function (`create-order`), which server-side enforces cut-off times (WIB), room class quotas, and single checkout session integrity.
+- **Admin Authentication:** Protected via serverless Supabase Edge Functions (`admin-login` and `admin-verify`) using secure environment secrets (`ADMIN_PASSWORD`, `ADMIN_JWT_SECRET`) producing signed 8-hour JWT tokens.
+- **Hardened Row Level Security (RLS):** Configured in `prisma/rls_policies.sql` to block anonymous client-side reads on `Patient` records and anonymous direct inserts on `Order` records, restricting sensitive operations exclusively to `service_role` Edge Functions.
 
 ---
 

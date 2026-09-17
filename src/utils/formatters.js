@@ -1,6 +1,8 @@
-
 /**
- * Format string tanggal (YYYY-MM-DD atau ISO) ke format DD/MM/YYYY.
+ * Memformat string tanggal (YYYY-MM-DD atau ISO string) ke format tampilan Indonesia DD/MM/YYYY.
+ * 
+ * @param {string | Date | null | undefined} dateString - String tanggal input
+ * @returns {string} Tanggal terformat (DD/MM/YYYY) atau '-' jika tidak valid
  */
 export const formatDate = (dateString) => {
   if (!dateString) return '-';
@@ -13,7 +15,10 @@ export const formatDate = (dateString) => {
 };
 
 /**
- * Masking alamat pasien untuk menjaga privasi namun tetap dapat dikenali oleh keluarga/pasien.
+ * Masking alamat pasien untuk menjaga privasi data medis (PII) pada tampilan publik/layar bersama.
+ * 
+ * @param {string | null | undefined} address - Alamat lengkap pasien
+ * @returns {string} Alamat yang telah disamarkan dengan tanda bintang (****)
  */
 export const maskAddress = (address) => {
   if (!address || address.trim() === '' || address === '-') return '-';
@@ -55,7 +60,10 @@ export const maskAddress = (address) => {
 };
 
 /**
- * Masking nomor telepon pasien (contoh: 081234567890 -> 0812****7890).
+ * Masking nomor telepon pasien (contoh: 081234567890 -> 0812****7890) untuk perlindungan privasi.
+ * 
+ * @param {string | null | undefined} phone - Nomor telepon pasien
+ * @returns {string} Nomor telepon tersamar
  */
 export const maskPhone = (phone) => {
   if (!phone || phone.trim() === '' || phone === '-') return '-';
@@ -69,8 +77,11 @@ export const maskPhone = (phone) => {
 };
 
 /**
- * Menghilangkan karakter underscore dari kode kelas kamar.
- * Contoh: VIP_A -> VIP A
+ * Menghilangkan karakter underscore dari kode kelas kamar database untuk ditampilkan rapi di UI.
+ * Contoh: VIP_A -> VIP A, Kelas_1 -> Kelas 1
+ * 
+ * @param {string | null | undefined} cls - Nama/kode kelas kamar dari database
+ * @returns {string} Nama kelas kamar yang rapi
  */
 export const formatRoomClass = (cls) => {
   if (!cls) return '';

@@ -1,6 +1,14 @@
-
-
-
+/**
+ * Memformat daftar item pesanan pada satu waktu makan menjadi format teks standar Dapur Gizi.
+ * 
+ * Aturan Notasi Pemisah (PRD 3.8):
+ * - Garis Miring (`/`): Memisahkan porsi pasien dan pendamping (cth: "Paket A / Paket B" atau "Paket A 2x")
+ * - Garis Tegak (`|`): Memisahkan Paket Utama (INCLUDE) dengan Paket Ekstra (EXCLUDE) (cth: "Paket A 2x | Paket B")
+ * - Tanda Strip (`-`): Ditampilkan jika waktu makan tidak dipesan oleh pasien
+ * 
+ * @param {Array<object>} [items=[]] - Daftar item pesanan untuk satu waktu makan
+ * @returns {string} String terformat sesuai notasi dapur gizi
+ */
 export function formatMealColumn(items = []) {
   if (!items || items.length === 0) return '-';
 
@@ -34,7 +42,12 @@ export function formatMealColumn(items = []) {
   return '-';
 }
 
-
+/**
+ * Memeriksa apakah pasien memiliki riwayat alergi yang valid (bukan teks kosong atau 'tidak ada').
+ * 
+ * @param {string | null | undefined} allergies - Teks riwayat alergi pasien
+ * @returns {boolean} True jika pasien memiliki riwayat alergi nyata
+ */
 export function hasRealAllergy(allergies) {
   if (!allergies || typeof allergies !== 'string') return false;
   const cleaned = allergies.trim().toLowerCase();
@@ -56,7 +69,13 @@ export function hasRealAllergy(allergies) {
   return cleaned.length > 0 && !nonAllergyValues.includes(cleaned);
 }
 
-
+/**
+ * Mengelompokkan data mentah pesanan (flat order records) menjadi 1 baris terintegrasi per sesi checkout.
+ * Digunakan untuk menyajikan tabel rekapitulasi Dapur Gizi sesuai PRD 3.8.
+ * 
+ * @param {Array<object>} [rawOrders=[]] - Daftar order mentah dari database
+ * @returns {Array<object>} Daftar pesanan terkelompok per pasien/orderCode siap tampil di tabel
+ */
 export function groupOrdersForTable(rawOrders = []) {
   if (!rawOrders || rawOrders.length === 0) return [];
 

@@ -1,6 +1,11 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 
+/**
+ * PatientLayout
+ * Layout dasar untuk antarmuka alur pasien (Onboarding, MenuPortal, Cart, OrderSuccess).
+ * Mengatur latar belakang ambient terpusat dan container halaman adaptif mobile.
+ */
 export default function PatientLayout() {
   return (
     <div className="min-h-screen relative bg-neutral-50 flex flex-col font-sans text-neutral-800 antialiased selection:bg-primary-100 selection:text-primary-800">
