@@ -32,6 +32,11 @@ export default function MenuPortal() {
   const isExtraSiangLockedTime = currentHour >= 10;
   const isExtraSoreLockedTime = currentHour >= 14;
   
+  useEffect(() => {
+    if (!patient || !patient.id || !patient.rmNumber) {
+      navigate('/login', { replace: true });
+    }
+  }, [patient, navigate]);
   
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +54,9 @@ export default function MenuPortal() {
   });
   const [searchQuery, setSearchQuery] = useState('');
 
-  const displayPatient = patient || {};
+  if (!patient || !patient.id || !patient.rmNumber) return null;
+
+  const displayPatient = patient;
 
   const roomClassLower = displayPatient.roomClass?.toLowerCase() || '';
   const isVip = roomClassLower.includes('vip a') || roomClassLower.includes('suite');
@@ -351,8 +358,8 @@ export default function MenuPortal() {
         {}
         <PatientIdentityCard 
           name={displayPatient.name}
-          rmNumber={displayPatient.rmNumber?.replace('RM-', '') || '1223'}
-          room={displayPatient.roomName?.replace('Kamar ', '') || '402'}
+          rmNumber={displayPatient.rmNumber?.replace('RM-', '')}
+          room={displayPatient.roomName?.replace('Kamar ', '')}
           roomClass={displayPatient.roomClass}
         />
 
