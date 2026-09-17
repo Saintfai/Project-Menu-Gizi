@@ -93,7 +93,7 @@ export function groupOrdersForTable(rawOrders = []) {
         servingDate: order.servingDate || new Date(Date.now() + 86400000),
         itemsPagi: [],
         itemsSiang: [],
-        itemsMalam: [],
+        itemsSore: [],
       };
     }
 
@@ -103,7 +103,7 @@ export function groupOrdersForTable(rawOrders = []) {
     } else if (mealTime === 'SIANG') {
       grouped[key].itemsSiang.push(order);
     } else if (mealTime === 'SORE') {
-      grouped[key].itemsMalam.push(order);
+      grouped[key].itemsSore.push(order);
     }
   });
 
@@ -116,7 +116,7 @@ export function groupOrdersForTable(rawOrders = []) {
 
     const makanPagi = formatMealColumn(group.itemsPagi);
     const makanSiang = formatMealColumn(group.itemsSiang);
-    const makanMalam = formatMealColumn(group.itemsMalam);
+    const makanSore = formatMealColumn(group.itemsSore);
 
     return {
       id: group.id,
@@ -129,7 +129,8 @@ export function groupOrdersForTable(rawOrders = []) {
       allergyNote: group.allergyNote,
       makanPagi,
       makanSiang,
-      makanMalam,
+      makanSore,
+      makanMalam: makanSore, // alias for backwards compatibility
       tanggalWaktuPengantaran: tanggalBesokStr,
       tanggalBesok: tanggalBesokStr,
       hasCatatan: group.hasCatatan,
@@ -137,7 +138,8 @@ export function groupOrdersForTable(rawOrders = []) {
       notes: group.notes,
       menuPagiText: makanPagi,
       menuSiangText: makanSiang,
-      menuMalamText: makanMalam,
+      menuSoreText: makanSore,
+      menuMalamText: makanSore, // alias for backwards compatibility
     };
   });
 }

@@ -65,7 +65,7 @@ export const NoteDetailContent = ({ data }) => {
         </div>
         <div className="py-2.5 flex justify-between items-center text-xs">
           <span className="font-bold text-primary-700">Makan Sore:</span>
-          <span className="text-neutral-700 font-medium">{data.makanMalam || data.menuMalamText || '-'}</span>
+          <span className="text-neutral-700 font-medium">{data.makanSore || data.menuSoreText || data.makanMalam || '-'}</span>
         </div>
       </div>
     </div>

@@ -73,12 +73,28 @@ export default function Dashboard() {
     };
   }, [fetchOrderData]);
 
-  
+  const [currentDate, setCurrentDate] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      setCurrentDate((prev) => {
+        if (prev.toDateString() !== now.toDateString()) {
+          fetchOrderData();
+          return now;
+        }
+        return prev;
+      });
+    }, 30000);
+
+    return () => clearInterval(timer);
+  }, [fetchOrderData]);
+
   const tomorrowObj = useMemo(() => {
-    const d = new Date();
+    const d = new Date(currentDate);
     d.setDate(d.getDate() + 1);
     return d;
-  }, []);
+  }, [currentDate]);
 
   const tomorrowStr = useMemo(() => toDateInputString(tomorrowObj), [tomorrowObj]);
 
@@ -184,7 +200,7 @@ export default function Dashboard() {
         (row.kamar && row.kamar.toLowerCase().includes(query)) ||
         (row.makanPagi && row.makanPagi.toLowerCase().includes(query)) ||
         (row.makanSiang && row.makanSiang.toLowerCase().includes(query)) ||
-        (row.makanMalam && row.makanMalam.toLowerCase().includes(query));
+        ((row.makanSore || row.makanMalam) && (row.makanSore || row.makanMalam).toLowerCase().includes(query));
 
       if (!matchesSearch) return false;
 

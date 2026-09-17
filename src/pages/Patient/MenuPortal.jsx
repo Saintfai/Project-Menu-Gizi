@@ -60,7 +60,7 @@ export default function MenuPortal() {
   const displayPatient = patient;
 
   const roomClassLower = displayPatient.roomClass?.toLowerCase() || '';
-  const isVip = roomClassLower.includes('vip a') || roomClassLower.includes('suite');
+  const isVip = roomClassLower.includes('vip a') || roomClassLower.includes('vip_a') || roomClassLower.includes('suite');
   
   const maxQtyPagi = 2;
   const maxQtySiang = isVip ? 2 : 1;

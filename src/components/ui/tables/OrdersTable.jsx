@@ -103,7 +103,7 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
                     </td>
                     <td className="px-4 py-4">
                       <div className="text-xs">
-                        {renderMealCell(row.makanMalam)}
+                        {renderMealCell(row.makanSore || row.makanMalam)}
                       </div>
                     </td>
                     <td className="px-4 py-4">
