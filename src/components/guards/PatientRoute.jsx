@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: PatientRoute.jsx
- * FUNGSI UTAMA: Route Guard untuk memproteksi akses halaman.
- * 
- * DETAIL:
- * - Memvalidasi sesi pengguna (Admin/Patient).
- * - Mengarahkan pengguna ke halaman login jika sesi tidak valid atau belum terautentikasi.
- */
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { usePatient } from '../../context/PatientContext';
 

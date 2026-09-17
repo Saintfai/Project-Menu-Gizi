@@ -1,12 +1,3 @@
-/**
- * NAMA FILE: Onboarding.jsx
- * FUNGSI UTAMA: Halaman konfirmasi dan verifikasi identitas pasien sebelum masuk ke menu gizi.
- * 
- * DETAIL:
- * - Menampilkan data pasien yang ditarik dari sistem RS (Nama, RM, Kamar, Alamat, Alergi).
- * - Menjaga privasi data melalui masking terpusat dari formatters.
- * - Desain responsif mobile dengan tombol dan navigasi sentuh optimal (touch target >= 44px).
- */
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';

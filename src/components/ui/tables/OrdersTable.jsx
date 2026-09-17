@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: OrdersTable.jsx
- * FUNGSI UTAMA: Komponen UI Tabel untuk menyajikan data dalam bentuk baris dan kolom.
- * 
- * DETAIL:
- * - Mendukung penampilan daftar data yang terstruktur.
- * - Mengatur tampilan kolom dan sel data secara proporsional.
- */
 import React from 'react';
 import PropTypes from 'prop-types';
 
@@ -103,7 +95,7 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
                     </td>
                     <td className="px-4 py-4">
                       <div className="text-xs">
-                        {renderMealCell(row.makanMalam)}
+                        {renderMealCell(row.makanSore || row.makanMalam)}
                       </div>
                     </td>
                     <td className="px-4 py-4">

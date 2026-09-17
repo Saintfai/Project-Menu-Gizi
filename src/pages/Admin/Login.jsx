@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: Login.jsx
- * FUNGSI UTAMA: Halaman antarmuka khusus untuk staf/Admin Gizi Rumah Sakit.
- * 
- * DETAIL:
- * - Membutuhkan otentikasi admin.
- * - Digunakan untuk memantau pesanan, mengelola siklus menu, atau melihat laporan statistik dapur.
- */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -69,11 +61,9 @@ export default function AdminLogin() {
     <PageTransition>
     <div className="min-h-screen relative overflow-hidden bg-neutral-50 flex flex-col font-sans text-neutral-800">
       
-      {}
       <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-primary-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
       <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-secondary-100/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
 
-      {}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 z-10 relative">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -81,7 +71,6 @@ export default function AdminLogin() {
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="w-full max-w-[360px] bg-white/90 backdrop-blur-xl rounded-2xl p-6 shadow-2xl border border-white"
         >
-          {}
           <div className="flex flex-col items-center mb-6">
             <img 
               src={logoEdhos} 
@@ -96,7 +85,6 @@ export default function AdminLogin() {
             </p>
           </div>
 
-          {}
           {error && (
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
@@ -108,9 +96,7 @@ export default function AdminLogin() {
             </motion.div>
           )}
 
-          {}
           <form onSubmit={handleLogin} className="space-y-4">
-            {}
             <div>
               <label className="block text-xs font-semibold text-neutral-700 mb-1.5 ml-1">
                 Kata Sandi

@@ -1,15 +1,20 @@
-/**
- * NAMA FILE: orderService.js
- * FUNGSI UTAMA: Modul Service untuk menangani logika bisnis dan integrasi API (Backend).
- * 
- * DETAIL:
- * - Berinteraksi dengan database atau layanan eksternal (Supabase).
- * - Menjalankan operasi CRUD (Create, Read, Update, Delete) terkait domain spesifik.
- */
 import { supabase } from '../utils/supabase';
 import { sanitizeText } from '../utils/inputValidator';
 
 
+/**
+ * Mengambil daftar pesanan dari database Supabase dengan berbagai opsi filter.
+ * Digunakan oleh Dashboard Dapur Gizi untuk memantau pesanan masuk secara real-time.
+ * 
+ * @param {object} [options={}] - Opsi filter kueri pesanan
+ * @param {string} [options.servingDate] - Filter tanggal penyajian T+1 (ISO String)
+ * @param {string} [options.startDate] - Filter tanggal awal rentang penyajian
+ * @param {string} [options.endDate] - Filter tanggal akhir rentang penyajian
+ * @param {string} [options.orderCode] - Filter kode transaksi pesanan
+ * @param {string} [options.patientId] - Filter ID pasien
+ * @param {'INCLUDE' | 'EXCLUDE'} [options.type] - Filter tipe pesanan (Utama vs Ekstra)
+ * @returns {Promise<Array<object>>} Daftar pesanan beserta relasi data pasien
+ */
 export async function getOrders(options = {}) {
   let query = supabase
     .from('Order')
@@ -61,24 +66,34 @@ export async function getOrders(options = {}) {
 }
 
 
+/**
+ * Mengirimkan data checkout pesanan ke Supabase Edge Function 'create-order'.
+ * Memvalidasi batas waktu cut-off, kuota porsi kamar, dan pencegahan duplikat secara aman di server.
+ * 
+ * @param {Array<object> | object} orderItems - Item pesanan atau payload checkout pasien
+ * @returns {Promise<Array<object>>} Daftar data baris pesanan yang berhasil disimpan
+ * @throws {Error} Pesan kesalahan jika cut-off terlewat, kuota terlampaui, atau terjadi duplicate order
+ */
 export async function createOrders(orderItems) {
-  
-  const sanitizedItems = orderItems.map(item => ({
-    ...item,
-    notes: item.notes ? sanitizeText(item.notes, 300) : null,
-    menuName: item.menuName ? sanitizeText(item.menuName, 100) : item.menuName,
-  }));
+  const response = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-order`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify(orderItems),
+    }
+  );
 
-  const { data, error } = await supabase
-    .from('Order')
-    .insert(sanitizedItems)
-    .select();
+  const result = await response.json().catch(() => ({}));
 
-  if (error) {
-    console.error('Error creating orders in Supabase:', error);
-    throw error;
+  if (!response.ok) {
+    throw new Error(result.error || 'Gagal menyimpan pesanan.');
   }
 
-  return data;
+  return result.orders || result;
 }
 

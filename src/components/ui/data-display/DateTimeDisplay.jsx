@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: DateTimeDisplay.jsx
- * FUNGSI UTAMA: Komponen UI untuk menampilkan data secara terstruktur.
- * 
- * DETAIL:
- * - Menyajikan data statis atau dinamis dalam format yang mudah dibaca.
- * - Mendukung layout yang responsif.
- */
 import React from 'react';
 import PropTypes from 'prop-types';
 

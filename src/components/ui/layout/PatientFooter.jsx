@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: PatientFooter.jsx
- * FUNGSI UTAMA: Komponen UI Footer untuk halaman pasien.
- * 
- * DETAIL:
- * - Menampilkan copyright dan info sistem secara konsisten di semua halaman pasien.
- * - Memenuhi standar aksesibilitas WCAG AA (kontras jelas, ukuran teks minimum text-xs / 12px).
- */
 import React from 'react';
 import PropTypes from 'prop-types';
 

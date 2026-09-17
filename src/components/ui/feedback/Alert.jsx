@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: Alert.jsx
- * FUNGSI UTAMA: Komponen UI untuk memberikan umpan balik (feedback) visual kepada pengguna.
- * 
- * DETAIL:
- * - Menampilkan notifikasi, status, atau pesan error (Alert/Badge).
- * - Meningkatkan pengalaman pengguna (UX) dengan indikator visual yang jelas.
- */
 import React from 'react';
 import PropTypes from 'prop-types';
 

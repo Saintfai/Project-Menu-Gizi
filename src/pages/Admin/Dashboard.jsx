@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: Dashboard.jsx
- * FUNGSI UTAMA: Halaman antarmuka khusus untuk staf/Admin Gizi Rumah Sakit.
- * 
- * DETAIL:
- * - Membutuhkan otentikasi admin.
- * - Digunakan untuk memantau pesanan, mengelola siklus menu, atau melihat laporan statistik dapur.
- */
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { 
   Sun, 
@@ -73,12 +65,28 @@ export default function Dashboard() {
     };
   }, [fetchOrderData]);
 
-  
+  const [currentDate, setCurrentDate] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      setCurrentDate((prev) => {
+        if (prev.toDateString() !== now.toDateString()) {
+          fetchOrderData();
+          return now;
+        }
+        return prev;
+      });
+    }, 30000);
+
+    return () => clearInterval(timer);
+  }, [fetchOrderData]);
+
   const tomorrowObj = useMemo(() => {
-    const d = new Date();
+    const d = new Date(currentDate);
     d.setDate(d.getDate() + 1);
     return d;
-  }, []);
+  }, [currentDate]);
 
   const tomorrowStr = useMemo(() => toDateInputString(tomorrowObj), [tomorrowObj]);
 
@@ -184,7 +192,7 @@ export default function Dashboard() {
         (row.kamar && row.kamar.toLowerCase().includes(query)) ||
         (row.makanPagi && row.makanPagi.toLowerCase().includes(query)) ||
         (row.makanSiang && row.makanSiang.toLowerCase().includes(query)) ||
-        (row.makanMalam && row.makanMalam.toLowerCase().includes(query));
+        ((row.makanSore || row.makanMalam) && (row.makanSore || row.makanMalam).toLowerCase().includes(query));
 
       if (!matchesSearch) return false;
 
@@ -340,7 +348,6 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {}
       <section className="w-full">
         {loading && tableData.length === 0 ? (
           <div className="w-full bg-white rounded-xl border border-neutral-200 p-12 text-center text-xs text-neutral-500 shadow-sm flex flex-col items-center justify-center gap-2">
@@ -352,7 +359,6 @@ export default function Dashboard() {
         )}
       </section>
 
-      {}
       <NoteDetailModal
         isOpen={isNoteModalOpen}
         onClose={handleCloseNote}
