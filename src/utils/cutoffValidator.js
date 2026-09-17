@@ -26,3 +26,10 @@ export function checkMainMealCutoff() {
     currentTimeWIB: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} WIB`,
   };
 }
+
+export function getCurrentWIBHour() {
+  const now = new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const wibTime = new Date(utc + 3600000 * 7);
+  return wibTime.getHours();
+}

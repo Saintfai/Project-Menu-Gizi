@@ -8,14 +8,15 @@
  */
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag, Loader2, Info } from 'lucide-react';
+import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag, Loader2, Info, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import { usePatient } from '../../context/PatientContext';
-import { createOrders } from '../../services/orderService';
+import { createOrders, getOrders } from '../../services/orderService';
 import PageTransition from '../../components/PageTransition';
 import { validateNote } from '../../utils/inputValidator';
 import { secureSessionStorage } from '../../utils/secureStorage';
+import { getCurrentWIBHour } from '../../utils/cutoffValidator';
 
 const MEAL_SCHEDULE = {
   PAGI: { label: 'Pagi', time: '06:30 - 08:30 WIB', icon: Sun },
@@ -32,8 +33,8 @@ export default function Cart() {
   });
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorModalState, setErrorModalState] = useState({ isOpen: false, title: '', message: '' });
 
-  // Save note to secureSessionStorage whenever it changes
   React.useEffect(() => {
     secureSessionStorage.setItem('patient_cart_note', note);
   }, [note]);
@@ -220,11 +221,46 @@ export default function Cart() {
       
       const { valid: noteValid, sanitized: sanitizedNote, error: noteError } = validateNote(note);
       if (!noteValid) {
-        toast.error(noteError);
+        setErrorModalState({
+          isOpen: true,
+          title: 'Catatan Tidak Valid',
+          message: noteError
+        });
         setIsSubmitting(false);
+        setShowModal(false);
         return;
       }
 
+      const currentHour = getCurrentWIBHour();
+      let invalidLock = null;
+
+      const hasPasienItems = Object.values(orderData.pasien).some(arr => arr.length > 0);
+      const hasPendampingItems = Object.values(orderData.pendamping).some(arr => arr.length > 0);
+      
+      if (hasPasienItems || hasPendampingItems) {
+        if (currentHour >= 15) {
+          invalidLock = 'Menu Utama (maks 15:00 WIB)';
+        }
+      }
+
+      if (!invalidLock && orderData.ekstra['SIANG']?.length > 0) {
+        if (currentHour >= 10) invalidLock = 'Ekstra Siang (maks 10:00 WIB)';
+      }
+      if (!invalidLock && orderData.ekstra['SORE']?.length > 0) {
+        if (currentHour >= 14) invalidLock = 'Ekstra Sore (maks 14:00 WIB)';
+      }
+
+      if (invalidLock) {
+        setErrorModalState({
+          isOpen: true,
+          title: 'Batas Waktu Habis',
+          message: `Mohon maaf, batas waktu pemesanan untuk ${invalidLock} telah lewat. Pesanan tidak dapat diproses.`
+        });
+        setIsSubmitting(false);
+        setShowModal(false);
+        return;
+      }
+      
       const orderItemsToInsert = [];
       const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
       const randomStr = Math.floor(1000 + Math.random() * 9000);
@@ -236,6 +272,37 @@ export default function Cart() {
       const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
       const date = String(tomorrow.getDate()).padStart(2, '0');
       const servingDateISO = `${year}-${month}-${date}T00:00:00.000Z`;
+
+      if (hasPasienItems || hasPendampingItems) {
+        try {
+          const existingOrders = await getOrders({ 
+            servingDate: servingDateISO,
+            patientId: patient.id,
+            type: 'INCLUDE'
+          });
+
+          if (existingOrders && existingOrders.length > 0) {
+             setErrorModalState({
+               isOpen: true,
+               title: 'Menu Sudah Dipesan',
+               message: 'Menu utama untuk penyajian esok hari sudah dipesan sebelumnya. Anda hanya dapat memesan menu utama 1 kali per hari.'
+             });
+             setIsSubmitting(false);
+             setShowModal(false);
+             return;
+          }
+        } catch (err) {
+           console.error("Gagal memeriksa pesanan ganda:", err);
+           setErrorModalState({
+             isOpen: true,
+             title: 'Gagal Memverifikasi',
+             message: 'Terjadi kesalahan saat memverifikasi status pesanan Anda. Silakan coba lagi.'
+           });
+           setIsSubmitting(false);
+           setShowModal(false);
+           return;
+        }
+      }
 
       
       const generateUUID = () => {
@@ -303,8 +370,12 @@ export default function Cart() {
 
       navigate('/order-success', { state: { summary } });
     } catch (error) {
-      toast.error(`Terjadi kesalahan saat menyimpan pesanan: ${error.message || 'Silakan coba lagi.'}`);
       console.error(error);
+      setErrorModalState({
+        isOpen: true,
+        title: 'Pesanan Gagal',
+        message: `Terjadi kesalahan saat menyimpan pesanan: ${error.message || 'Silakan coba lagi.'}`
+      });
     } finally {
       setIsSubmitting(false);
       setShowModal(false);
@@ -487,6 +558,32 @@ export default function Cart() {
                 Periksa Kembali
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {}
+      {errorModalState.isOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-[320px] rounded-2xl p-6 text-center shadow-xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="mx-auto w-14 h-14 bg-danger-50 rounded-full flex items-center justify-center mb-4">
+              <AlertCircle size={28} className="text-danger-500" />
+            </div>
+            
+            <h3 className="text-lg font-bold text-neutral-900 mb-2">
+              {errorModalState.title}
+            </h3>
+            
+            <p className="text-sm text-neutral-500 mb-6 leading-relaxed">
+              {errorModalState.message}
+            </p>
+            
+            <button
+              onClick={() => setErrorModalState({ isOpen: false, title: '', message: '' })}
+              className="w-full bg-danger-600 text-white font-semibold py-3 rounded-xl text-sm hover:bg-danger-700 active:scale-[0.98] transition-all outline-none focus:outline-none border-none ring-0 cursor-pointer"
+            >
+              Oke, Mengerti
+            </button>
           </div>
         </div>
       )}

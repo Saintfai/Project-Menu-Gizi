@@ -20,17 +20,24 @@ import { usePatient } from '../../context/PatientContext';
 import { supabase } from '../../utils/supabase';
 import PageTransition from '../../components/PageTransition';
 import { getOrders } from '../../services/orderService';
+import { getCurrentWIBHour } from '../../utils/cutoffValidator';
+import { getMenuCycleByDate } from '../../utils/cycleHelper';
 
 export default function MenuPortal() {
   const { patient, logoutPatient } = usePatient();
   const navigate = useNavigate();
   const location = useLocation();
   
-  const currentHour = new Date().getHours();
+  const currentHour = getCurrentWIBHour();
   const isMainMenuLockedTime = currentHour >= 15;
   const isExtraSiangLockedTime = currentHour >= 10;
   const isExtraSoreLockedTime = currentHour >= 14;
   
+  useEffect(() => {
+    if (!patient || !patient.id || !patient.rmNumber) {
+      navigate('/login', { replace: true });
+    }
+  }, [patient, navigate]);
   
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -48,12 +55,11 @@ export default function MenuPortal() {
   });
   const [searchQuery, setSearchQuery] = useState('');
 
+  if (!patient || !patient.id || !patient.rmNumber) return null;
 
-  // ─── SECURITY FIX: Remove mock patient fallback to prevent unauthenticated bypass (Bug #13) ───
-  const displayPatient = patient || {};
+  const displayPatient = patient;
 
   const roomClassLower = displayPatient.roomClass?.toLowerCase() || '';
-  // VIP A, Junior Suite, and Suite get 2 portions for all meals
   const isVip = roomClassLower.includes('vip a') || roomClassLower.includes('suite');
   
   const maxQtyPagi = 2;
@@ -67,10 +73,9 @@ export default function MenuPortal() {
         
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
-        const day = tomorrow.getDate();
-        let cycleId = day % 10;
-        if (cycleId === 0) cycleId = 10;
-        if (day === 31) cycleId = 11;
+        
+        // --- BUG FIX #12: Menggunakan fungsi terpusat untuk perhitungan siklus menu ---
+        const cycleId = getMenuCycleByDate(tomorrow);
 
         const { data, error: fetchError } = await supabase
           .from('MenuItem')
@@ -187,7 +192,7 @@ export default function MenuPortal() {
   
   const menuPagi = menuItems.filter(item => item.mealTime?.toUpperCase() === 'PAGI');
   const menuSiang = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SIANG');
-  const menuSore = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SORE' || item.mealTime?.toUpperCase() === 'MALAM');
+  const menuSore = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SORE');
 
   
   const filteredEkstraSiang = menuSiang.filter(item => 
@@ -289,7 +294,7 @@ export default function MenuPortal() {
       const mealTime = item.mealTime?.toUpperCase();
       if (mealTime === 'PAGI') hasPagi = true;
       if (mealTime === 'SIANG') hasSiang = true;
-      if (mealTime === 'MALAM' || mealTime === 'SORE') hasSore = true;
+      if (mealTime === 'SORE') hasSore = true;
     });
 
     if (totalItems === 0) {
@@ -312,7 +317,7 @@ export default function MenuPortal() {
         if (item) {
           const mealTime = item.mealTime?.toUpperCase();
           if (mealTime === 'SIANG' && isExtraSiangLockedTime) invalidLock = 'Ekstra Siang (maks 10:00 WIB)';
-          if ((mealTime === 'MALAM' || mealTime === 'SORE') && isExtraSoreLockedTime) invalidLock = 'Ekstra Sore (maks 14:00 WIB)';
+          if (mealTime === 'SORE' && isExtraSoreLockedTime) invalidLock = 'Ekstra Sore (maks 14:00 WIB)';
         }
       } else {
         if (isMainMenuLockedTime) invalidLock = 'Menu Utama (maks 15:00 WIB)';
@@ -353,8 +358,8 @@ export default function MenuPortal() {
         {}
         <PatientIdentityCard 
           name={displayPatient.name}
-          rmNumber={displayPatient.rmNumber?.replace('RM-', '') || '1223'}
-          room={displayPatient.roomName?.replace('Kamar ', '') || '402'}
+          rmNumber={displayPatient.rmNumber?.replace('RM-', '')}
+          room={displayPatient.roomName?.replace('Kamar ', '')}
           roomClass={displayPatient.roomClass}
         />
 

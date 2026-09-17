@@ -102,7 +102,7 @@ export function groupOrdersForTable(rawOrders = []) {
       grouped[key].itemsPagi.push(order);
     } else if (mealTime === 'SIANG') {
       grouped[key].itemsSiang.push(order);
-    } else if (mealTime === 'SORE' || mealTime === 'MALAM') {
+    } else if (mealTime === 'SORE') {
       grouped[key].itemsMalam.push(order);
     }
   });
