@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: Cart.jsx
- * FUNGSI UTAMA: Halaman antarmuka interaktif untuk Pasien Rawat Inap.
- * 
- * DETAIL:
- * - Memungkinkan pasien untuk memverifikasi identitas, melihat menu, dan memesan makanan.
- * - Didesain dengan pendekatan yang ramah pengguna dan aksesibel.
- */
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag, Loader2, Info, AlertCircle } from 'lucide-react';
@@ -386,11 +378,9 @@ export default function Cart() {
     <PageTransition>
     <div className="min-h-screen relative bg-neutral-50 flex flex-col font-sans text-neutral-900 pt-[60px] pb-8">
       
-      {}
       <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-primary-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
       <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-secondary-100/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
 
-      {}
       <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-neutral-100">
         <HeaderMobile 
           title={
@@ -402,10 +392,8 @@ export default function Cart() {
         />
       </div>
 
-      {}
       <div className="w-full max-w-4xl mx-auto px-4 py-4 relative z-10">
         
-        {}
         <div className="flex items-center gap-3 mb-1">
           <button 
             onClick={() => navigate('/menu', { state: { restoredQuantities: quantities } })}
@@ -419,7 +407,6 @@ export default function Cart() {
           </div>
         </div>
 
-        {}
         {hasPasienItems && (
           <div className="mt-5">
             <div className="flex items-center gap-2 mb-3">
@@ -434,7 +421,6 @@ export default function Cart() {
           </div>
         )}
 
-        {}
         {hasPendampingItems && (
           <div className="mt-5">
             <div className="flex items-center gap-2 mb-3">
@@ -449,7 +435,6 @@ export default function Cart() {
           </div>
         )}
 
-        {}
         {hasEkstraItems && (
           <div className="mt-5">
             <div className="flex items-center gap-2 mb-3">
@@ -464,7 +449,6 @@ export default function Cart() {
           </div>
         )}
 
-        {}
         <div className="mt-5">
           <h2 className="text-base font-bold text-neutral-800 mb-3">Catatan Khusus</h2>
           <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-4 md:p-5">
@@ -481,7 +465,6 @@ export default function Cart() {
           </div>
         </div>
 
-        {}
         {hasEkstraItems && (
           <div className="mt-5">
             <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-4 md:p-5">
@@ -505,7 +488,6 @@ export default function Cart() {
           </div>
         )}
 
-        {}
         <div className="mt-8">
           <button
             onClick={() => setShowModal(true)}
@@ -518,7 +500,6 @@ export default function Cart() {
 
       </div>
 
-      {}
       {showModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-sm">
           <div className="bg-white w-full max-w-[320px] rounded-2xl p-6 text-center shadow-xl">
@@ -562,7 +543,6 @@ export default function Cart() {
         </div>
       )}
 
-      {}
       {errorModalState.isOpen && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-sm">
           <div className="bg-white w-full max-w-[320px] rounded-2xl p-6 text-center shadow-xl animate-in fade-in zoom-in-95 duration-200">

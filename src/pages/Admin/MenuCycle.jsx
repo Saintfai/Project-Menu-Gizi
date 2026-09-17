@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: MenuCycle.jsx
- * FUNGSI UTAMA: Halaman antarmuka khusus untuk staf/Admin Gizi Rumah Sakit.
- * 
- * DETAIL:
- * - Membutuhkan otentikasi admin.
- * - Digunakan untuk memantau pesanan, mengelola siklus menu, atau melihat laporan statistik dapur.
- */
 import { useState, useEffect, useCallback } from 'react';
 import { 
   RotateCw, 
@@ -410,7 +402,6 @@ export default function MenuCycle() {
           'amber'
         )}
 
-        {}
         {renderMealColumn(
           'Makan Siang',
           siangItems,
@@ -419,7 +410,6 @@ export default function MenuCycle() {
           'sky'
         )}
 
-        {}
         {renderMealColumn(
           'Makan Sore',
           soreItems,
@@ -429,7 +419,6 @@ export default function MenuCycle() {
         )}
       </div>
 
-      {}
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => !isSubmitting && setIsAddModalOpen(false)}
@@ -490,7 +479,6 @@ export default function MenuCycle() {
         </form>
       </Modal>
 
-      {}
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => !isSubmitting && setIsEditModalOpen(false)}
@@ -551,7 +539,6 @@ export default function MenuCycle() {
         </form>
       </Modal>
 
-      {}
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => !isSubmitting && setIsDeleteModalOpen(false)}

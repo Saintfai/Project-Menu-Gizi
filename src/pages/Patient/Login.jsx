@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: Login.jsx
- * FUNGSI UTAMA: Halaman antarmuka interaktif untuk Pasien Rawat Inap.
- * 
- * DETAIL:
- * - Memungkinkan pasien untuk memverifikasi identitas, melihat menu, dan memesan makanan.
- * - Didesain dengan pendekatan yang ramah pengguna dan aksesibel.
- */
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 

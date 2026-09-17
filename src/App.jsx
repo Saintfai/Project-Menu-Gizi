@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: App.jsx
- * FUNGSI UTAMA: Titik temu pusat (Root Component) yang membungkus struktur utama ekosistem React.
- * 
- * DETAIL:
- * - Memetakan sistem rute (Router) yang mengendalikan pergantian halaman berdasarkan alamat URL (misal: /admin, /login).
- * - Menyuntikkan Provider utama (Context) agar tersedia di seluruh aplikasi.
- */
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
@@ -49,12 +41,8 @@ function App() {
           <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
-              {}
-              {}
               <Route path="/login" element={<PatientLogin />} />
 
-              {}
-              {}
               <Route element={<PatientRoute />}>
                 <Route element={<PatientLayout />}>
                   <Route path="/onboarding" element={<Onboarding />} />
@@ -64,11 +52,8 @@ function App() {
                 </Route>
               </Route>
 
-              {}
               <Route path="/menu/admin/login" element={<AdminLogin />} />
 
-              {}
-              {}
               <Route element={<AdminRoute />}>
                 <Route path="/menu/admin" element={<AdminLayout />}>
                   <Route index element={<Navigate to="/menu/admin/dashboard" replace />} />
@@ -81,10 +66,10 @@ function App() {
                 </Route>
               </Route>
 
-              {}
-              <Route path="/components" element={<ComponentsShowcase />} />
+              {import.meta.env.DEV && (
+                <Route path="/components" element={<ComponentsShowcase />} />
+              )}
 
-              {}
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>

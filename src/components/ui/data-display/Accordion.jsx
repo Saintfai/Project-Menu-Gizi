@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: Accordion.jsx
- * FUNGSI UTAMA: Komponen UI untuk menampilkan data secara terstruktur.
- * 
- * DETAIL:
- * - Menyajikan data statis atau dinamis dalam format yang mudah dibaca.
- * - Mendukung layout yang responsif.
- */
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { motion, AnimatePresence } from 'framer-motion';

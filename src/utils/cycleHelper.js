@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: cycleHelper.js
- * FUNGSI UTAMA: Fungsi-fungsi utilitas pendukung (Helper Functions).
- * 
- * DETAIL:
- * - Berisi fungsi murni (pure functions) untuk pemformatan, validasi, atau komputasi umum.
- * - Dapat dipanggil dari berbagai bagian aplikasi untuk menghindari duplikasi kode.
- */
 
 export function getMenuCycleByDate(dateInput) {
   let targetDate;

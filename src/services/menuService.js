@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: menuService.js
- * FUNGSI UTAMA: Modul Service untuk menangani logika bisnis dan integrasi API (Backend).
- * 
- * DETAIL:
- * - Berinteraksi dengan database atau layanan eksternal (Supabase).
- * - Menjalankan operasi CRUD (Create, Read, Update, Delete) terkait domain spesifik.
- */
 import { supabase } from '../utils/supabase';
 
 

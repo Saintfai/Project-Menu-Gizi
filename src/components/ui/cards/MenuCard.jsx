@@ -1,12 +1,3 @@
-/**
- * NAMA FILE: MenuCard.jsx
- * FUNGSI UTAMA: Komponen kartu hidangan untuk menu paket dan ekstra.
- * 
- * DETAIL:
- * - Menampilkan gambar hidangan, nama menu, rincian komponen, dan harga/keterangan paket.
- * - Mengintegrasikan Stepper untuk pemilihan kuantitas.
- * - Menjaga tipografi yang mudah dibaca (minimum text-xs / 12px) dengan kontras tinggi.
- */
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Utensils } from 'lucide-react';

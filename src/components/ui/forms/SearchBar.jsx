@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: SearchBar.jsx
- * FUNGSI UTAMA: Komponen UI Form dan Input data.
- * 
- * DETAIL:
- * - Menangani input pengguna dengan validasi dan styling standar.
- * - Mendukung berbagai tipe input (teks, pencarian, textarea).
- */
 import React from 'react';
 import PropTypes from 'prop-types';
 

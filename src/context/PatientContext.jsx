@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: PatientContext.jsx
- * FUNGSI UTAMA: React Context Provider untuk manajemen state global aplikasi.
- * 
- * DETAIL:
- * - Menyediakan state dan fungsi yang dapat diakses oleh komponen turunan tanpa prop-drilling.
- * - Mengelola siklus hidup data (otentikasi, keranjang belanja, atau data pasien).
- */
 import { createContext, useContext, useState, useEffect } from 'react';
 import { secureSessionStorage } from '../utils/secureStorage';
 

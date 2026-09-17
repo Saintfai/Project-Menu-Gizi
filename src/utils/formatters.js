@@ -1,12 +1,3 @@
-/**
- * NAMA FILE: formatters.js
- * FUNGSI UTAMA: Utilitas pemformatan data teks, tanggal, telepon, dan alamat.
- * 
- * DETAIL:
- * - Menyediakan helper konsisten untuk masking data privasi pasien (alamat & nomor telepon).
- * - Memformat tanggal ke format D/M/Y.
- * - Menstandardisasi tampilan kelas kamar.
- */
 
 /**
  * Format string tanggal (YYYY-MM-DD atau ISO) ke format DD/MM/YYYY.

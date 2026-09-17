@@ -1,12 +1,3 @@
-/**
- * NAMA FILE: Stepper.jsx
- * FUNGSI UTAMA: Komponen pengatur kuantitas porsi (increment / decrement).
- * 
- * DETAIL:
- * - Menangani penambahan dan pengurangan jumlah porsi makanan.
- * - Memiliki batas minimum dan maksimum yang dapat dikonfigurasi.
- * - Touch target ramah sentuhan (min 36-40px).
- */
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Minus, Plus } from 'lucide-react';

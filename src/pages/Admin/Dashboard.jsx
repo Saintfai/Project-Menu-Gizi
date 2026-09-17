@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: Dashboard.jsx
- * FUNGSI UTAMA: Halaman antarmuka khusus untuk staf/Admin Gizi Rumah Sakit.
- * 
- * DETAIL:
- * - Membutuhkan otentikasi admin.
- * - Digunakan untuk memantau pesanan, mengelola siklus menu, atau melihat laporan statistik dapur.
- */
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { 
   Sun, 
@@ -356,7 +348,6 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {}
       <section className="w-full">
         {loading && tableData.length === 0 ? (
           <div className="w-full bg-white rounded-xl border border-neutral-200 p-12 text-center text-xs text-neutral-500 shadow-sm flex flex-col items-center justify-center gap-2">
@@ -368,7 +359,6 @@ export default function Dashboard() {
         )}
       </section>
 
-      {}
       <NoteDetailModal
         isOpen={isNoteModalOpen}
         onClose={handleCloseNote}

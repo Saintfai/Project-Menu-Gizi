@@ -1,12 +1,3 @@
-/**
- * NAMA FILE: PatientLayout.jsx
- * FUNGSI UTAMA: Layout utama yang membungkus seluruh halaman pasien.
- * 
- * DETAIL:
- * - Menyediakan background netral dan ambient background gradient terpusat.
- * - Mengeliminasi duplikasi elemen ambient visual di Login, Onboarding, dan MenuPortal.
- * - Merender konten halaman dinamis melalui <Outlet />.
- */
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 

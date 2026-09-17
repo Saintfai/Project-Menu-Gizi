@@ -1,12 +1,3 @@
-/**
- * NAMA FILE: Button.jsx
- * FUNGSI UTAMA: Komponen UI Tombol (Button) yang dapat digunakan ulang (reusable).
- * 
- * DETAIL:
- * - Menyediakan berbagai variasi tombol (primary, danger, outline, ghost, soft).
- * - Menangani interaksi klik, loading spinner, dan disabled state.
- * - Menggunakan ukuran touch target yang ramah mobile (min-height >= 44px untuk md).
- */
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Loader2 } from 'lucide-react';

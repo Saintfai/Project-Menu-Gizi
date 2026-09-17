@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: MenuPortal.jsx
- * FUNGSI UTAMA: Halaman antarmuka interaktif untuk Pasien Rawat Inap.
- * 
- * DETAIL:
- * - Memungkinkan pasien untuk memverifikasi identitas, melihat menu, dan memesan makanan.
- * - Didesain dengan pendekatan yang ramah pengguna dan aksesibel.
- */
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { UtensilsCrossed, ShoppingCart, ShoppingBag, AlertCircle, Info } from 'lucide-react';
@@ -336,11 +328,9 @@ export default function MenuPortal() {
     <PageTransition>
     <div className="min-h-screen relative bg-neutral-50 flex flex-col font-sans text-neutral-900 pt-[60px] pb-24">
       
-      {}
       <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-primary-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
       <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-secondary-100/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
 
-      {}
       <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-neutral-100">
         <HeaderMobile 
           title={
@@ -352,10 +342,8 @@ export default function MenuPortal() {
         />
       </div>
 
-      {}
       <div className="flex-1 flex flex-col px-4 py-6 z-10 relative pb-8 w-full max-w-4xl mx-auto space-y-6 md:space-y-8">
         
-        {}
         <PatientIdentityCard 
           name={displayPatient.name}
           rmNumber={displayPatient.rmNumber?.replace('RM-', '')}
@@ -363,7 +351,6 @@ export default function MenuPortal() {
           roomClass={displayPatient.roomClass}
         />
 
-        {}
         {!hasOrderedMain && !isMainMenuLockedTime && (
           <Alert 
             variant="danger" 
@@ -377,7 +364,6 @@ export default function MenuPortal() {
           </Alert>
         )}
 
-        {}
         {hasOrderedMain || isMainMenuLockedTime ? (
           <div className="bg-white shadow-xs border border-neutral-200 border-l-[4px] border-l-primary-600 rounded-xl p-4 flex items-center gap-3 my-4">
             <div className="bg-primary-50 p-2 rounded-full">
@@ -448,7 +434,6 @@ export default function MenuPortal() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
 
-          {}
           {(!isExtraSiangLockedTime || !isExtraSoreLockedTime) && (
             <Alert 
               variant="danger" 
@@ -510,7 +495,6 @@ export default function MenuPortal() {
 
       </div>
 
-      {}
       {(() => {
         let takenRoles = [];
         if (selectedCardId && includeModalOpen) {
@@ -539,7 +523,6 @@ export default function MenuPortal() {
         );
       })()}
 
-      {}
       {validationAlert && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-sm">
           <div className="bg-white w-full max-w-[320px] rounded-2xl p-6 text-center shadow-xl animate-in fade-in zoom-in-95 duration-200">

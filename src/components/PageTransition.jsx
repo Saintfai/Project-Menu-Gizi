@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: PageTransition.jsx
- * FUNGSI UTAMA: Komponen pembungkus animasi transisi antar halaman.
- * 
- * DETAIL:
- * - Menggunakan library animasi (Framer Motion) untuk memberikan efek pergantian halaman yang mulus.
- * - Meningkatkan estetika dan pengalaman pengguna (UX) secara keseluruhan.
- */
 import { motion } from 'framer-motion';
 
 

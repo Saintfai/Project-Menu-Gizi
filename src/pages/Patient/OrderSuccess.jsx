@@ -1,11 +1,3 @@
-/**
- * NAMA FILE: OrderSuccess.jsx
- * FUNGSI UTAMA: Halaman antarmuka interaktif untuk Pasien Rawat Inap.
- * 
- * DETAIL:
- * - Memungkinkan pasien untuk memverifikasi identitas, melihat menu, dan memesan makanan.
- * - Didesain dengan pendekatan yang ramah pengguna dan aksesibel.
- */
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Check } from 'lucide-react';
@@ -37,11 +29,9 @@ export default function OrderSuccess() {
 
   return (
     <div className="min-h-screen relative bg-neutral-50 flex flex-col font-sans text-neutral-900 pt-[60px] pb-8">
-      {}
       <div className="fixed top-0 left-0 w-[300px] h-[300px] bg-primary-100/50 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
       <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-secondary-100/50 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
 
-      {}
       <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-neutral-100">
         <HeaderMobile 
           title={
@@ -54,7 +44,6 @@ export default function OrderSuccess() {
       </div>
 
       <div className="w-full max-w-sm mx-auto px-4 py-8 relative z-10 flex flex-col items-center">
-        {}
         <div className="w-16 h-16 bg-success-500 rounded-full flex items-center justify-center mb-5 shadow-lg shadow-success-500/30">
           <Check size={36} strokeWidth={3} className="text-white" />
         </div>
@@ -64,7 +53,6 @@ export default function OrderSuccess() {
           Pesanan Anda telah berhasil dikonfirmasi dan sedang diproses.
         </p>
 
-        {}
         <div className="w-full bg-white rounded-2xl border border-neutral-200 p-5 mb-8 shadow-sm">
           <div className="flex justify-between items-center mb-3">
             <span className="text-sm text-neutral-600">Nomor Rekam Medis</span>

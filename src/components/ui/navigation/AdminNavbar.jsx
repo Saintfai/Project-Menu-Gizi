@@ -1,12 +1,3 @@
-/**
- * NAMA FILE: AdminNavbar.jsx
- * FUNGSI UTAMA: Komponen Header & Navigasi untuk Portal Admin Dapur Gizi.
- * 
- * DETAIL:
- * - Menampilkan logo institusi dan navigasi tab (Dashboard, Siklus, Statistik).
- * - Menampilkan waktu dan tanggal realtime WIB.
- * - Klik pada logo Menu Gizi berfungsi untuk logout kembali ke halaman login admin.
- */
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { NavLink, useNavigate } from 'react-router-dom';

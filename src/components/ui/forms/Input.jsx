@@ -1,12 +1,3 @@
-/**
- * NAMA FILE: Input.jsx
- * FUNGSI UTAMA: Komponen UI Form dan Input data.
- * 
- * DETAIL:
- * - Menangani input pengguna dengan validasi dan styling standar.
- * - Mendukung berbagai tipe input (teks, pencarian, date, textarea).
- * - Menggunakan border-radius 16px (rounded-xl) dan touch-target optimal (h-11 / 44px).
- */
 import React, { forwardRef } from 'react';
 import PropTypes from 'prop-types';
 
