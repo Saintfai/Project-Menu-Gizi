@@ -21,6 +21,7 @@ import { supabase } from '../../utils/supabase';
 import PageTransition from '../../components/PageTransition';
 import { getOrders } from '../../services/orderService';
 import { getCurrentWIBHour } from '../../utils/cutoffValidator';
+import { getMenuCycleByDate } from '../../utils/cycleHelper';
 
 export default function MenuPortal() {
   const { patient, logoutPatient } = usePatient();
@@ -72,10 +73,9 @@ export default function MenuPortal() {
         
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
-        const day = tomorrow.getDate();
-        let cycleId = day % 10;
-        if (cycleId === 0) cycleId = 10;
-        if (day === 31) cycleId = 11;
+        
+        // --- BUG FIX #12: Menggunakan fungsi terpusat untuk perhitungan siklus menu ---
+        const cycleId = getMenuCycleByDate(tomorrow);
 
         const { data, error: fetchError } = await supabase
           .from('MenuItem')
