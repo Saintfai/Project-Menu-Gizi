@@ -20,13 +20,14 @@ import { usePatient } from '../../context/PatientContext';
 import { supabase } from '../../utils/supabase';
 import PageTransition from '../../components/PageTransition';
 import { getOrders } from '../../services/orderService';
+import { getCurrentWIBHour } from '../../utils/cutoffValidator';
 
 export default function MenuPortal() {
   const { patient, logoutPatient } = usePatient();
   const navigate = useNavigate();
   const location = useLocation();
   
-  const currentHour = new Date().getHours();
+  const currentHour = getCurrentWIBHour();
   const isMainMenuLockedTime = currentHour >= 15;
   const isExtraSiangLockedTime = currentHour >= 10;
   const isExtraSoreLockedTime = currentHour >= 14;
@@ -48,12 +49,9 @@ export default function MenuPortal() {
   });
   const [searchQuery, setSearchQuery] = useState('');
 
-
-  // ─── SECURITY FIX: Remove mock patient fallback to prevent unauthenticated bypass (Bug #13) ───
   const displayPatient = patient || {};
 
   const roomClassLower = displayPatient.roomClass?.toLowerCase() || '';
-  // VIP A, Junior Suite, and Suite get 2 portions for all meals
   const isVip = roomClassLower.includes('vip a') || roomClassLower.includes('suite');
   
   const maxQtyPagi = 2;
