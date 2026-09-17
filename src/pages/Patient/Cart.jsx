@@ -16,6 +16,7 @@ import { createOrders } from '../../services/orderService';
 import PageTransition from '../../components/PageTransition';
 import { validateNote } from '../../utils/inputValidator';
 import { secureSessionStorage } from '../../utils/secureStorage';
+import { getCurrentWIBHour } from '../../utils/cutoffValidator';
 
 const MEAL_SCHEDULE = {
   PAGI: { label: 'Pagi', time: '06:30 - 08:30 WIB', icon: Sun },
@@ -222,6 +223,32 @@ export default function Cart() {
       if (!noteValid) {
         toast.error(noteError);
         setIsSubmitting(false);
+        return;
+      }
+
+      const currentHour = getCurrentWIBHour();
+      let invalidLock = null;
+
+      const hasPasienItems = Object.values(orderData.pasien).some(arr => arr.length > 0);
+      const hasPendampingItems = Object.values(orderData.pendamping).some(arr => arr.length > 0);
+      
+      if (hasPasienItems || hasPendampingItems) {
+        if (currentHour >= 15) {
+          invalidLock = 'Menu Utama (maks 15:00 WIB)';
+        }
+      }
+
+      if (!invalidLock && orderData.ekstra['SIANG']?.length > 0) {
+        if (currentHour >= 10) invalidLock = 'Ekstra Siang (maks 10:00 WIB)';
+      }
+      if (!invalidLock && orderData.ekstra['SORE']?.length > 0) {
+        if (currentHour >= 14) invalidLock = 'Ekstra Sore (maks 14:00 WIB)';
+      }
+
+      if (invalidLock) {
+        toast.error(`Gagal: Batas waktu pemesanan untuk ${invalidLock} telah habis.`);
+        setIsSubmitting(false);
+        setShowModal(false);
         return;
       }
 
