@@ -1,9 +1,9 @@
 -- ============================================================
--- Supabase Row-Level Security (RLS) Policies
+-- Supabase Row-Level Security (RLS) Policies (HARDENED)
 -- Hospital Dietary System — Project Menu Gizi
 --
--- Run this script ONCE via Supabase SQL Editor (Dashboard > SQL)
--- to enable and configure RLS on all tables.
+-- Run this script via Supabase SQL Editor (Dashboard > SQL Editor)
+-- to apply hardened RLS policies across all tables.
 -- ============================================================
 
 -- ────────────────────────────────────────────────────────────
@@ -16,64 +16,65 @@ ALTER TABLE "Patient"   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Order"     ENABLE ROW LEVEL SECURITY;
 
 -- ────────────────────────────────────────────────────────────
--- 2. DROP EXISTING POLICIES (idempotent — safe to re-run)
+-- 2. DROP EXISTING POLICIES (Idempotent - safe to re-run)
 -- ────────────────────────────────────────────────────────────
 
 DROP POLICY IF EXISTS "MenuCycle: public read"        ON "MenuCycle";
 DROP POLICY IF EXISTS "MenuItem: public read"         ON "MenuItem";
 DROP POLICY IF EXISTS "MenuItem: service_role write"  ON "MenuItem";
 DROP POLICY IF EXISTS "Patient: anon read"            ON "Patient";
+DROP POLICY IF EXISTS "Patient: service_role only"    ON "Patient";
 DROP POLICY IF EXISTS "Order: anon insert"            ON "Order";
 DROP POLICY IF EXISTS "Order: public read"            ON "Order";
+DROP POLICY IF EXISTS "Order: service_role write"     ON "Order";
 
 -- ────────────────────────────────────────────────────────────
--- 3. CREATE POLICIES
+-- 3. CREATE HARDENED POLICIES
 -- ────────────────────────────────────────────────────────────
 
--- MenuCycle: Anyone can read menu cycles (public data)
+-- MenuCycle: Anyone can read menu cycles (public catalog)
 CREATE POLICY "MenuCycle: public read"
   ON "MenuCycle" FOR SELECT
   USING (true);
 
--- MenuItem: Anyone can read menu items (public data)
+-- MenuItem: Anyone can read menu items (public catalog)
 CREATE POLICY "MenuItem: public read"
   ON "MenuItem" FOR SELECT
   USING (true);
 
 -- MenuItem: Only service_role can create/update/delete menu items
--- (admin operations should go through Edge Functions using service_role key)
 CREATE POLICY "MenuItem: service_role write"
   ON "MenuItem" FOR ALL
   USING (current_setting('request.jwt.claim.role', true) = 'service_role');
 
--- Patient: Can be read by anyone (needed for login/lookup flow)
--- Note: Column filtering is handled by the frontend query (select specific columns)
-CREATE POLICY "Patient: anon read"
-  ON "Patient" FOR SELECT
-  USING (true);
+-- Patient: RESTRICTED TO SERVICE_ROLE ONLY
+-- Anonymous / client-side queries CANNOT read patient records.
+-- All patient lookups must go through Edge Function 'patient-lookup'.
+-- Note: In Supabase, service_role bypasses RLS automatically.
+-- By having NO policy for anon/authenticated, all direct client queries return empty/blocked.
+CREATE POLICY "Patient: service_role only"
+  ON "Patient" FOR ALL
+  USING (current_setting('request.jwt.claim.role', true) = 'service_role');
 
--- Order: Anyone can insert new orders (patients placing meal orders)
-CREATE POLICY "Order: anon insert"
+-- Order: RESTRICTED INSERT
+-- Anonymous users CANNOT insert orders directly from the browser.
+-- All order creations MUST go through Edge Function 'create-order' (which validates
+-- cut-off times, duplicate check, and portion quotas before inserting with service_role).
+CREATE POLICY "Order: service_role write"
   ON "Order" FOR INSERT
-  WITH CHECK (true);
+  WITH CHECK (current_setting('request.jwt.claim.role', true) = 'service_role');
 
--- Order: Anyone can read orders (dashboard uses anon key for real-time)
--- Note: Ideally, read should be restricted to admin-only via Edge Function in the future
+-- Order: Read access for Dashboard Realtime
+-- Dashboard Admin uses anon key with Supabase realtime subscription to display incoming orders.
 CREATE POLICY "Order: public read"
   ON "Order" FOR SELECT
   USING (true);
 
 -- ────────────────────────────────────────────────────────────
--- 4. VERIFY
+-- 4. VERIFIKASI KEAMANAN
 -- ────────────────────────────────────────────────────────────
--- After running, verify in Supabase Dashboard > Authentication > Policies
--- that all 6 policies are listed and RLS is enabled (green toggle) on each table.
---
--- IMPORTANT: With RLS enabled, anonymous users can NO LONGER:
---   ✗ DELETE any rows from any table
---   ✗ UPDATE any rows (except via service_role)
---   ✗ INSERT into Patient, MenuCycle, or MenuItem tables
---
--- They CAN still:
---   ✓ SELECT from all tables (needed for app functionality)
---   ✓ INSERT into Order table (needed for placing orders)
+-- Setelah mengeksekusi script ini di Supabase SQL Editor:
+--   ✓ Tabel Patient: TIDAK BISA dibaca langsung lewat browser anon key (Protected PII).
+--   ✓ Tabel Order: TIDAK BISA di-insert sembarangan lewat browser console.
+--   ✓ Edge Functions: Memiliki akses penuh via SUPABASE_SERVICE_ROLE_KEY.
+--   ✓ Dashboard Realtime: Tetap berfungsi memantau pesanan masuk secara live.

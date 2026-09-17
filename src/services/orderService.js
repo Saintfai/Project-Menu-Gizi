@@ -62,23 +62,25 @@ export async function getOrders(options = {}) {
 
 
 export async function createOrders(orderItems) {
-  
-  const sanitizedItems = orderItems.map(item => ({
-    ...item,
-    notes: item.notes ? sanitizeText(item.notes, 300) : null,
-    menuName: item.menuName ? sanitizeText(item.menuName, 100) : item.menuName,
-  }));
+  const response = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-order`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify(orderItems),
+    }
+  );
 
-  const { data, error } = await supabase
-    .from('Order')
-    .insert(sanitizedItems)
-    .select();
+  const result = await response.json().catch(() => ({}));
 
-  if (error) {
-    console.error('Error creating orders in Supabase:', error);
-    throw error;
+  if (!response.ok) {
+    throw new Error(result.error || 'Gagal menyimpan pesanan.');
   }
 
-  return data;
+  return result.orders || result;
 }
 

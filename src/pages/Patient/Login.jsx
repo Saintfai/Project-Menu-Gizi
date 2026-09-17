@@ -94,8 +94,13 @@ export default function PatientLogin() {
       } else {
         navigate('/onboarding');
       }
-    } catch {
-      setShowNotFound(true);
+    } catch (err) {
+      if (err.message && (err.message.includes('Terlalu banyak') || err.message.includes('tunggu'))) {
+        toast.error(err.message);
+        setErrorMsg(err.message);
+      } else {
+        setShowNotFound(true);
+      }
     } finally {
       setIsLoading(false);
     }

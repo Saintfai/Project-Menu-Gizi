@@ -7,7 +7,6 @@
  * - Mengelola siklus hidup data (otentikasi, keranjang belanja, atau data pasien).
  */
 import { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../utils/supabase';
 import { secureSessionStorage } from '../utils/secureStorage';
 
 const PatientContext = createContext(null);
@@ -28,64 +27,37 @@ export function PatientProvider({ children }) {
   
   const loginPatient = async (identifier, dob) => {
     try {
-      const normalizedInput = identifier.replace(/\s+/g, '').toLowerCase();
-      const isRM = /\d/.test(normalizedInput);
-
-      // ─── SECURITY FIX: Select only needed columns (no select('*')) ───
-      let query = supabase.from('Patient').select(
-        'id, rmNumber, name, dob, phone, address, roomName, roomClass, allergies'
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/patient-lookup`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ identifier, dob }),
+        }
       );
-      
-      if (isRM) {
-        const numericInput = normalizedInput.replace(/[^0-9]/g, '');
-        const formattedRM = `RM-${numericInput}`;
-        query = query.eq('rmNumber', formattedRM);
-      } else {
-        
-        if (!dob) {
-          throw new Error('Tanggal lahir wajib diisi untuk pencarian berdasarkan nama.');
-        }
-        query = query.eq('dob', dob);
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Terjadi kesalahan sistem saat mencari data.');
       }
 
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('Supabase Login error:', error);
-        throw new Error('Terjadi kesalahan sistem saat mencari data.');
-      }
-
-      if (!data || data.length === 0) {
-        throw new Error('Data pasien tidak ditemukan.');
-      }
-
-      
-      const matchedPatients = data.filter((p) => {
-        if (isRM) {
-          const pNumeric = (p.rmNumber || '').replace(/[^0-9]/g, '');
-          const inputNumeric = normalizedInput.replace(/[^0-9]/g, '');
-          return pNumeric === inputNumeric;
-        } else {
-          const normName = (p.name || '').replace(/\s+/g, '').toLowerCase();
-          return normName === normalizedInput;
-        }
-      });
-
-      if (matchedPatients.length === 0) {
-        throw new Error('Data pasien tidak ditemukan atau tanggal lahir salah.');
-      }
-
-      if (matchedPatients.length === 1) {
+      if (result.type === 'single' && result.patient) {
         const patientData = {
-          ...matchedPatients[0],
-          isVerified: matchedPatients[0].isVerified ?? true,
+          ...result.patient,
+          isVerified: result.patient.isVerified ?? true,
         };
-        
         setPatient(patientData);
         secureSessionStorage.setItem('active_patient_session', patientData);
         return { type: 'single', patient: patientData };
+      } else if (result.type === 'multiple' && result.patients) {
+        return { type: 'multiple', patients: result.patients };
       } else {
-        return { type: 'multiple', patients: matchedPatients };
+        throw new Error('Format respon pasien tidak dikenali.');
       }
     } catch (err) {
       throw err;
