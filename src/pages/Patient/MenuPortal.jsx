@@ -192,7 +192,7 @@ export default function MenuPortal() {
   
   const menuPagi = menuItems.filter(item => item.mealTime?.toUpperCase() === 'PAGI');
   const menuSiang = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SIANG');
-  const menuSore = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SORE' || item.mealTime?.toUpperCase() === 'MALAM');
+  const menuSore = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SORE');
 
   
   const filteredEkstraSiang = menuSiang.filter(item => 
@@ -294,7 +294,7 @@ export default function MenuPortal() {
       const mealTime = item.mealTime?.toUpperCase();
       if (mealTime === 'PAGI') hasPagi = true;
       if (mealTime === 'SIANG') hasSiang = true;
-      if (mealTime === 'MALAM' || mealTime === 'SORE') hasSore = true;
+      if (mealTime === 'SORE') hasSore = true;
     });
 
     if (totalItems === 0) {
@@ -317,7 +317,7 @@ export default function MenuPortal() {
         if (item) {
           const mealTime = item.mealTime?.toUpperCase();
           if (mealTime === 'SIANG' && isExtraSiangLockedTime) invalidLock = 'Ekstra Siang (maks 10:00 WIB)';
-          if ((mealTime === 'MALAM' || mealTime === 'SORE') && isExtraSoreLockedTime) invalidLock = 'Ekstra Sore (maks 14:00 WIB)';
+          if (mealTime === 'SORE' && isExtraSoreLockedTime) invalidLock = 'Ekstra Sore (maks 14:00 WIB)';
         }
       } else {
         if (isMainMenuLockedTime) invalidLock = 'Menu Utama (maks 15:00 WIB)';

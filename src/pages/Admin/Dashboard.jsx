@@ -131,7 +131,7 @@ export default function Dashboard() {
         ekstraNames.add(order.menuName || order.paketName || 'Menu Ekstra');
       }
 
-      const targetMeal = (meal === 'SORE' || meal === 'MALAM') ? 'SORE' : meal;
+      const targetMeal = meal;
       if (mealStats[targetMeal]) {
         mealStats[targetMeal].total += qty;
         mealStats[targetMeal].packages[paket] = (mealStats[targetMeal].packages[paket] || 0) + qty;
