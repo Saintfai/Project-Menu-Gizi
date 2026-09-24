@@ -61,8 +61,8 @@ export default function AdminLogin() {
     <PageTransition>
     <div className="min-h-screen relative overflow-hidden bg-neutral-50 flex flex-col font-sans text-neutral-800">
       
-      <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-primary-100/80 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
-      <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-secondary-100/80 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
+      <div className="fixed top-0 right-0 w-[300px] h-[300px] bg-blue-200/75 rounded-full filter blur-[70px] opacity-80 transform translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
+      <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-rose-200/75 rounded-full filter blur-[70px] opacity-80 transform -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 z-10 relative">
         <motion.div 

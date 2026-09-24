@@ -114,7 +114,7 @@ export default function PatientLogin() {
 
   return (
     <PageTransition>
-    <div className={`min-h-screen relative overflow-hidden bg-neutral-50 flex flex-col font-sans text-neutral-800 ${showMultiple ? 'pt-[60px]' : ''}`}>
+    <div className={`min-h-screen relative overflow-hidden bg-transparent flex flex-col font-sans text-neutral-800 ${showMultiple ? 'pt-[60px]' : ''}`}>
 
       {/* Header for Multiple Selection */}
       {showMultiple && (
