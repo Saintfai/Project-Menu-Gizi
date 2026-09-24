@@ -8,7 +8,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
@@ -43,6 +45,7 @@
     "postcss": "^8.5.19",
     "prisma": "^7.8.0",
     "tailwindcss": "^3.4.19",
-    "vite": "^8.1.0"
+    "vite": "^8.1.0",
+    "vitest": "^5.0.1"
   }
 }

@@ -22,6 +22,7 @@ import toast from 'react-hot-toast';
 import PageTransition from '../../components/PageTransition';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import PatientFooter from '../../components/ui/layout/PatientFooter';
+import Input from '../../components/ui/forms/Input';
 
 
 import { usePatient } from '../../context/PatientContext';
@@ -114,7 +115,7 @@ export default function PatientLogin() {
 
   return (
     <PageTransition>
-    <div className={`min-h-screen relative overflow-hidden bg-neutral-50 flex flex-col font-sans text-neutral-800 ${showMultiple ? 'pt-[60px]' : ''}`}>
+    <div className={`min-h-screen relative overflow-hidden bg-transparent flex flex-col font-sans text-neutral-800 ${showMultiple ? 'pt-[60px]' : ''}`}>
 
       {/* Header for Multiple Selection */}
       {showMultiple && (
@@ -380,22 +381,15 @@ export default function PatientLogin() {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
                     >
-                      <label className="block text-xs font-semibold text-neutral-700 mb-1.5 ml-0.5">
-                        Nomor Rekam Medis
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
-                          <Hash size={16} strokeWidth={2} />
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="Contoh: RM-12345"
-                          className="w-full h-11 pl-10 pr-3.5 bg-neutral-100/80 border border-transparent focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded-xl text-sm transition-all placeholder:text-neutral-400"
-                          value={rmNumber}
-                          onChange={(e) => setRmNumber(e.target.value)}
-                          autoFocus
-                        />
-                      </div>
+                      <Input
+                        label="Nomor Rekam Medis"
+                        type="text"
+                        placeholder="Contoh: RM-12345"
+                        value={rmNumber}
+                        onChange={(e) => setRmNumber(e.target.value)}
+                        leftIcon={<Hash size={16} strokeWidth={2} />}
+                        autoFocus
+                      />
                     </motion.div>
 
                   ) : (
@@ -407,41 +401,29 @@ export default function PatientLogin() {
                       transition={{ duration: 0.15 }}
                       className="space-y-4"
                     >
-                      <div>
-                        <label className="block text-xs font-semibold text-neutral-700 mb-1.5 ml-0.5">
-                          Nama Pasien
-                        </label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
-                            <UserSearch size={16} strokeWidth={1.75} />
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="Contoh: Andi Pratama"
-                            className="w-full h-11 pl-10 pr-3.5 bg-neutral-100/80 border border-transparent focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded-xl text-sm transition-all placeholder:text-neutral-400"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            autoFocus
-                          />
-                        </div>
-                      </div>
+                      <Input
+                        label="Nama Pasien"
+                        type="text"
+                        placeholder="Contoh: Andi Pratama"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        leftIcon={<UserSearch size={16} strokeWidth={1.75} />}
+                        autoFocus
+                      />
 
-                      <div>
-                        <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-700 mb-1.5 ml-0.5">
-                          <Calendar size={13} className="text-neutral-400" />
-                          Tanggal Lahir
-                        </label>
-                        <input
-                          type="date"
-                          className="w-full h-11 px-3.5 bg-neutral-100/80 border border-transparent focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded-xl text-sm text-neutral-700 transition-all"
-                          value={dob}
-                          onChange={(e) => setDob(e.target.value)}
-                          max={new Date().toISOString().split('T')[0]}
-                        />
-                        <p className="text-xs text-neutral-400 mt-1.5 ml-0.5">
-                          Jika nama sama, sistem akan meminta konfirmasi.
-                        </p>
-                      </div>
+                      <Input
+                        label={
+                          <span className="flex items-center gap-1.5">
+                            <Calendar size={13} className="text-neutral-400" />
+                            Tanggal Lahir
+                          </span>
+                        }
+                        type="date"
+                        value={dob}
+                        onChange={(e) => setDob(e.target.value)}
+                        max={new Date().toISOString().split('T')[0]}
+                        hint="Jika nama sama, sistem akan meminta konfirmasi."
+                      />
                     </motion.div>
                   )}
                 </AnimatePresence>

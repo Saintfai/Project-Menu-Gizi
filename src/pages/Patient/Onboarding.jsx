@@ -35,7 +35,7 @@ export default function Onboarding() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen relative bg-neutral-50 flex flex-col font-sans text-neutral-800 pt-[60px]">
+      <div className="min-h-screen relative bg-transparent flex flex-col font-sans text-neutral-800 pt-[60px]">
         {/* Fixed Header */}
         <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-xs border-b border-neutral-100">
           <HeaderMobile 

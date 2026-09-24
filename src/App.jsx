@@ -41,10 +41,10 @@ function App() {
           <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
-              <Route path="/login" element={<PatientLogin />} />
+              <Route element={<PatientLayout />}>
+                <Route path="/login" element={<PatientLogin />} />
 
-              <Route element={<PatientRoute />}>
-                <Route element={<PatientLayout />}>
+                <Route element={<PatientRoute />}>
                   <Route path="/onboarding" element={<Onboarding />} />
                   <Route path="/menu" element={<MenuPortal />} />
                   <Route path="/cart" element={<Cart />} />

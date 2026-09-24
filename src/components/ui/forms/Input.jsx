@@ -8,10 +8,14 @@ export const Input = forwardRef(({
   error, 
   hint,
   leftIcon, 
+  rightIcon,
   ...props 
 }, ref) => {
-  const baseClasses = 'flex w-full h-11 text-sm bg-neutral-0 border border-neutral-300 rounded-xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-150';
-  const paddingClasses = leftIcon ? 'pl-10 pr-3.5' : 'px-3.5';
+  const baseClasses = 'flex w-full h-11 text-sm bg-neutral-50 border border-transparent rounded-xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-150';
+  let paddingClasses = 'px-3.5';
+  if (leftIcon && rightIcon) paddingClasses = 'pl-10 pr-10';
+  else if (leftIcon) paddingClasses = 'pl-10 pr-3.5';
+  else if (rightIcon) paddingClasses = 'pl-3.5 pr-10';
   const errorClasses = error ? 'border-danger-500 focus:ring-danger-500 bg-danger-50/20' : '';
 
   return (
@@ -33,6 +37,11 @@ export const Input = forwardRef(({
           ref={ref}
           {...props}
         />
+        {rightIcon && (
+          <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-neutral-400">
+            {rightIcon}
+          </div>
+        )}
       </div>
       {error && <p className="text-xs text-danger-500 font-medium mt-1 ml-0.5">{error}</p>}
       {!error && hint && <p className="text-xs text-neutral-400 mt-1 ml-0.5">{hint}</p>}
@@ -49,7 +58,7 @@ export const Textarea = forwardRef(({
   hint,
   ...props 
 }, ref) => {
-  const baseClasses = 'flex w-full px-3.5 py-2.5 text-sm bg-neutral-0 border border-neutral-300 rounded-xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-150 min-h-[90px]';
+  const baseClasses = 'flex w-full px-3.5 py-2.5 text-sm bg-neutral-50 border border-transparent rounded-xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-150 min-h-[90px]';
   const errorClasses = error ? 'border-danger-500 focus:ring-danger-500 bg-danger-50/20' : '';
 
   return (
@@ -83,6 +92,7 @@ Input.propTypes = {
   ...sharedPropTypes,
   type: PropTypes.string,
   leftIcon: PropTypes.node,
+  rightIcon: PropTypes.node,
 };
 
 Textarea.propTypes = sharedPropTypes;
