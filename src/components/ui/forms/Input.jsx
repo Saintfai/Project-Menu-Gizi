@@ -10,7 +10,7 @@ export const Input = forwardRef(({
   leftIcon, 
   ...props 
 }, ref) => {
-  const baseClasses = 'flex w-full h-11 text-sm bg-neutral-0 border border-neutral-300 rounded-xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-150';
+  const baseClasses = 'flex w-full h-11 text-sm bg-neutral-50 border border-transparent rounded-xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-150';
   const paddingClasses = leftIcon ? 'pl-10 pr-3.5' : 'px-3.5';
   const errorClasses = error ? 'border-danger-500 focus:ring-danger-500 bg-danger-50/20' : '';
 
@@ -49,7 +49,7 @@ export const Textarea = forwardRef(({
   hint,
   ...props 
 }, ref) => {
-  const baseClasses = 'flex w-full px-3.5 py-2.5 text-sm bg-neutral-0 border border-neutral-300 rounded-xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-150 min-h-[90px]';
+  const baseClasses = 'flex w-full px-3.5 py-2.5 text-sm bg-neutral-50 border border-transparent rounded-xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-150 min-h-[90px]';
   const errorClasses = error ? 'border-danger-500 focus:ring-danger-500 bg-danger-50/20' : '';
 
   return (
