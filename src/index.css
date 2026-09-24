@@ -204,6 +204,12 @@ label {
   margin-bottom: var(--space-1-5);
 }
 
+/* Disable native password reveal in Edge/IE to prevent duplicate toggle icons */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
 
 /* ============================================================
  * TABLE BASE

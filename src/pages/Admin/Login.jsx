@@ -4,10 +4,13 @@ import {
   Lock, 
   LogIn, 
   AlertCircle, 
-  Info 
+  Info,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PageTransition from '../../components/PageTransition';
+import Input from '../../components/ui/forms/Input';
 import { useAuth } from '../../context/AuthContext';
 import logoEdhos from '../../assets/logoedhos.png';
 
@@ -16,6 +19,7 @@ export default function AdminLogin() {
   const { login } = useAuth();
 
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -97,25 +101,25 @@ export default function AdminLogin() {
           )}
 
           <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5 ml-1">
-                Kata Sandi
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
-                  <Lock size={16} strokeWidth={1.5} />
-                </div>
-                <input
-                  type="password"
-                  placeholder="Masukkan kata sandi..."
-                  className="w-full h-11 pl-10 pr-3.5 bg-neutral-50 border border-neutral-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white transition-all text-neutral-800 placeholder:text-neutral-400"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoFocus
-                  required
-                />
-              </div>
-            </div>
+            <Input
+              label="Kata Sandi"
+              type={showPassword ? "text" : "password"}
+              placeholder="Masukkan kata sandi..."
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              leftIcon={<Lock size={16} strokeWidth={1.5} />}
+              rightIcon={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="p-1 text-neutral-500 hover:text-neutral-700 focus:outline-none transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
+                >
+                  {showPassword ? <EyeOff size={20} strokeWidth={1.5} /> : <Eye size={20} strokeWidth={1.5} />}
+                </button>
+              }
+              autoFocus
+              required
+            />
 
             {/* Submit Button */}
             <button
