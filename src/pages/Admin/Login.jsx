@@ -4,7 +4,9 @@ import {
   Lock, 
   LogIn, 
   AlertCircle, 
-  Info 
+  Info,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PageTransition from '../../components/PageTransition';
@@ -17,6 +19,7 @@ export default function AdminLogin() {
   const { login } = useAuth();
 
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -100,11 +103,20 @@ export default function AdminLogin() {
           <form onSubmit={handleLogin} className="space-y-4">
             <Input
               label="Kata Sandi"
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Masukkan kata sandi..."
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               leftIcon={<Lock size={16} strokeWidth={1.5} />}
+              rightIcon={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="p-1 text-neutral-500 hover:text-neutral-700 focus:outline-none transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
+                >
+                  {showPassword ? <EyeOff size={20} strokeWidth={1.5} /> : <Eye size={20} strokeWidth={1.5} />}
+                </button>
+              }
               autoFocus
               required
             />
