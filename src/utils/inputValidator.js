@@ -36,9 +36,9 @@ export function validateNote(note) {
 }
 
 /**
- * Validate menu item fields (nama menu, description, paketName).
+ * Validate menu item fields (nama menu, description, paketName, dan 5 kolom gizi).
  * Used by admin when creating or editing menu items.
- * @param {object} fields - { name, description, paketName }
+ * @param {object} fields - { name, description, paketName, karbohidrat, protein, nabati, proteinTambahan, sayur }
  * @returns {{ valid: boolean, sanitized: object, errors: string[] }}
  */
 export function validateMenuItemFields(fields) {
@@ -64,6 +64,16 @@ export function validateMenuItemFields(fields) {
     sanitized.paketName = sanitizeText(fields.paketName, 50);
   } else {
     sanitized.paketName = fields.paketName;
+  }
+
+  // ── 5 Kolom Gizi (semua opsional) ────────────────────────────────────
+  const nutrisiFields = ['karbohidrat', 'protein', 'nabati', 'proteinTambahan', 'sayur'];
+  for (const field of nutrisiFields) {
+    if (fields[field] && fields[field].trim() !== '') {
+      sanitized[field] = sanitizeText(fields[field], 200);
+    } else {
+      sanitized[field] = null;
+    }
   }
 
   return {

@@ -20,16 +20,23 @@ model MenuCycle {
 
 // Tabel Item Menu: Katalog makanan pada siklus menu
 model MenuItem {
-  id          String    @id @default(uuid())
-  name        String
-  description String?   // Detail menu / lauk pauk
-  cycleId     Int
-  cycle       MenuCycle @relation(fields: [cycleId], references: [id])
-  mealTime    MealTime  // Kapan menu ini disajikan (PAGI, SIANG, SORE)
-  paketName   String?   // cth: "Paket A", "Paket B"
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id               String    @id @default(uuid())
+  name             String
+  description      String?   // Catatan tambahan / keterangan umum menu
+  cycleId          Int
+  cycle            MenuCycle @relation(fields: [cycleId], references: [id])
+  mealTime         MealTime  // Kapan menu ini disajikan (PAGI, SIANG, SORE)
+  paketName        String?   // cth: "Paket A", "Paket B"
+
+  // ── Komponen Gizi per Paket ──────────────────────────────
+  karbohidrat      String?   // Sumber karbohidrat (cth: Nasi Putih, Bubur, Roti)
+  protein          String?   // Protein hewani utama (cth: Ayam Goreng, Ikan Dori)
+  nabati           String?   // Protein nabati (cth: Tempe Bacem, Tahu Goreng)
+  proteinTambahan  String?   // Protein tambahan (cth: Telur Rebus, Keju)
+  sayur            String?   // Sayuran (cth: Tumis Kangkung, Sop Wortel)
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }
 
 enum MealTime {

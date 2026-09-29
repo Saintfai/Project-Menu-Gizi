@@ -15,18 +15,18 @@ const MENU_CYCLES_DATA = [
     description: 'Siklus Menu 1',
     items: [
       // Sarapan / Breakfast (PAGI)
-      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Nasi Kuning', description: 'Nasi kuning disajikan dengan telur bumbu semur, bihun goreng' },
-      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Tim Ayam', description: 'Nasi tim dengan isian ayam suwir dan telur rebus disajikan dengan kuah kaldu' },
-      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek' },
-      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Roti Oles + Telur Rebus', description: 'Roti panggang oles dengan telur orek/telur kukus' },
+      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Nasi Kuning', description: 'Nasi kuning disajikan dengan telur bumbu semur, bihun goreng', karbohidrat: 'Nasi Kuning', protein: null, nabati: 'Bihun Goreng', proteinTambahan: 'Telur Bumbu Semur', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Tim Ayam', description: 'Nasi tim dengan isian ayam suwir dan telur rebus disajikan dengan kuah kaldu', karbohidrat: 'Nasi Tim', protein: 'Ayam Suwir', nabati: null, proteinTambahan: 'Telur Rebus', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek', karbohidrat: 'Bubur Sumsum', protein: null, nabati: null, proteinTambahan: 'Telur Rebus / Telur Orek', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Roti Oles + Telur Rebus', description: 'Roti panggang oles dengan telur orek/telur kukus', karbohidrat: 'Roti Panggang', protein: null, nabati: null, proteinTambahan: 'Telur Orek / Telur Kukus', sayur: null },
       // Makan Siang / Lunch (SIANG)
-      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Ayam Ptg Bumbu Opor', description: 'Kuah, bistik tahu, tumis cistel jagung manis' },
-      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Udang Bakar Madu', description: 'Udang bakar yang dibaluri saus madu disajikan dengan nasi dan sayuran' },
-      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Mashed Potato + Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed' },
+      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Ayam Ptg Bumbu Opor', description: 'Kuah, bistik tahu, tumis cistel jagung manis', karbohidrat: 'Nasi Putih', protein: 'Ayam Potong Bumbu Opor', nabati: 'Bistik Tahu', proteinTambahan: null, sayur: 'Tumis Cistel Jagung Manis' },
+      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Udang Bakar Madu', description: 'Udang bakar yang dibaluri saus madu disajikan dengan nasi dan sayuran', karbohidrat: 'Nasi Putih', protein: 'Udang Bakar Madu', nabati: null, proteinTambahan: null, sayur: 'Mix Sayuran' },
+      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Mashed Potato + Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed', karbohidrat: 'Mashed Potato', protein: 'Smoked Beef', nabati: null, proteinTambahan: 'Omelette (Telur, Keju, Susu)', sayur: null },
       // Makan Sore / Dinner (SORE)
-      { mealTime: 'SORE', paketName: 'Paket A', name: 'Beef Teriyaki', description: 'Disajikan dengan sup wortel labu, tempe kuning' },
-      { mealTime: 'SORE', paketName: 'Paket B', name: 'Spaghetti Bolognesse', description: 'Spaghetti pasta dengan saus bolognesse' },
-      { mealTime: 'SORE', paketName: 'Paket C', name: 'Misoa Yamin Baso', description: 'Misoa dibaluri saus kecap dengan bakso dan ayam suwir' },
+      { mealTime: 'SORE', paketName: 'Paket A', name: 'Beef Teriyaki', description: 'Disajikan dengan sup wortel labu, tempe kuning', karbohidrat: 'Nasi Putih', protein: 'Beef Teriyaki', nabati: 'Tempe Kuning', proteinTambahan: null, sayur: 'Sup Wortel Labu' },
+      { mealTime: 'SORE', paketName: 'Paket B', name: 'Spaghetti Bolognesse', description: 'Spaghetti pasta dengan saus bolognesse', karbohidrat: 'Spaghetti', protein: 'Daging Sapi (Bolognesse)', nabati: null, proteinTambahan: null, sayur: null },
+      { mealTime: 'SORE', paketName: 'Paket C', name: 'Misoa Yamin Baso', description: 'Misoa dibaluri saus kecap dengan bakso dan ayam suwir', karbohidrat: 'Misoa', protein: 'Bakso, Ayam Suwir', nabati: null, proteinTambahan: null, sayur: null },
     ],
   },
   {
@@ -34,19 +34,19 @@ const MENU_CYCLES_DATA = [
     description: 'Siklus Menu 2',
     items: [
       // Sarapan / Breakfast (PAGI)
-      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Soto Betawi', description: 'Nasi dengan kuah soto betawi isi daging sapi, kentang, wortel' },
-      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Bubur Kuah Soto', description: 'Bubur nasi dengan kuah kari isian daging sapi dadu, telur rebus, dan sayuran' },
-      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek' },
-      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Oatmeal', description: 'Bubur oatmeal disajikan dengan potongan pisang dan raisin' },
-      { mealTime: 'PAGI', paketName: 'Paket E', name: 'Roti Oles + Telur Rebus', description: 'Roti panggang oles dengan telur orek/telur kukus' },
+      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Soto Betawi', description: 'Nasi dengan kuah soto betawi isi daging sapi, kentang, wortel', karbohidrat: 'Nasi Putih', protein: 'Daging Sapi', nabati: null, proteinTambahan: null, sayur: 'Wortel, Kentang' },
+      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Bubur Kuah Soto', description: 'Bubur nasi dengan kuah kari isian daging sapi dadu, telur rebus, dan sayuran', karbohidrat: 'Bubur Nasi', protein: 'Daging Sapi Dadu', nabati: null, proteinTambahan: 'Telur Rebus', sayur: 'Mix Sayuran' },
+      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek', karbohidrat: 'Bubur Sumsum', protein: null, nabati: null, proteinTambahan: 'Telur Rebus / Telur Orek', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Oatmeal', description: 'Bubur oatmeal disajikan dengan potongan pisang dan raisin', karbohidrat: 'Oatmeal', protein: null, nabati: null, proteinTambahan: null, sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket E', name: 'Roti Oles + Telur Rebus', description: 'Roti panggang oles dengan telur orek/telur kukus', karbohidrat: 'Roti Panggang', protein: null, nabati: null, proteinTambahan: 'Telur Orek / Telur Kukus', sayur: null },
       // Makan Siang / Lunch (SIANG)
-      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Dori Krispi Green SC', description: 'Disajikan dengan bistik tempe, capcay' },
-      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Sop Iga', description: 'Sop iga dengan isian wortel kentang disajikan dengan nasi' },
-      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Oni Squid', description: 'Nasi kepal yang disajikan dengan cumi dan sayuran' },
+      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Dori Krispi Green SC', description: 'Disajikan dengan bistik tempe, capcay', karbohidrat: 'Nasi Putih', protein: 'Ikan Dori Krispi', nabati: 'Bistik Tempe', proteinTambahan: null, sayur: 'Capcay' },
+      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Sop Iga', description: 'Sop iga dengan isian wortel kentang disajikan dengan nasi', karbohidrat: 'Nasi Putih', protein: 'Iga Sapi', nabati: null, proteinTambahan: null, sayur: 'Wortel, Kentang' },
+      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Oni Squid', description: 'Nasi kepal yang disajikan dengan cumi dan sayuran', karbohidrat: 'Nasi Kepal', protein: 'Cumi', nabati: null, proteinTambahan: null, sayur: 'Mix Sayuran' },
       // Makan Sore / Dinner (SORE)
-      { mealTime: 'SORE', paketName: 'Paket A', name: 'Ayam Potong Kemangi', description: 'Disajikan dengan perkedel tahu, sup kepiting' },
-      { mealTime: 'SORE', paketName: 'Paket B', name: 'Chicken Parmiganna', description: 'Ayam fillet dengan perpaduan saus bechamel dan saus bbq, mix veggie, nasi, french fries, mashed potato' },
-      { mealTime: 'SORE', paketName: 'Paket C', name: 'Cream Soup + Crouton', description: 'Cream soup dengan isian mix veggie, smoked beef dan jamur kancing disajikan dengan roti panggang' },
+      { mealTime: 'SORE', paketName: 'Paket A', name: 'Ayam Potong Kemangi', description: 'Disajikan dengan perkedel tahu, sup kepiting', karbohidrat: 'Nasi Putih', protein: 'Ayam Potong Kemangi', nabati: 'Perkedel Tahu', proteinTambahan: null, sayur: 'Sup Kepiting' },
+      { mealTime: 'SORE', paketName: 'Paket B', name: 'Chicken Parmiganna', description: 'Ayam fillet dengan perpaduan saus bechamel dan saus bbq, mix veggie, nasi, french fries, mashed potato', karbohidrat: 'Nasi / Mashed Potato / French Fries', protein: 'Chicken Fillet Parmiganna', nabati: null, proteinTambahan: null, sayur: 'Mix Veggie' },
+      { mealTime: 'SORE', paketName: 'Paket C', name: 'Cream Soup + Crouton', description: 'Cream soup dengan isian mix veggie, smoked beef dan jamur kancing disajikan dengan roti panggang', karbohidrat: 'Roti Panggang (Crouton)', protein: 'Smoked Beef', nabati: null, proteinTambahan: null, sayur: 'Mix Veggie, Jamur Kancing' },
     ],
   },
   {
@@ -54,19 +54,19 @@ const MENU_CYCLES_DATA = [
     description: 'Siklus Menu 3',
     items: [
       // Sarapan / Breakfast (PAGI)
-      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Nasi Hainan', description: 'Nasi dengan bumbu hainan disajikan dengan ayam panggang dan kuah kaldu' },
-      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Tim Hainan', description: 'Nasi tim dengan isian ayam suwir dan telur rebus disajikan dengan kuah kaldu' },
-      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Ayam', description: 'Bubur nasi dengan isian ayam suwir dan telur rebus disajikan dengan kuah kaldu' },
-      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek' },
-      { mealTime: 'PAGI', paketName: 'Paket E', name: 'Cream Soup + Crouton', description: 'Soup creamy dengan isian sayuran dan smoked beef disajikan dengan roti panggang' },
+      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Nasi Hainan', description: 'Nasi dengan bumbu hainan disajikan dengan ayam panggang dan kuah kaldu', karbohidrat: 'Nasi Hainan', protein: 'Ayam Panggang', nabati: null, proteinTambahan: null, sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Tim Hainan', description: 'Nasi tim dengan isian ayam suwir dan telur rebus disajikan dengan kuah kaldu', karbohidrat: 'Nasi Tim', protein: 'Ayam Suwir', nabati: null, proteinTambahan: 'Telur Rebus', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Ayam', description: 'Bubur nasi dengan isian ayam suwir dan telur rebus disajikan dengan kuah kaldu', karbohidrat: 'Bubur Nasi', protein: 'Ayam Suwir', nabati: null, proteinTambahan: 'Telur Rebus', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek', karbohidrat: 'Bubur Sumsum', protein: null, nabati: null, proteinTambahan: 'Telur Rebus / Telur Orek', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket E', name: 'Cream Soup + Crouton', description: 'Soup creamy dengan isian sayuran dan smoked beef disajikan dengan roti panggang', karbohidrat: 'Roti Panggang (Crouton)', protein: 'Smoked Beef', nabati: null, proteinTambahan: null, sayur: 'Mix Sayuran' },
       // Makan Siang / Lunch (SIANG)
-      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Dendeng Sapi', description: 'Disajikan dengan perkedel jagung/perkedel tempe, sayur asem' },
-      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Chicken Steak', description: 'Ayam panggang disajikan dengan saus bbq dan mix veggie, nasi, french fries, mashed potato' },
-      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Misoa Kuah Baso', description: 'Misoa disajikan dengan bakso dan ayam suwir' },
+      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Dendeng Sapi', description: 'Disajikan dengan perkedel jagung/perkedel tempe, sayur asem', karbohidrat: 'Nasi Putih', protein: 'Dendeng Sapi', nabati: 'Perkedel Tempe', proteinTambahan: 'Perkedel Jagung', sayur: 'Sayur Asem' },
+      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Chicken Steak', description: 'Ayam panggang disajikan dengan saus bbq dan mix veggie, nasi, french fries, mashed potato', karbohidrat: 'Nasi / Mashed Potato / French Fries', protein: 'Chicken Steak', nabati: null, proteinTambahan: null, sayur: 'Mix Veggie' },
+      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Misoa Kuah Baso', description: 'Misoa disajikan dengan bakso dan ayam suwir', karbohidrat: 'Misoa', protein: 'Bakso, Ayam Suwir', nabati: null, proteinTambahan: null, sayur: null },
       // Makan Sore / Dinner (SORE)
-      { mealTime: 'SORE', paketName: 'Paket A', name: 'Ayam Goreng Lengkuas', description: 'Disajikan dengan sup tahu, tumis wortel brokoli toge' },
-      { mealTime: 'SORE', paketName: 'Paket B', name: 'Farfalle Chicken Alfredo', description: 'Pasta farfalle saus alfredo disajikan dengan chicken breast dan mixed veggie' },
-      { mealTime: 'SORE', paketName: 'Paket C', name: 'Mashed Potato + Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed' },
+      { mealTime: 'SORE', paketName: 'Paket A', name: 'Ayam Goreng Lengkuas', description: 'Disajikan dengan sup tahu, tumis wortel brokoli toge', karbohidrat: 'Nasi Putih', protein: 'Ayam Goreng Lengkuas', nabati: 'Sup Tahu', proteinTambahan: null, sayur: 'Tumis Wortel Brokoli Toge' },
+      { mealTime: 'SORE', paketName: 'Paket B', name: 'Farfalle Chicken Alfredo', description: 'Pasta farfalle saus alfredo disajikan dengan chicken breast dan mixed veggie', karbohidrat: 'Pasta Farfalle', protein: 'Chicken Breast', nabati: null, proteinTambahan: null, sayur: 'Mixed Veggie' },
+      { mealTime: 'SORE', paketName: 'Paket C', name: 'Mashed Potato + Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed', karbohidrat: 'Mashed Potato', protein: 'Smoked Beef', nabati: null, proteinTambahan: 'Omelette (Telur, Keju, Susu)', sayur: null },
     ],
   },
   {
@@ -74,19 +74,19 @@ const MENU_CYCLES_DATA = [
     description: 'Siklus Menu 4',
     items: [
       // Sarapan / Breakfast (PAGI)
-      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Nasi Centil', description: 'Nasi yang disajikan dengan daging sapi dan tahu putih' },
-      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Tim Centil', description: 'Tim yang disajikan dengan daging sapi dan tahu putih' },
-      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Centil', description: 'Bubur yang disajikan dengan daging sapi dan tahu putih' },
-      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Oatmeal', description: 'Bubur oatmeal disajikan dengan potongan pisang dan raisin' },
-      { mealTime: 'PAGI', paketName: 'Paket E', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek' },
+      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Nasi Centil', description: 'Nasi yang disajikan dengan daging sapi dan tahu putih', karbohidrat: 'Nasi Putih', protein: 'Daging Sapi', nabati: 'Tahu Putih', proteinTambahan: null, sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Tim Centil', description: 'Tim yang disajikan dengan daging sapi dan tahu putih', karbohidrat: 'Nasi Tim', protein: 'Daging Sapi', nabati: 'Tahu Putih', proteinTambahan: null, sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Centil', description: 'Bubur yang disajikan dengan daging sapi dan tahu putih', karbohidrat: 'Bubur Nasi', protein: 'Daging Sapi', nabati: 'Tahu Putih', proteinTambahan: null, sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Oatmeal', description: 'Bubur oatmeal disajikan dengan potongan pisang dan raisin', karbohidrat: 'Oatmeal', protein: null, nabati: null, proteinTambahan: null, sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket E', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek', karbohidrat: 'Bubur Sumsum', protein: null, nabati: null, proteinTambahan: 'Telur Rebus / Telur Orek', sayur: null },
       // Makan Siang / Lunch (SIANG)
-      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Telur Ceplok Bumbu Kari', description: 'Disajikan dengan tempe masak bombay, cah sayur' },
-      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Ayam Madu', description: 'Ayam fillet saus madu disajikan dengan mix veggie dan nasi' },
-      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Misoa Yamin Baso', description: 'Misoa dibaluri saus kecap dengan bakso dan ayam suwir' },
+      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Telur Ceplok Bumbu Kari', description: 'Disajikan dengan tempe masak bombay, cah sayur', karbohidrat: 'Nasi Putih', protein: null, nabati: 'Tempe Masak Bombay', proteinTambahan: 'Telur Ceplok Bumbu Kari', sayur: 'Cah Sayur' },
+      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Ayam Madu', description: 'Ayam fillet saus madu disajikan dengan mix veggie dan nasi', karbohidrat: 'Nasi Putih', protein: 'Ayam Fillet Saus Madu', nabati: null, proteinTambahan: null, sayur: 'Mix Veggie' },
+      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Misoa Yamin Baso', description: 'Misoa dibaluri saus kecap dengan bakso dan ayam suwir', karbohidrat: 'Misoa', protein: 'Bakso, Ayam Suwir', nabati: null, proteinTambahan: null, sayur: null },
       // Makan Sore / Dinner (SORE)
-      { mealTime: 'SORE', paketName: 'Paket A', name: 'Ayam Fillet Barbeque', description: 'Disajikan dengan rolade tahu, sup bakso ikan' },
-      { mealTime: 'SORE', paketName: 'Paket B', name: 'Ifumi', description: 'Mie kering dengan isian udang dan sayuran' },
-      { mealTime: 'SORE', paketName: 'Paket C', name: 'Mashed Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed' },
+      { mealTime: 'SORE', paketName: 'Paket A', name: 'Ayam Fillet Barbeque', description: 'Disajikan dengan rolade tahu, sup bakso ikan', karbohidrat: 'Nasi Putih', protein: 'Ayam Fillet BBQ', nabati: 'Rolade Tahu', proteinTambahan: 'Bakso Ikan', sayur: null },
+      { mealTime: 'SORE', paketName: 'Paket B', name: 'Ifumi', description: 'Mie kering dengan isian udang dan sayuran', karbohidrat: 'Ifumi (Mie Kering)', protein: 'Udang', nabati: null, proteinTambahan: null, sayur: 'Mix Sayuran' },
+      { mealTime: 'SORE', paketName: 'Paket C', name: 'Mashed Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed', karbohidrat: 'Mashed Potato', protein: 'Smoked Beef', nabati: null, proteinTambahan: 'Omelette (Telur, Keju, Susu)', sayur: null },
     ],
   },
   {
@@ -94,17 +94,17 @@ const MENU_CYCLES_DATA = [
     description: 'Siklus Menu 5',
     items: [
       // Sarapan / Breakfast (PAGI)
-      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Chicken Teriyaki', description: 'Nasi disajikan dengan ayam bumbu teriyaki dan cah tahu wortel brokoli' },
-      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek' },
-      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Roti Oles + Telur', description: 'Roti panggang oles dengan telur orek/telur kukus' },
+      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Chicken Teriyaki', description: 'Nasi disajikan dengan ayam bumbu teriyaki dan cah tahu wortel brokoli', karbohidrat: 'Nasi Putih', protein: 'Ayam Teriyaki', nabati: 'Tahu', proteinTambahan: null, sayur: 'Cah Wortel Brokoli' },
+      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek', karbohidrat: 'Bubur Sumsum', protein: null, nabati: null, proteinTambahan: 'Telur Rebus / Telur Orek', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Roti Oles + Telur', description: 'Roti panggang oles dengan telur orek/telur kukus', karbohidrat: 'Roti Panggang', protein: null, nabati: null, proteinTambahan: 'Telur Orek / Telur Kukus', sayur: null },
       // Makan Siang / Lunch (SIANG)
-      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Soto Bandung', description: 'Disajikan dengan pepes tahu' },
-      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Chicken Attahat', description: 'Ayam fillet yang disajikan dengan pasta dan mixed veggie' },
-      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Mashed Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed' },
+      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Soto Bandung', description: 'Disajikan dengan pepes tahu', karbohidrat: 'Nasi Putih', protein: 'Daging Sapi (Soto)', nabati: 'Pepes Tahu', proteinTambahan: null, sayur: null },
+      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Chicken Attahat', description: 'Ayam fillet yang disajikan dengan pasta dan mixed veggie', karbohidrat: 'Pasta', protein: 'Chicken Fillet', nabati: null, proteinTambahan: null, sayur: 'Mixed Veggie' },
+      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Mashed Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed', karbohidrat: 'Mashed Potato', protein: 'Smoked Beef', nabati: null, proteinTambahan: 'Omelette (Telur, Keju, Susu)', sayur: null },
       // Makan Sore / Dinner (SORE)
-      { mealTime: 'SORE', paketName: 'Paket A', name: 'Dori Steak Bechamel Sauce', description: 'Disajikan dengan tempe bistik, sup oyong miesoa' },
-      { mealTime: 'SORE', paketName: 'Paket B', name: 'Risotto', description: 'Nasi dengan isian jamur kancing, smoked beef, ayam suwir dan keju' },
-      { mealTime: 'SORE', paketName: 'Paket C', name: 'Misoa Yamin Baso', description: 'Misoa bumbu saus kecap dengan bakso dan ayam suwir' },
+      { mealTime: 'SORE', paketName: 'Paket A', name: 'Dori Steak Bechamel Sauce', description: 'Disajikan dengan tempe bistik, sup oyong miesoa', karbohidrat: 'Nasi Putih', protein: 'Ikan Dori Steak', nabati: 'Tempe Bistik', proteinTambahan: null, sayur: 'Sup Oyong Miesoa' },
+      { mealTime: 'SORE', paketName: 'Paket B', name: 'Risotto', description: 'Nasi dengan isian jamur kancing, smoked beef, ayam suwir dan keju', karbohidrat: 'Risotto (Nasi)', protein: 'Smoked Beef, Ayam Suwir', nabati: null, proteinTambahan: 'Keju', sayur: 'Jamur Kancing' },
+      { mealTime: 'SORE', paketName: 'Paket C', name: 'Misoa Yamin Baso', description: 'Misoa bumbu saus kecap dengan bakso dan ayam suwir', karbohidrat: 'Misoa', protein: 'Bakso, Ayam Suwir', nabati: null, proteinTambahan: null, sayur: null },
     ],
   },
   {
@@ -112,20 +112,20 @@ const MENU_CYCLES_DATA = [
     description: 'Siklus Menu 6',
     items: [
       // Sarapan / Breakfast (PAGI)
-      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Baked Rice', description: 'Nasi yang disajikan dengan ayam fillet panggang yang dibaluri saus demi glace dan mix veggie' },
-      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Tim Daging Cincang', description: 'Nasi tim dengan isian tumis daging cincang dan telur rebus disajikan dengan kuah kaldu' },
-      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Ayam', description: 'Bubur nasi dengan isian ayam suwir dan telur rebus disajikan dengan kuah kaldu' },
-      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek' },
-      { mealTime: 'PAGI', paketName: 'Paket E', name: 'Cream Soup + Crouton', description: 'Soup creamy dengan isian sayuran dan smoked beef disajikan dengan roti panggang' },
+      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Baked Rice', description: 'Nasi yang disajikan dengan ayam fillet panggang yang dibaluri saus demi glace dan mix veggie', karbohidrat: 'Nasi Putih (Baked)', protein: 'Ayam Fillet Panggang', nabati: null, proteinTambahan: null, sayur: 'Mix Veggie' },
+      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Tim Daging Cincang', description: 'Nasi tim dengan isian tumis daging cincang dan telur rebus disajikan dengan kuah kaldu', karbohidrat: 'Nasi Tim', protein: 'Daging Cincang', nabati: null, proteinTambahan: 'Telur Rebus', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Ayam', description: 'Bubur nasi dengan isian ayam suwir dan telur rebus disajikan dengan kuah kaldu', karbohidrat: 'Bubur Nasi', protein: 'Ayam Suwir', nabati: null, proteinTambahan: 'Telur Rebus', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek', karbohidrat: 'Bubur Sumsum', protein: null, nabati: null, proteinTambahan: 'Telur Rebus / Telur Orek', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket E', name: 'Cream Soup + Crouton', description: 'Soup creamy dengan isian sayuran dan smoked beef disajikan dengan roti panggang', karbohidrat: 'Roti Panggang (Crouton)', protein: 'Smoked Beef', nabati: null, proteinTambahan: null, sayur: 'Mix Sayuran' },
       // Makan Siang / Lunch (SIANG)
-      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Fuyunghai', description: 'Disajikan dengan tempe teriyaki, sayur asem' },
-      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Chicken Funghi', description: 'Chicken roll isian keju dan jamur saus bbq disajikan dengan sayuran, nasi, french fries, mashed potato' },
-      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Misoa Kuah Baso', description: 'Misoa disajikan dengan bakso dan ayam suwir' },
+      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Fuyunghai', description: 'Disajikan dengan tempe teriyaki, sayur asem', karbohidrat: 'Nasi Putih', protein: null, nabati: 'Tempe Teriyaki', proteinTambahan: 'Fuyunghai (Telur Dadar Isi)', sayur: 'Sayur Asem' },
+      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Chicken Funghi', description: 'Chicken roll isian keju dan jamur saus bbq disajikan dengan sayuran, nasi, french fries, mashed potato', karbohidrat: 'Nasi / French Fries / Mashed Potato', protein: 'Chicken Roll (Keju, Jamur)', nabati: null, proteinTambahan: 'Keju', sayur: 'Mix Sayuran' },
+      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Misoa Kuah Baso', description: 'Misoa disajikan dengan bakso dan ayam suwir', karbohidrat: 'Misoa', protein: 'Bakso, Ayam Suwir', nabati: null, proteinTambahan: null, sayur: null },
       // Makan Sore / Dinner (SORE)
-      { mealTime: 'SORE', paketName: 'Paket A', name: 'Ayam Potong Kecap', description: 'Disajikan dengan bola-bola tahu panggang, tumis kimlo' },
-      { mealTime: 'SORE', paketName: 'Paket B', name: 'Semur Daging', description: 'Daging sapi dengan isian wortel kentang disajikan dengan nasi' },
-      { mealTime: 'SORE', paketName: 'Paket C', name: 'Mashed Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed' },
-      { mealTime: 'SORE', paketName: 'Paket D', name: 'Pangsit Seafood', description: 'Pangsit isi kuah udang disajikan dengan bihun, udang dan sayuran' },
+      { mealTime: 'SORE', paketName: 'Paket A', name: 'Ayam Potong Kecap', description: 'Disajikan dengan bola-bola tahu panggang, tumis kimlo', karbohidrat: 'Nasi Putih', protein: 'Ayam Potong Kecap', nabati: 'Bola-bola Tahu Panggang', proteinTambahan: null, sayur: 'Tumis Kimlo' },
+      { mealTime: 'SORE', paketName: 'Paket B', name: 'Semur Daging', description: 'Daging sapi dengan isian wortel kentang disajikan dengan nasi', karbohidrat: 'Nasi Putih', protein: 'Daging Sapi Semur', nabati: null, proteinTambahan: null, sayur: 'Wortel, Kentang' },
+      { mealTime: 'SORE', paketName: 'Paket C', name: 'Mashed Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed', karbohidrat: 'Mashed Potato', protein: 'Smoked Beef', nabati: null, proteinTambahan: 'Omelette (Telur, Keju, Susu)', sayur: null },
+      { mealTime: 'SORE', paketName: 'Paket D', name: 'Pangsit Seafood', description: 'Pangsit isi kuah udang disajikan dengan bihun, udang dan sayuran', karbohidrat: 'Pangsit, Bihun', protein: 'Udang', nabati: null, proteinTambahan: null, sayur: 'Mix Sayuran' },
     ],
   },
   {
@@ -133,20 +133,20 @@ const MENU_CYCLES_DATA = [
     description: 'Siklus Menu 7',
     items: [
       // Sarapan / Breakfast (PAGI)
-      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Nasi Aromatic', description: 'Nasi dengan rempah daun jeruk disajikan dengan tumis ayam, jamur' },
-      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Tim Aromatic', description: 'Nasi tim dengan rempah daun jeruk disajikan dengan sautee ayam' },
-      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Ayam', description: 'Bubur nasi dengan isian ayam suwir dan telur rebus disajikan dengan kuah kaldu' },
-      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek' },
-      { mealTime: 'PAGI', paketName: 'Paket E', name: 'Roti Oles + Telur Rebus', description: 'Roti panggang oles dengan telur orek/telur kukus' },
+      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Nasi Aromatic', description: 'Nasi dengan rempah daun jeruk disajikan dengan tumis ayam, jamur', karbohidrat: 'Nasi Aromatic', protein: 'Tumis Ayam', nabati: null, proteinTambahan: null, sayur: 'Jamur' },
+      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Tim Aromatic', description: 'Nasi tim dengan rempah daun jeruk disajikan dengan sautee ayam', karbohidrat: 'Nasi Tim Aromatic', protein: 'Sautee Ayam', nabati: null, proteinTambahan: null, sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Ayam', description: 'Bubur nasi dengan isian ayam suwir dan telur rebus disajikan dengan kuah kaldu', karbohidrat: 'Bubur Nasi', protein: 'Ayam Suwir', nabati: null, proteinTambahan: 'Telur Rebus', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek', karbohidrat: 'Bubur Sumsum', protein: null, nabati: null, proteinTambahan: 'Telur Rebus / Telur Orek', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket E', name: 'Roti Oles + Telur Rebus', description: 'Roti panggang oles dengan telur orek/telur kukus', karbohidrat: 'Roti Panggang', protein: null, nabati: null, proteinTambahan: 'Telur Orek / Telur Kukus', sayur: null },
       // Makan Siang / Lunch (SIANG)
-      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Beef Yakiniku', description: 'Disajikan dengan cah tahu, pakcoy garlic' },
-      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Curry Katsu', description: 'Ayam katsu dibaluri saus kari disajikan dengan nasi' },
-      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Spaghetti Carbonara', description: 'Spaghetti dengan saus carbonara' },
+      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Beef Yakiniku', description: 'Disajikan dengan cah tahu, pakcoy garlic', karbohidrat: 'Nasi Putih', protein: 'Beef Yakiniku', nabati: 'Cah Tahu', proteinTambahan: null, sayur: 'Pakcoy Garlic' },
+      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Curry Katsu', description: 'Ayam katsu dibaluri saus kari disajikan dengan nasi', karbohidrat: 'Nasi Putih', protein: 'Ayam Katsu Kari', nabati: null, proteinTambahan: null, sayur: null },
+      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Spaghetti Carbonara', description: 'Spaghetti dengan saus carbonara', karbohidrat: 'Spaghetti', protein: 'Smoked Beef (Carbonara)', nabati: null, proteinTambahan: 'Keju, Telur (Carbonara)', sayur: null },
       // Makan Sore / Dinner (SORE)
-      { mealTime: 'SORE', paketName: 'Paket A', name: 'Arsik Ikan', description: 'Disajikan dengan tempe bacem, sup sayur kuah kental' },
-      { mealTime: 'SORE', paketName: 'Paket B', name: 'Misoa Yamin Baso', description: 'Misoa dibaluri saus kecap dengan bakso dan ayam suwir' },
-      { mealTime: 'SORE', paketName: 'Paket C', name: 'Soto Lamongan', description: 'Soto kuning dengan isian tauge, ayam, telur disajikan dengan nasi' },
-      { mealTime: 'SORE', paketName: 'Paket D', name: 'Chicken Salsa', description: 'Chicken breast salsa sauce disajikan dengan nasi dan sayuran' },
+      { mealTime: 'SORE', paketName: 'Paket A', name: 'Arsik Ikan', description: 'Disajikan dengan tempe bacem, sup sayur kuah kental', karbohidrat: 'Nasi Putih', protein: 'Arsik Ikan', nabati: 'Tempe Bacem', proteinTambahan: null, sayur: 'Sup Sayur Kuah Kental' },
+      { mealTime: 'SORE', paketName: 'Paket B', name: 'Misoa Yamin Baso', description: 'Misoa dibaluri saus kecap dengan bakso dan ayam suwir', karbohidrat: 'Misoa', protein: 'Bakso, Ayam Suwir', nabati: null, proteinTambahan: null, sayur: null },
+      { mealTime: 'SORE', paketName: 'Paket C', name: 'Soto Lamongan', description: 'Soto kuning dengan isian tauge, ayam, telur disajikan dengan nasi', karbohidrat: 'Nasi Putih', protein: 'Ayam Suwir', nabati: null, proteinTambahan: 'Telur', sayur: 'Tauge' },
+      { mealTime: 'SORE', paketName: 'Paket D', name: 'Chicken Salsa', description: 'Chicken breast salsa sauce disajikan dengan nasi dan sayuran', karbohidrat: 'Nasi Putih', protein: 'Chicken Breast Salsa', nabati: null, proteinTambahan: null, sayur: 'Mix Sayuran' },
     ],
   },
   {
@@ -154,18 +154,18 @@ const MENU_CYCLES_DATA = [
     description: 'Siklus Menu 8',
     items: [
       // Sarapan / Breakfast (PAGI)
-      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Nasi Uduk', description: 'Cond: telur dadar iris, abon, tempe orek' },
-      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Tim Ayam', description: 'Nasi tim dengan isian ayam suwir dan telur rebus disajikan dengan kuah kaldu' },
-      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek' },
-      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Cream Soup + Crouton', description: 'Soup creamy dengan isian sayuran dan smoked beef disajikan dengan roti panggang' },
+      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Nasi Uduk', description: 'Cond: telur dadar iris, abon, tempe orek', karbohidrat: 'Nasi Uduk', protein: 'Abon', nabati: 'Tempe Orek', proteinTambahan: 'Telur Dadar Iris', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Tim Ayam', description: 'Nasi tim dengan isian ayam suwir dan telur rebus disajikan dengan kuah kaldu', karbohidrat: 'Nasi Tim', protein: 'Ayam Suwir', nabati: null, proteinTambahan: 'Telur Rebus', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek', karbohidrat: 'Bubur Sumsum', protein: null, nabati: null, proteinTambahan: 'Telur Rebus / Telur Orek', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Cream Soup + Crouton', description: 'Soup creamy dengan isian sayuran dan smoked beef disajikan dengan roti panggang', karbohidrat: 'Roti Panggang (Crouton)', protein: 'Smoked Beef', nabati: null, proteinTambahan: null, sayur: 'Mix Sayuran' },
       // Makan Siang / Lunch (SIANG)
-      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Ikan Tumis Wijen', description: 'Rolade tahu, bobor bayam' },
-      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Chicken Schnitzel', description: 'Disajikan dengan french fries, mashed potato, nasi' },
-      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Misoa Kuah Baso', description: 'Misoa disajikan dengan bakso dan ayam suwir' },
+      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Ikan Tumis Wijen', description: 'Rolade tahu, bobor bayam', karbohidrat: 'Nasi Putih', protein: 'Ikan Tumis Wijen', nabati: 'Rolade Tahu', proteinTambahan: null, sayur: 'Bobor Bayam' },
+      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Chicken Schnitzel', description: 'Disajikan dengan french fries, mashed potato, nasi', karbohidrat: 'Nasi / French Fries / Mashed Potato', protein: 'Chicken Schnitzel', nabati: null, proteinTambahan: null, sayur: null },
+      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Misoa Kuah Baso', description: 'Misoa disajikan dengan bakso dan ayam suwir', karbohidrat: 'Misoa', protein: 'Bakso, Ayam Suwir', nabati: null, proteinTambahan: null, sayur: null },
       // Makan Sore / Dinner (SORE)
-      { mealTime: 'SORE', paketName: 'Paket A', name: 'Dadar Telur', description: 'Tempe kecap, tumis labu siam, wortel' },
-      { mealTime: 'SORE', paketName: 'Paket B', name: 'Tomyum', description: 'Miesoa kuah tomyum disajikan dengan udang' },
-      { mealTime: 'SORE', paketName: 'Paket C', name: 'Mashed Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed' },
+      { mealTime: 'SORE', paketName: 'Paket A', name: 'Dadar Telur', description: 'Tempe kecap, tumis labu siam, wortel', karbohidrat: 'Nasi Putih', protein: null, nabati: 'Tempe Kecap', proteinTambahan: 'Dadar Telur', sayur: 'Tumis Labu Siam, Wortel' },
+      { mealTime: 'SORE', paketName: 'Paket B', name: 'Tomyum', description: 'Miesoa kuah tomyum disajikan dengan udang', karbohidrat: 'Miesoa', protein: 'Udang', nabati: null, proteinTambahan: null, sayur: 'Mix Sayuran (Tomyum)' },
+      { mealTime: 'SORE', paketName: 'Paket C', name: 'Mashed Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed', karbohidrat: 'Mashed Potato', protein: 'Smoked Beef', nabati: null, proteinTambahan: 'Omelette (Telur, Keju, Susu)', sayur: null },
     ],
   },
   {
@@ -173,19 +173,19 @@ const MENU_CYCLES_DATA = [
     description: 'Siklus Menu 9',
     items: [
       // Sarapan / Breakfast (PAGI)
-      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Nasi Kebuli', description: 'Nasi dengan isian daging cincang, kismis, bumbu rempah disajikan telur iris dan kerupuk palembang' },
-      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Tim Hainan', description: 'Nasi tim dengan isian ayam suwir dan telur rebus disajikan dengan kuah kaldu' },
-      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Nasi', description: 'Bubur nasi dengan isian ayam suwir dan telur rebus disajikan dengan kuah kaldu' },
-      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek' },
-      { mealTime: 'PAGI', paketName: 'Paket E', name: 'Cream Soup + Crouton', description: 'Soup creamy dengan isian sayuran dan smoked beef disajikan dengan roti panggang' },
+      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Nasi Kebuli', description: 'Nasi dengan isian daging cincang, kismis, bumbu rempah disajikan telur iris dan kerupuk palembang', karbohidrat: 'Nasi Kebuli', protein: 'Daging Cincang', nabati: null, proteinTambahan: 'Telur Iris', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Tim Hainan', description: 'Nasi tim dengan isian ayam suwir dan telur rebus disajikan dengan kuah kaldu', karbohidrat: 'Nasi Tim', protein: 'Ayam Suwir', nabati: null, proteinTambahan: 'Telur Rebus', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Nasi', description: 'Bubur nasi dengan isian ayam suwir dan telur rebus disajikan dengan kuah kaldu', karbohidrat: 'Bubur Nasi', protein: 'Ayam Suwir', nabati: null, proteinTambahan: 'Telur Rebus', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek', karbohidrat: 'Bubur Sumsum', protein: null, nabati: null, proteinTambahan: 'Telur Rebus / Telur Orek', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket E', name: 'Cream Soup + Crouton', description: 'Soup creamy dengan isian sayuran dan smoked beef disajikan dengan roti panggang', karbohidrat: 'Roti Panggang (Crouton)', protein: 'Smoked Beef', nabati: null, proteinTambahan: null, sayur: 'Mix Sayuran' },
       // Makan Siang / Lunch (SIANG)
-      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Rolade Ayam', description: 'Disajikan dengan sup tahu isi, tumis sayuran' },
-      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Fettucini with Mushroom Sauce', description: 'Fettucini dengan saus mushroom' },
-      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Mashed Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed' },
+      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Rolade Ayam', description: 'Disajikan dengan sup tahu isi, tumis sayuran', karbohidrat: 'Nasi Putih', protein: 'Rolade Ayam', nabati: 'Sup Tahu Isi', proteinTambahan: null, sayur: 'Tumis Sayuran' },
+      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Fettucini with Mushroom Sauce', description: 'Fettucini dengan saus mushroom', karbohidrat: 'Pasta Fettucini', protein: null, nabati: null, proteinTambahan: null, sayur: 'Jamur (Mushroom Sauce)' },
+      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Mashed Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed', karbohidrat: 'Mashed Potato', protein: 'Smoked Beef', nabati: null, proteinTambahan: 'Omelette (Telur, Keju, Susu)', sayur: null },
       // Makan Sore / Dinner (SORE)
-      { mealTime: 'SORE', paketName: 'Paket A', name: 'Telur Kukus', description: 'Disajikan dengan tempe bistik, sayur lodeh' },
-      { mealTime: 'SORE', paketName: 'Paket B', name: 'Cumi Tahu Xiao', description: 'Cumi ditumis dengan tahu, ikan dengan saus xiao disajikan dengan nasi' },
-      { mealTime: 'SORE', paketName: 'Paket C', name: 'Misoa Yamin Baso', description: 'Misoa dibaluri saus kecap dengan bakso dan ayam suwir' },
+      { mealTime: 'SORE', paketName: 'Paket A', name: 'Telur Kukus', description: 'Disajikan dengan tempe bistik, sayur lodeh', karbohidrat: 'Nasi Putih', protein: null, nabati: 'Tempe Bistik', proteinTambahan: 'Telur Kukus', sayur: 'Sayur Lodeh' },
+      { mealTime: 'SORE', paketName: 'Paket B', name: 'Cumi Tahu Xiao', description: 'Cumi ditumis dengan tahu, ikan dengan saus xiao disajikan dengan nasi', karbohidrat: 'Nasi Putih', protein: 'Cumi, Ikan Saus Xiao', nabati: 'Tahu', proteinTambahan: null, sayur: null },
+      { mealTime: 'SORE', paketName: 'Paket C', name: 'Misoa Yamin Baso', description: 'Misoa dibaluri saus kecap dengan bakso dan ayam suwir', karbohidrat: 'Misoa', protein: 'Bakso, Ayam Suwir', nabati: null, proteinTambahan: null, sayur: null },
     ],
   },
   {
@@ -193,17 +193,17 @@ const MENU_CYCLES_DATA = [
     description: 'Siklus Menu 10',
     items: [
       // Sarapan / Breakfast (PAGI)
-      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Butter Rice + Beef Stroganoff', description: 'Daging sapi dibaluri dengan brown sauce dan jamur kancing disajikan dengan nasi' },
-      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Tim Daging Cincang', description: 'Nasi tim dengan isian tumis daging cincang dan telur rebus disajikan dengan kuah kaldu' },
-      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek' },
+      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Butter Rice + Beef Stroganoff', description: 'Daging sapi dibaluri dengan brown sauce dan jamur kancing disajikan dengan nasi', karbohidrat: 'Butter Rice', protein: 'Beef Stroganoff', nabati: null, proteinTambahan: null, sayur: 'Jamur Kancing' },
+      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Tim Daging Cincang', description: 'Nasi tim dengan isian tumis daging cincang dan telur rebus disajikan dengan kuah kaldu', karbohidrat: 'Nasi Tim', protein: 'Daging Cincang', nabati: null, proteinTambahan: 'Telur Rebus', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek', karbohidrat: 'Bubur Sumsum', protein: null, nabati: null, proteinTambahan: 'Telur Rebus / Telur Orek', sayur: null },
       // Makan Siang / Lunch (SIANG)
-      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Ayam Garang Asem', description: 'Disajikan dengan sate tempe, tumis kimlo' },
-      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Chicken Schewan', description: 'Ayam fillet dibaluri saus schezwan disajikan dengan nasi dan sayuran' },
-      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Misoa Kuah Baso', description: 'Misoa disajikan dengan bakso dan ayam suwir' },
+      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Ayam Garang Asem', description: 'Disajikan dengan sate tempe, tumis kimlo', karbohidrat: 'Nasi Putih', protein: 'Ayam Garang Asem', nabati: 'Sate Tempe', proteinTambahan: null, sayur: 'Tumis Kimlo' },
+      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Chicken Schewan', description: 'Ayam fillet dibaluri saus schezwan disajikan dengan nasi dan sayuran', karbohidrat: 'Nasi Putih', protein: 'Chicken Fillet Schezwan', nabati: null, proteinTambahan: null, sayur: 'Mix Sayuran' },
+      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Misoa Kuah Baso', description: 'Misoa disajikan dengan bakso dan ayam suwir', karbohidrat: 'Misoa', protein: 'Bakso, Ayam Suwir', nabati: null, proteinTambahan: null, sayur: null },
       // Makan Sore / Dinner (SORE)
-      { mealTime: 'SORE', paketName: 'Paket A', name: 'Dori Krispi with SC', description: 'Disajikan dengan loaf tahu, sup bening bayam jagung manis' },
-      { mealTime: 'SORE', paketName: 'Paket B', name: 'Pasta Pesto', description: 'Pasta dibaluri dengan bumbu pesto dan disajikan dengan ayam panggang' },
-      { mealTime: 'SORE', paketName: 'Paket C', name: 'Mashed Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed' },
+      { mealTime: 'SORE', paketName: 'Paket A', name: 'Dori Krispi with SC', description: 'Disajikan dengan loaf tahu, sup bening bayam jagung manis', karbohidrat: 'Nasi Putih', protein: 'Ikan Dori Krispi', nabati: 'Loaf Tahu', proteinTambahan: null, sayur: 'Sup Bening Bayam, Jagung Manis' },
+      { mealTime: 'SORE', paketName: 'Paket B', name: 'Pasta Pesto', description: 'Pasta dibaluri dengan bumbu pesto dan disajikan dengan ayam panggang', karbohidrat: 'Pasta Pesto', protein: 'Ayam Panggang', nabati: null, proteinTambahan: null, sayur: null },
+      { mealTime: 'SORE', paketName: 'Paket C', name: 'Mashed Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed', karbohidrat: 'Mashed Potato', protein: 'Smoked Beef', nabati: null, proteinTambahan: 'Omelette (Telur, Keju, Susu)', sayur: null },
     ],
   },
   {
@@ -211,30 +211,35 @@ const MENU_CYCLES_DATA = [
     description: 'Siklus Menu 11 (Khusus Tanggal 31)',
     items: [
       // Sarapan / Breakfast (PAGI)
-      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Soto Ayam', description: 'Soto kuning dengan isian ayam, tauge, soun yang disajikan dengan nasi' },
-      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek' },
-      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Oatmeal Banana Raisin', description: 'Bubur oatmeal disajikan dengan potongan pisang dan raisin' },
-      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Roti Oles + Telur Rebus', description: 'Roti panggang oles dengan telur orek/telur kukus' },
+      { mealTime: 'PAGI', paketName: 'Paket A', name: 'Soto Ayam', description: 'Soto kuning dengan isian ayam, tauge, soun yang disajikan dengan nasi', karbohidrat: 'Nasi Putih', protein: 'Ayam Suwir', nabati: null, proteinTambahan: null, sayur: 'Tauge, Soun' },
+      { mealTime: 'PAGI', paketName: 'Paket B', name: 'Bubur Sumsum', description: 'Bubur sumsum dengan kinca disajikan dengan telur rebus/telur orek', karbohidrat: 'Bubur Sumsum', protein: null, nabati: null, proteinTambahan: 'Telur Rebus / Telur Orek', sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket C', name: 'Oatmeal Banana Raisin', description: 'Bubur oatmeal disajikan dengan potongan pisang dan raisin', karbohidrat: 'Oatmeal', protein: null, nabati: null, proteinTambahan: null, sayur: null },
+      { mealTime: 'PAGI', paketName: 'Paket D', name: 'Roti Oles + Telur Rebus', description: 'Roti panggang oles dengan telur orek/telur kukus', karbohidrat: 'Roti Panggang', protein: null, nabati: null, proteinTambahan: 'Telur Orek / Telur Kukus', sayur: null },
       // Makan Siang / Lunch (SIANG)
-      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Dori Bumbu Woku', description: 'Disajikan dengan tempe kemangi, capcay' },
-      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Mashed Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed' },
-      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Kebab', description: 'Kulit kebab dengan isian ayam fillet, mix veggie, mayonaisse' },
+      { mealTime: 'SIANG', paketName: 'Paket A', name: 'Dori Bumbu Woku', description: 'Disajikan dengan tempe kemangi, capcay', karbohidrat: 'Nasi Putih', protein: 'Ikan Dori Bumbu Woku', nabati: 'Tempe Kemangi', proteinTambahan: null, sayur: 'Capcay' },
+      { mealTime: 'SIANG', paketName: 'Paket B', name: 'Mashed Omelette', description: 'Telur dengan isian smoked beef, keju, susu yang disajikan dengan kentang mashed', karbohidrat: 'Mashed Potato', protein: 'Smoked Beef', nabati: null, proteinTambahan: 'Omelette (Telur, Keju, Susu)', sayur: null },
+      { mealTime: 'SIANG', paketName: 'Paket C', name: 'Kebab', description: 'Kulit kebab dengan isian ayam fillet, mix veggie, mayonaisse', karbohidrat: 'Kulit Kebab (Roti)', protein: 'Ayam Fillet', nabati: null, proteinTambahan: null, sayur: 'Mix Veggie' },
       // Makan Sore / Dinner (SORE)
-      { mealTime: 'SORE', paketName: 'Paket A', name: 'Ayam Cah Jamur Kancing', description: 'Disajikan dengan tahu bumbu kari (kuah), sup baso mutiara' },
-      { mealTime: 'SORE', paketName: 'Paket B', name: 'Shrimp Noodle Soup', description: 'Mie dengan isian udang dan sayuran' },
-      { mealTime: 'SORE', paketName: 'Paket C', name: 'Misoa Yamin Baso', description: 'Misoa dibaluri saus kecap dengan bakso dan ayam suwir' },
+      { mealTime: 'SORE', paketName: 'Paket A', name: 'Ayam Cah Jamur Kancing', description: 'Disajikan dengan tahu bumbu kari (kuah), sup baso mutiara', karbohidrat: 'Nasi Putih', protein: 'Ayam Cah Jamur', nabati: 'Tahu Bumbu Kari', proteinTambahan: 'Baso Mutiara', sayur: 'Jamur Kancing' },
+      { mealTime: 'SORE', paketName: 'Paket B', name: 'Shrimp Noodle Soup', description: 'Mie dengan isian udang dan sayuran', karbohidrat: 'Mie', protein: 'Udang', nabati: null, proteinTambahan: null, sayur: 'Mix Sayuran' },
+      { mealTime: 'SORE', paketName: 'Paket C', name: 'Misoa Yamin Baso', description: 'Misoa dibaluri saus kecap dengan bakso dan ayam suwir', karbohidrat: 'Misoa', protein: 'Bakso, Ayam Suwir', nabati: null, proteinTambahan: null, sayur: null },
     ],
   },
 ];
 
 async function main() {
-  console.log('🚀 Memulai proses seeding database Menu Gizi...\n');
+  console.log('ðŸš€ Memulai proses seeding database Menu Gizi...\n');
 
   // 1. Pastikan kolom description pada MenuItem ada di PostgreSQL & izin akses Supabase diberikan
   try {
     await pool.query('ALTER TABLE "MenuItem" ADD COLUMN IF NOT EXISTS "description" TEXT;');
+    await pool.query('ALTER TABLE "MenuItem" ADD COLUMN IF NOT EXISTS "karbohidrat" TEXT;');
+    await pool.query('ALTER TABLE "MenuItem" ADD COLUMN IF NOT EXISTS "protein" TEXT;');
+    await pool.query('ALTER TABLE "MenuItem" ADD COLUMN IF NOT EXISTS "nabati" TEXT;');
+    await pool.query('ALTER TABLE "MenuItem" ADD COLUMN IF NOT EXISTS "proteinTambahan" TEXT;');
+    await pool.query('ALTER TABLE "MenuItem" ADD COLUMN IF NOT EXISTS "sayur" TEXT;');
 
-    // ─── SECURITY FIX: Minimal privilege grants (no more GRANT ALL to anon) ───
+    // â”€â”€â”€ SECURITY FIX: Minimal privilege grants (no more GRANT ALL to anon) â”€â”€â”€
     // Revoke previous overly-permissive grants first
     await pool.query('REVOKE ALL ON ALL TABLES IN SCHEMA public FROM anon, authenticated;');
     await pool.query('REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM anon, authenticated;');
@@ -252,9 +257,9 @@ async function main() {
     await pool.query('GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;');
     await pool.query('GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO service_role;');
 
-    console.log('✅ Verifikasi struktur tabel & izin akses Supabase berhasil (minimal privileges).');
+    console.log('âœ… Verifikasi struktur tabel & izin akses Supabase berhasil (minimal privileges).');
   } catch (err) {
-    console.warn('⚠️ Catatan DDL / Permissions check:', err.message);
+    console.warn('âš ï¸ Catatan DDL / Permissions check:', err.message);
   }
 
   // 2. Seeding Patient Master Data (Testing / Dummy)
@@ -367,7 +372,7 @@ async function main() {
       create: p,
     });
     seededPatients[p.rmNumber] = patientRecord;
-    console.log(`✅ Seeded Patient: ${patientRecord.name} (${patientRecord.rmNumber}) - Kamar: ${patientRecord.roomName}`);
+    console.log(`âœ… Seeded Patient: ${patientRecord.name} (${patientRecord.rmNumber}) - Kamar: ${patientRecord.roomName}`);
   }
 
   // 3. Seeding Menu Cycles & Menu Items
@@ -397,11 +402,16 @@ async function main() {
           paketName: item.paketName,
           name: item.name,
           description: item.description,
+          karbohidrat: item.karbohidrat || null,
+          protein: item.protein || null,
+          nabati: item.nabati || null,
+          proteinTambahan: item.proteinTambahan || null,
+          sayur: item.sayur || null,
         })),
       });
       totalItemsSeeded += created.count;
     } else {
-      console.log(`📦 [Siklus ${id}] ${description} -> (0 menu item / data kosong).`);
+      console.log(`ðŸ“¦ [Siklus ${id}] ${description} -> (0 menu item / data kosong).`);
     }
   }
 
@@ -555,7 +565,7 @@ async function main() {
     }
 
     // -----------------------------------------------------------------
-    // 2. Budi Santoso (VIP C / Kelas 1) [🔴 Alergi: Seafood, Udang]
+    // 2. Budi Santoso (VIP C / Kelas 1) [ðŸ”´ Alergi: Seafood, Udang]
     // -----------------------------------------------------------------
     if (p2) {
       const code = `ORD-${dateCode}-002`;
@@ -624,7 +634,7 @@ async function main() {
     }
 
     // -----------------------------------------------------------------
-    // 3. Siti Aminah (VIP B) [🔴 Alergi: Telur, Susu Sapi]
+    // 3. Siti Aminah (VIP B) [ðŸ”´ Alergi: Telur, Susu Sapi]
     // -----------------------------------------------------------------
     if (p3) {
       const code = `ORD-${dateCode}-003`;
@@ -708,7 +718,7 @@ async function main() {
     }
 
     // -----------------------------------------------------------------
-    // 4. Dewi Lestari (EDELWEISS SUITE 01) [🔴 Alergi: Kacang Tanah]
+    // 4. Dewi Lestari (EDELWEISS SUITE 01) [ðŸ”´ Alergi: Kacang Tanah]
     // -----------------------------------------------------------------
     if (p4) {
       const code = `ORD-${dateCode}-004`;
@@ -930,7 +940,7 @@ async function main() {
     }
 
     // -----------------------------------------------------------------
-    // 7. Agus Gunawan (Kelas 3) [🔴 Alergi: Daging Ayam]
+    // 7. Agus Gunawan (Kelas 3) [ðŸ”´ Alergi: Daging Ayam]
     // -----------------------------------------------------------------
     if (p7) {
       const code = `ORD-${dateCode}-007`;
@@ -1016,20 +1026,21 @@ async function main() {
   const pad = (n) => String(n).padStart(2, '0');
   const formatLocal = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
-  console.log(`\n📋 SEEDED ORDERS UNTUK 2 TANGGAL OPERASIONAL:`);
-  console.log(`   📅 PENYAJIAN HARI INI (${formatLocal(dateToday)}) [SIKLUS 9 - Dipesan Kemarin ${formatLocal(dateYesterday)}]: ${todayOrders.length} item pesanan (7 Pasien)`);
-  console.log(`   📅 PENYAJIAN BESOK / T+1 (${formatLocal(dateTomorrow)}) [SIKLUS 10 - Dipesan Hari Ini ${formatLocal(dateToday)}]: ${tomorrowOrders.length} item pesanan (7 Pasien)`);
-  console.log(`   ✨ Termasuk variasi Kelas VIP A/B/C/Suite/Kelas 1-3, Pasien Alergi & Catatan Khusus.`);
+  console.log(`\nðŸ“‹ SEEDED ORDERS UNTUK 2 TANGGAL OPERASIONAL:`);
+  console.log(`   ðŸ“… PENYAJIAN HARI INI (${formatLocal(dateToday)}) [SIKLUS 9 - Dipesan Kemarin ${formatLocal(dateYesterday)}]: ${todayOrders.length} item pesanan (7 Pasien)`);
+  console.log(`   ðŸ“… PENYAJIAN BESOK / T+1 (${formatLocal(dateTomorrow)}) [SIKLUS 10 - Dipesan Hari Ini ${formatLocal(dateToday)}]: ${tomorrowOrders.length} item pesanan (7 Pasien)`);
+  console.log(`   âœ¨ Termasuk variasi Kelas VIP A/B/C/Suite/Kelas 1-3, Pasien Alergi & Catatan Khusus.`);
 
-  console.log(`\n🎉 SEEDING SELESAI! Total ${MENU_CYCLES_DATA.length} Siklus, ${totalItemsSeeded} Menu Item, dan ${allOrdersToSeed.length} item pesanan berhasil disimpan.`);
+  console.log(`\nðŸŽ‰ SEEDING SELESAI! Total ${MENU_CYCLES_DATA.length} Siklus, ${totalItemsSeeded} Menu Item, dan ${allOrdersToSeed.length} item pesanan berhasil disimpan.`);
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Error saat seeding:', e);
+    console.error('âŒ Error saat seeding:', e);
     process.exit(1);
   })
   .finally(async () => {
     await prisma.$disconnect();
     await pool.end();
   });
+

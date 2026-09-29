@@ -47,6 +47,11 @@ export default function MenuCycle() {
     paketName: 'Paket A',
     name: '',
     description: '',
+    karbohidrat: '',
+    protein: '',
+    nabati: '',
+    proteinTambahan: '',
+    sayur: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -90,6 +95,11 @@ export default function MenuCycle() {
       paketName: `Paket ${nextLetter}`,
       name: '',
       description: '',
+      karbohidrat: '',
+      protein: '',
+      nabati: '',
+      proteinTambahan: '',
+      sayur: '',
     });
     setIsAddModalOpen(true);
   };
@@ -101,6 +111,11 @@ export default function MenuCycle() {
       paketName: item.paketName || 'Paket A',
       name: item.name || '',
       description: item.description || '',
+      karbohidrat: item.karbohidrat || '',
+      protein: item.protein || '',
+      nabati: item.nabati || '',
+      proteinTambahan: item.proteinTambahan || '',
+      sayur: item.sayur || '',
     });
     setIsEditModalOpen(true);
   };
@@ -134,6 +149,11 @@ export default function MenuCycle() {
         paketName: (sanitized.paketName || formData.paketName).trim(),
         name: sanitized.name.trim(),
         description: (sanitized.description || '').trim(),
+        karbohidrat: sanitized.karbohidrat || null,
+        protein: sanitized.protein || null,
+        nabati: sanitized.nabati || null,
+        proteinTambahan: sanitized.proteinTambahan || null,
+        sayur: sanitized.sayur || null,
       });
       toast.success('Menu baru berhasil ditambahkan!');
       setIsAddModalOpen(false);
@@ -163,6 +183,11 @@ export default function MenuCycle() {
         paketName: (sanitized.paketName || formData.paketName).trim(),
         name: sanitized.name.trim(),
         description: (sanitized.description || '').trim(),
+        karbohidrat: sanitized.karbohidrat || null,
+        protein: sanitized.protein || null,
+        nabati: sanitized.nabati || null,
+        proteinTambahan: sanitized.proteinTambahan || null,
+        sayur: sanitized.sayur || null,
       });
       toast.success('Perubahan menu berhasil disimpan!');
       setIsEditModalOpen(false);
@@ -446,8 +471,46 @@ export default function MenuCycle() {
             placeholder="cth: Disajikan dengan telur bumbu semur, bihun goreng, sambal"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            rows={3}
+            rows={2}
           />
+
+          {/* ── Kolom Gizi ── */}
+          <div className="pt-1 border-t border-neutral-100 space-y-3">
+            <p className="text-xs font-bold text-neutral-500 flex items-center gap-1.5">
+              <span>Komponen Gizi</span>
+              <span className="text-[10px] font-normal text-neutral-400">(opsional)</span>
+            </p>
+            <Input
+              label="Karbohidrat"
+              placeholder="cth: Nasi Putih, Bubur, Roti"
+              value={formData.karbohidrat}
+              onChange={(e) => setFormData({ ...formData, karbohidrat: e.target.value })}
+            />
+            <Input
+              label="Protein"
+              placeholder="cth: Ayam Goreng, Ikan Dori"
+              value={formData.protein}
+              onChange={(e) => setFormData({ ...formData, protein: e.target.value })}
+            />
+            <Input
+              label="Nabati"
+              placeholder="cth: Tempe Bacem, Tahu Goreng"
+              value={formData.nabati}
+              onChange={(e) => setFormData({ ...formData, nabati: e.target.value })}
+            />
+            <Input
+              label="Protein Tambahan"
+              placeholder="cth: Telur Rebus, Keju"
+              value={formData.proteinTambahan}
+              onChange={(e) => setFormData({ ...formData, proteinTambahan: e.target.value })}
+            />
+            <Input
+              label="Sayur"
+              placeholder="cth: Tumis Kangkung, Sop Wortel"
+              value={formData.sayur}
+              onChange={(e) => setFormData({ ...formData, sayur: e.target.value })}
+            />
+          </div>
 
           <div className="pt-3 flex items-center justify-end gap-2 border-t border-neutral-100">
             <Button
@@ -506,8 +569,46 @@ export default function MenuCycle() {
             placeholder="cth: Disajikan dengan telur bumbu semur, bihun goreng"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            rows={3}
+            rows={2}
           />
+
+          {/* ── Kolom Gizi ── */}
+          <div className="pt-1 border-t border-neutral-100 space-y-3">
+            <p className="text-xs font-bold text-neutral-500 flex items-center gap-1.5">
+              <span>Komponen Gizi</span>
+              <span className="text-[10px] font-normal text-neutral-400">(opsional)</span>
+            </p>
+            <Input
+              label="Karbohidrat"
+              placeholder="cth: Nasi Putih, Bubur, Roti"
+              value={formData.karbohidrat}
+              onChange={(e) => setFormData({ ...formData, karbohidrat: e.target.value })}
+            />
+            <Input
+              label="Protein"
+              placeholder="cth: Ayam Goreng, Ikan Dori"
+              value={formData.protein}
+              onChange={(e) => setFormData({ ...formData, protein: e.target.value })}
+            />
+            <Input
+              label="Nabati"
+              placeholder="cth: Tempe Bacem, Tahu Goreng"
+              value={formData.nabati}
+              onChange={(e) => setFormData({ ...formData, nabati: e.target.value })}
+            />
+            <Input
+              label="Protein Tambahan"
+              placeholder="cth: Telur Rebus, Keju"
+              value={formData.proteinTambahan}
+              onChange={(e) => setFormData({ ...formData, proteinTambahan: e.target.value })}
+            />
+            <Input
+              label="Sayur"
+              placeholder="cth: Tumis Kangkung, Sop Wortel"
+              value={formData.sayur}
+              onChange={(e) => setFormData({ ...formData, sayur: e.target.value })}
+            />
+          </div>
 
           <div className="pt-3 flex items-center justify-end gap-2 border-t border-neutral-100">
             <Button
