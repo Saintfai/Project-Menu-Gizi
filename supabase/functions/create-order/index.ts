@@ -1,4 +1,6 @@
+// @ts-ignore
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+// @ts-ignore
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.8";
 
 /**
@@ -52,7 +54,7 @@ function sanitizeString(str: unknown, maxLen = 300): string | null {
   return cleaned ? cleaned.slice(0, maxLen) : null;
 }
 
-serve(async (req) => {
+serve(async (req: any) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { status: 200, headers: CORS_HEADERS });
@@ -66,7 +68,9 @@ serve(async (req) => {
   }
 
   try {
+    // @ts-ignore
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    // @ts-ignore
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -259,6 +263,7 @@ serve(async (req) => {
         type: item.type === "EXCLUDE" ? "EXCLUDE" : "INCLUDE",
         consumer: item.consumer === "PENDAMPING" ? "PENDAMPING" : "PASIEN",
         notes: sanitizedNote,
+        bentukMakanan: item.bentukMakanan || null,
       };
     });
 

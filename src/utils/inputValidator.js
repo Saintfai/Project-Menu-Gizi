@@ -67,7 +67,7 @@ export function validateMenuItemFields(fields) {
   }
 
   // ── 5 Kolom Gizi (semua opsional) ────────────────────────────────────
-  const nutrisiFields = ['karbohidrat', 'protein', 'nabati', 'proteinTambahan', 'sayur'];
+  const nutrisiFields = ['karbohidrat', 'protein', 'nabati', 'proteinTambahan', 'sayur', 'bentukMakanan'];
   for (const field of nutrisiFields) {
     if (fields[field] && fields[field].trim() !== '') {
       sanitized[field] = sanitizeText(fields[field], 200);
