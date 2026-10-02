@@ -27,6 +27,7 @@ import AdminLogin from './pages/Admin/Login';
 import AdminDashboard from './pages/Admin/Dashboard';
 import MenuCycle from './pages/Admin/MenuCycle';
 import Statistics from './pages/Admin/Statistics';
+import Chef from './pages/Admin/Chef';
 
 
 import ComponentsShowcase from './pages/ComponentsShowcase';
@@ -61,6 +62,7 @@ function App() {
                   <Route path="siklus" element={<MenuCycle />} />
                   <Route path="menu-cycle" element={<Navigate to="/menu/admin/siklus" replace />} />
                   <Route path="statistik" element={<Statistics />} />
+                  <Route path="chef" element={<Chef />} />
                   <Route path="statistics" element={<Navigate to="/menu/admin/statistik" replace />} />
                   <Route path="laporan" element={<Navigate to="/menu/admin/statistik" replace />} />
                 </Route>
