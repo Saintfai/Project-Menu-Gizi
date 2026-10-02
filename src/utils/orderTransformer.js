@@ -22,6 +22,10 @@ export function formatMealColumn(items = []) {
     group.forEach(item => {
       const rawName = item.menuName || item.name || item.paketName || 'Menu';
       const name = typeof rawName === 'string' ? rawName.trim() : rawName;
+      let name = item.paketName || item.menuName || 'Menu';
+      if (item.bentukMakanan) {
+        name = `${name} (${item.bentukMakanan})`;
+      }
       counts[name] = (counts[name] || 0) + (item.quantity || 1);
     });
 
@@ -81,7 +85,7 @@ export function hasRealAllergy(allergies) {
 export function groupOrdersForTable(rawOrders = []) {
   if (!rawOrders || rawOrders.length === 0) return [];
 
-  
+
   const grouped = {};
 
   rawOrders.forEach(order => {
@@ -130,6 +134,10 @@ export function groupOrdersForTable(rawOrders = []) {
     const makanSiang = formatMealColumn(group.itemsSiang);
     const makanSore = formatMealColumn(group.itemsSore);
 
+    const allItems = [...group.itemsPagi, ...group.itemsSiang, ...group.itemsSore];
+    const bentukSet = new Set(allItems.map(i => i.bentukMakanan).filter(Boolean));
+    const bentukMakananText = bentukSet.size > 0 ? Array.from(bentukSet).join(', ') : '-';
+
     return {
       id: group.id,
       orderCode: group.orderCode,
@@ -145,6 +153,7 @@ export function groupOrdersForTable(rawOrders = []) {
       makanMalam: makanSore, // alias for backwards compatibility
       tanggalWaktuPengantaran: tanggalBesokStr,
       tanggalBesok: tanggalBesokStr,
+      bentukMakananText,
       hasCatatan: group.hasCatatan,
       catatan: group.notes,
       notes: group.notes,
