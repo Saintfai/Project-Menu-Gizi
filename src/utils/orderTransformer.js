@@ -22,7 +22,7 @@ export function formatMealColumn(items = []) {
     group.forEach(item => {
       const rawName = item.menuName || item.name || item.paketName || 'Menu';
       let name = typeof rawName === 'string' ? rawName.trim() : rawName;
-      if (item.bentukMakanan) {
+      if (item.bentukMakanan && item.bentukMakanan.toLowerCase() !== 'biasa') {
         name = `${name} (${item.bentukMakanan})`;
       }
       counts[name] = (counts[name] || 0) + (item.quantity || 1);
@@ -134,7 +134,11 @@ export function groupOrdersForTable(rawOrders = []) {
     const makanSore = formatMealColumn(group.itemsSore);
 
     const allItems = [...group.itemsPagi, ...group.itemsSiang, ...group.itemsSore];
-    const bentukSet = new Set(allItems.map(i => i.bentukMakanan).filter(Boolean));
+    const bentukSet = new Set(
+      allItems
+        .map(i => i.bentukMakanan)
+        .filter(b => b && b.toLowerCase() !== 'biasa')
+    );
     const bentukMakananText = bentukSet.size > 0 ? Array.from(bentukSet).join(', ') : '-';
 
     return {

@@ -96,3 +96,34 @@ export async function createOrders(orderItems) {
   return result.orders || result;
 }
 
+/**
+ * Menghasilkan pesanan default Paket A secara otomatis untuk seluruh pasien non-VIP (roomClass = 'Kelas')
+ * untuk jadwal penyajian esok hari (T+1).
+ * 
+ * Dipanggil secara otomatis di level aplikasi ketika Admin Dapur membuka Dashboard setelah jam 15:00 WIB.
+ * 
+ * @returns {Promise<{ success: boolean, generatedOrdersCount: number, message: string }>}
+ */
+export async function autoGenerateOrdersForKelas() {
+  const response = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auto-generate-orders`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({}),
+    }
+  );
+
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(result.error || 'Gagal membuat pesanan otomatis untuk pasien Kelas.');
+  }
+
+  return result;
+}
+
