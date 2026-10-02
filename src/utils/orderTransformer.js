@@ -140,6 +140,7 @@ export function groupOrdersForTable(rawOrders = []) {
         .filter(b => b && b.toLowerCase() !== 'biasa')
     );
     const bentukMakananText = bentukSet.size > 0 ? Array.from(bentukSet).join(', ') : '-';
+    const groupHasCatatan = allItems.some(i => Boolean(i.notes || i.catatan)) || group.hasAllergy;
 
     return {
       id: group.id,
@@ -157,7 +158,7 @@ export function groupOrdersForTable(rawOrders = []) {
       tanggalWaktuPengantaran: tanggalBesokStr,
       tanggalBesok: tanggalBesokStr,
       bentukMakananText,
-      hasCatatan: group.hasCatatan,
+      hasCatatan: groupHasCatatan,
       catatan: group.notes,
       notes: group.notes,
       menuPagiText: makanPagi,
