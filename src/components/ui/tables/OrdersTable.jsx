@@ -16,15 +16,15 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
     if (mealStr.includes('|')) {
       const [includePart, excludePart] = mealStr.split('|').map((s) => s.trim());
       return (
-        <div className="flex items-center gap-1.5 flex-wrap">
+        <div className="flex flex-wrap items-center gap-1.5">
           {includePart && (
             <span className={includePart === '-' ? 'text-neutral-400 font-normal' : 'font-semibold text-primary-700'}>
               {includePart}
+              <span className="text-neutral-300 font-bold ml-1.5">|</span>
             </span>
           )}
-          <span className="text-neutral-300 font-bold px-0.5">|</span>
           {excludePart && (
-            <span className="font-semibold text-success-700 bg-success-50 px-1.5 py-0.5 rounded text-[11px] border border-success-200/60">
+            <span className="font-semibold text-success-700 bg-success-50 px-1.5 py-0.5 rounded text-[11px] border border-success-200/60 inline-block">
               {excludePart}
             </span>
           )}
@@ -70,7 +70,7 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
                     <td className="px-4 py-4 text-xs font-semibold text-primary-700">
                       {displayRm}
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-4 min-w-[140px] max-w-[180px] whitespace-normal">
                       <div className="flex items-center gap-1.5 font-semibold text-neutral-900">
                         {row.hasAllergy && (
                           <div className="w-4 h-4 rounded-full bg-danger-100 flex items-center justify-center flex-shrink-0" title={row.allergyNote || 'Riwayat Alergi'}>
@@ -83,24 +83,24 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
                     <td className="px-4 py-4 text-xs font-medium text-neutral-600">
                       {row.kamar}
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-4 min-w-[120px] max-w-[160px] whitespace-normal">
                       <div className="text-xs">
                         {renderMealCell(row.makanPagi)}
                       </div>
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-4 min-w-[120px] max-w-[160px] whitespace-normal">
                       <div className="text-xs">
                         {renderMealCell(row.makanSiang)}
                       </div>
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-4 min-w-[120px] max-w-[160px] whitespace-normal">
                       <div className="text-xs">
                         {renderMealCell(row.makanSore || row.makanMalam)}
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <div className="flex justify-center font-semibold text-xs text-neutral-800">
-                        <span>{row.bentukMakananText || '-'}</span>
+                      <div className="flex justify-center font-semibold text-xs text-neutral-400">
+                        <span>-</span>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-center">
