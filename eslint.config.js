@@ -23,6 +23,10 @@ export default defineConfig([
     rules: {
       'react-hooks/set-state-in-effect': 'off',
       'no-unused-vars': ['error', { varsIgnorePattern: '^React$', argsIgnorePattern: '^_' }],
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true, allowExportNames: ['useAuth', 'useCart', 'usePatient'] },
+      ],
     },
   },
 ])

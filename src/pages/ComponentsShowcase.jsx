@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Button from '../components/ui/buttons/Button';
 import Alert from '../components/ui/feedback/Alert';
 import SearchBar from '../components/ui/forms/SearchBar';
@@ -14,7 +14,6 @@ import RekapCard from '../components/ui/cards/RekapCard';
 import OrdersTable from '../components/ui/tables/OrdersTable';
 import Tabs from '../components/ui/navigation/Tabs';
 import DateTimeDisplay from '../components/ui/data-display/DateTimeDisplay';
-import NoteDetailModal from '../components/ui/modals/NoteDetailModal';
 import NoteDetailContent from '../components/ui/modals/NoteDetailContent';
 import ConfirmDeliveryContent from '../components/ui/modals/ConfirmDeliveryContent';
 import EditPackageContent from '../components/ui/modals/EditPackageContent';

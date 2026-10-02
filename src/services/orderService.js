@@ -1,5 +1,4 @@
 import { supabase } from '../utils/supabase';
-import { sanitizeText } from '../utils/inputValidator';
 
 
 /**

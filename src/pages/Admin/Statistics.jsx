@@ -6,9 +6,7 @@ import {
   RefreshCw, 
   ChevronDown,
   Utensils,
-  BarChart2,
-  Calendar,
-  FileText
+  BarChart2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getOrders } from '../../services/orderService';

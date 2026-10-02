@@ -10,8 +10,7 @@ import {
   Pencil, 
   Trash2, 
   AlertCircle, 
-  Loader2,
-  Sparkles
+  Loader2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getMenuCycleByDate } from '../../utils/cycleHelper';

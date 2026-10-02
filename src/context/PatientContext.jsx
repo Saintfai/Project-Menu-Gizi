@@ -18,41 +18,37 @@ export function PatientProvider({ children }) {
 
   
   const loginPatient = async (identifier, dob) => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/patient-lookup`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({ identifier, dob }),
-        }
-      );
-
-      const result = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Terjadi kesalahan sistem saat mencari data.');
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/patient-lookup`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ identifier, dob }),
       }
+    );
 
-      if (result.type === 'single' && result.patient) {
-        const patientData = {
-          ...result.patient,
-          isVerified: result.patient.isVerified ?? true,
-        };
-        setPatient(patientData);
-        secureSessionStorage.setItem('active_patient_session', patientData);
-        return { type: 'single', patient: patientData };
-      } else if (result.type === 'multiple' && result.patients) {
-        return { type: 'multiple', patients: result.patients };
-      } else {
-        throw new Error('Format respon pasien tidak dikenali.');
-      }
-    } catch (err) {
-      throw err;
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Terjadi kesalahan sistem saat mencari data.');
+    }
+
+    if (result.type === 'single' && result.patient) {
+      const patientData = {
+        ...result.patient,
+        isVerified: result.patient.isVerified ?? true,
+      };
+      setPatient(patientData);
+      secureSessionStorage.setItem('active_patient_session', patientData);
+      return { type: 'single', patient: patientData };
+    } else if (result.type === 'multiple' && result.patients) {
+      return { type: 'multiple', patients: result.patients };
+    } else {
+      throw new Error('Format respon pasien tidak dikenali.');
     }
   };
 

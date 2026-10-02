@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag, Loader2, Info, AlertCircle } from 'lucide-react';
-import toast from 'react-hot-toast';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import { usePatient } from '../../context/PatientContext';
 import { createOrders, getOrders } from '../../services/orderService';
@@ -19,7 +18,7 @@ const MEAL_SCHEDULE = {
 export default function Cart() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { patient, logoutPatient } = usePatient();
+  const { patient } = usePatient();
   const [note, setNote] = useState(() => {
     return secureSessionStorage.getItem('patient_cart_note') || '';
   });
@@ -31,23 +30,7 @@ export default function Cart() {
     secureSessionStorage.setItem('patient_cart_note', note);
   }, [note]);
 
-  const { quantities = {}, menuItems = [], hasOrderedMain = false } = location.state || {};
-
-  if (!quantities || Object.keys(quantities).length === 0) {
-    return (
-      <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-6 text-center">
-        <ShoppingBag size={48} className="text-neutral-300 mb-4" />
-        <h2 className="text-lg font-bold text-neutral-700 mb-2">Keranjang Kosong</h2>
-        <p className="text-sm text-neutral-500 mb-6">Belum ada menu yang dipilih. Silakan pilih menu terlebih dahulu.</p>
-        <button
-          onClick={() => navigate('/menu')}
-          className="bg-primary-600 text-white font-semibold px-6 py-2.5 rounded-xl text-sm hover:bg-primary-700 transition-colors cursor-pointer border-none outline-none"
-        >
-          Kembali ke Menu
-        </button>
-      </div>
-    );
-  }
+  const { quantities = {}, menuItems = [] } = location.state || {};
 
   const menuMap = useMemo(() => {
     const map = {};
@@ -121,6 +104,22 @@ export default function Cart() {
     });
     return total;
   }, [orderData.ekstra]);
+
+  if (!quantities || Object.keys(quantities).length === 0) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-6 text-center">
+        <ShoppingBag size={48} className="text-neutral-300 mb-4" />
+        <h2 className="text-lg font-bold text-neutral-700 mb-2">Keranjang Kosong</h2>
+        <p className="text-sm text-neutral-500 mb-6">Belum ada menu yang dipilih. Silakan pilih menu terlebih dahulu.</p>
+        <button
+          onClick={() => navigate('/menu')}
+          className="bg-primary-600 text-white font-semibold px-6 py-2.5 rounded-xl text-sm hover:bg-primary-700 transition-colors cursor-pointer border-none outline-none"
+        >
+          Kembali ke Menu
+        </button>
+      </div>
+    );
+  }
 
   const getMealStyle = (key) => {
     switch (key) {
