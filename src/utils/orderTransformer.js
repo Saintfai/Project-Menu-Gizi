@@ -21,8 +21,7 @@ export function formatMealColumn(items = []) {
     const counts = {};
     group.forEach(item => {
       const rawName = item.menuName || item.name || item.paketName || 'Menu';
-      const name = typeof rawName === 'string' ? rawName.trim() : rawName;
-      let name = item.paketName || item.menuName || 'Menu';
+      let name = typeof rawName === 'string' ? rawName.trim() : rawName;
       if (item.bentukMakanan) {
         name = `${name} (${item.bentukMakanan})`;
       }
