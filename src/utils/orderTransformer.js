@@ -2,8 +2,9 @@
  * Memformat daftar item pesanan pada satu waktu makan menjadi format teks standar Dapur Gizi.
  * 
  * Aturan Notasi Pemisah (PRD 3.8):
- * - Garis Miring (`/`): Memisahkan porsi pasien dan pendamping (cth: "Paket A / Paket B" atau "Paket A 2x")
- * - Garis Tegak (`|`): Memisahkan Paket Utama (INCLUDE) dengan Paket Ekstra (EXCLUDE) (cth: "Paket A 2x | Paket B")
+ * - Menampilkan nama menu aktual (cth: "Chicken Teriyaki", "Soto Bandung")
+ * - Garis Miring (`/`): Memisahkan porsi pasien dan pendamping (cth: "Chicken Teriyaki / Soto Bandung" atau "Chicken Teriyaki 2x")
+ * - Garis Tegak (`|`): Memisahkan Paket Utama (INCLUDE) dengan Paket Ekstra (EXCLUDE) (cth: "Chicken Teriyaki 2x | Soto Bandung")
  * - Tanda Strip (`-`): Ditampilkan jika waktu makan tidak dipesan oleh pasien
  * 
  * @param {Array<object>} [items=[]] - Daftar item pesanan untuk satu waktu makan
@@ -19,7 +20,8 @@ export function formatMealColumn(items = []) {
     if (group.length === 0) return '';
     const counts = {};
     group.forEach(item => {
-      const name = item.paketName || item.menuName || 'Menu';
+      const rawName = item.menuName || item.name || item.paketName || 'Menu';
+      const name = typeof rawName === 'string' ? rawName.trim() : rawName;
       counts[name] = (counts[name] || 0) + (item.quantity || 1);
     });
 
@@ -119,7 +121,6 @@ export function groupOrdersForTable(rawOrders = []) {
   });
 
   return Object.values(grouped).map(group => {
-    const dOrder = new Date(group.createdAt);
     const dServing = new Date(group.servingDate);
 
     const pad = (n) => String(n).padStart(2, '0');

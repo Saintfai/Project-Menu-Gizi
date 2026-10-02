@@ -39,6 +39,32 @@ describe('Transformasi & Format Rekapitulasi Dapur Gizi (PRD 3.8)', () => {
       const items = [{ paketName: 'Paket C Spesial', quantity: 1, type: 'EXCLUDE' }];
       expect(formatMealColumn(items)).toBe('- | Paket C Spesial');
     });
+
+    it('harus memprioritaskan nama menu aktual (menuName) daripada tulisan Paket A / Paket B', () => {
+      const items = [{ menuName: 'Chicken Teriyaki', paketName: 'Paket A', quantity: 1, type: 'INCLUDE' }];
+      expect(formatMealColumn(items)).toBe('Chicken Teriyaki');
+    });
+
+    it('harus memformat perkalian porsi (2x) menggunakan nama menu aktual', () => {
+      const items = [{ menuName: 'Chicken Teriyaki', paketName: 'Paket A', quantity: 2, type: 'INCLUDE' }];
+      expect(formatMealColumn(items)).toBe('Chicken Teriyaki 2x');
+    });
+
+    it('harus memisahkan beberapa hidangan menu aktual dengan garis miring (/)', () => {
+      const items = [
+        { menuName: 'Chicken Teriyaki', paketName: 'Paket A', quantity: 1, type: 'INCLUDE' },
+        { menuName: 'Soto Bandung', paketName: 'Paket B', quantity: 1, type: 'INCLUDE' },
+      ];
+      expect(formatMealColumn(items)).toBe('Chicken Teriyaki / Soto Bandung');
+    });
+
+    it('harus memisahkan menu utama dan ekstra menggunakan nama menu aktual dengan garis tegak (|)', () => {
+      const items = [
+        { menuName: 'Chicken Teriyaki', paketName: 'Paket A', quantity: 2, type: 'INCLUDE' },
+        { menuName: 'Soto Bandung', paketName: 'Paket B', quantity: 1, type: 'EXCLUDE' },
+      ];
+      expect(formatMealColumn(items)).toBe('Chicken Teriyaki 2x | Soto Bandung');
+    });
   });
 
   describe('hasRealAllergy() - Deteksi Riwayat Alergi Nyata', () => {
