@@ -8,7 +8,7 @@ import { usePatient } from '../../context/PatientContext';
 export default function OrderSuccess() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { patient, logoutPatient } = usePatient();
+  const { patient } = usePatient();
   
   const { summary } = location.state || {};
 

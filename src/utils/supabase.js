@@ -1,10 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
+/**
+ * @deprecated Supabase tidak lagi digunakan oleh aplikasi.
+ * Seluruh alur data telah beralih ke API Sistem Eksisting RS Edelweiss (dev-flow).
+ */
+export const supabase = null;
+export default supabase;
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);

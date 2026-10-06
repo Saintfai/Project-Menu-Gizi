@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { getCurrentWIBHour, checkMainMealCutoff } from '../cutoffValidator';
-import { groupOrdersForTable, formatMealColumn, hasRealAllergy } from '../orderTransformer';
+import { groupOrdersForTable } from '../orderTransformer';
 import { validateNote } from '../inputValidator';
 
 describe('Skenario Uji Lanjut: Beban Banyak Pesanan & Batas Waktu Cut-Off (PRD 3.2 & 3.3)', () => {

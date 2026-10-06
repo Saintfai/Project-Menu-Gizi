@@ -7,84 +7,79 @@ datasource db {
   provider = "postgresql"
 }
 
-// ---------------------------------------------------------
-// 1. DATA MASTER
-// ---------------------------------------------------------
-
-// Tabel Siklus Menu: Menyimpan siklus hari ke-1 sampai ke-11
 model MenuCycle {
-  id          Int        @id // 1 sampai 11
+  id          Int        @id
   description String
   menuItems   MenuItem[]
 }
 
-// Tabel Item Menu: Katalog makanan pada siklus menu
 model MenuItem {
-  id          String    @id @default(uuid())
-  name        String
-  description String?   // Detail menu / lauk pauk
-  cycleId     Int
-  cycle       MenuCycle @relation(fields: [cycleId], references: [id])
-  mealTime    MealTime  // Kapan menu ini disajikan (PAGI, SIANG, SORE)
-  paketName   String?   // cth: "Paket A", "Paket B"
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id              String    @id @default(uuid())
+  name            String
+  cycleId         Int
+  mealTime        MealTime
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  paketName       String?
+  description     String?
+  karbohidrat     String?
+  protein         String?
+  nabati          String?
+  proteinTambahan String?
+  sayur           String?
+  bentukMakanan   String?
+  cycle           MenuCycle @relation(fields: [cycleId], references: [id])
+}
+
+model Patient {
+  id        String   @id @default(uuid())
+  rmNumber  String   @unique
+  name      String
+  dob       DateTime
+  phone     String?
+  roomName  String
+  roomClass String
+  allergies String?
+  createdAt DateTime @default(now())
+  address   String?
+  orders    Order[]
+}
+
+model Order {
+  id            String    @id @default(uuid())
+  patientId     String
+  roomNumber    String
+  classType     String
+  notes         String?
+  createdAt     DateTime  @default(now())
+  consumer      Consumer  @default(PASIEN)
+  mealTime      MealTime
+  menuName      String
+  orderCode     String
+  paketName     String?
+  quantity      Int       @default(1)
+  servingDate   DateTime
+  type          OrderType @default(INCLUDE)
+  bentukMakanan String?
+  patient       Patient   @relation(fields: [patientId], references: [id])
+
+  @@index([orderCode])
+  @@index([servingDate, mealTime])
+  @@index([patientId])
+}
+
+model RateLimit {
+  key      String   @id
+  count    Int      @default(1)
+  reset_at DateTime @db.Timestamptz(6)
+
+  @@map("_RateLimit")
 }
 
 enum MealTime {
   PAGI
   SIANG
   SORE
-}
-
-// ---------------------------------------------------------
-// 2. DATA TRANSAKSIONAL (PEMESANAN)
-// ---------------------------------------------------------
-
-// Tabel Pasien: Data yang di-fetch dari API SIMRS setelah login No RM / Nama + Tgl Lahir
-model Patient {
-  id                String   @id @default(uuid())
-  rmNumber          String   @unique
-  name              String
-  dob               DateTime
-  phone             String?  // Nomor Telepon (PRD 3.1)
-  address           String?  // Alamat Pasien
-  roomName          String
-  roomClass         String   // VIP_A, Kelas_1, dsb (Untuk penentuan kuota porsi)
-  allergies         String?
-  orders            Order[]
-  createdAt         DateTime @default(now())
-}
-
-// Tabel Pemesanan (Flat Table - 1 baris per item menu yang dipesan, dikelompokkan dengan orderCode)
-model Order {
-  id            String       @id @default(uuid())
-  orderCode     String       // ID grup transaksi checkout (cth: ORD-20260908-001)
-  
-  // Data Pasien & Kamar saat Checkout (Snapshot)
-  patientId     String
-  patient       Patient      @relation(fields: [patientId], references: [id])
-  roomNumber    String
-  classType     String       // VIP A, Kelas 1, dll
-  
-  // Detail Menu yang Dipesan (Snapshot Data)
-  menuName      String       // Snapshot nama menu (cth: "Nasi Uduk", "Chicken Schnitzel")
-  paketName     String?      // Snapshot nama paket (cth: "Paket A", "Paket B")
-  mealTime      MealTime     // PAGI, SIANG, SORE
-  servingDate   DateTime     // Tanggal penyajian (T+1)
-  quantity      Int          @default(1)
-  type          OrderType    @default(INCLUDE) // INCLUDE (jatah ranap gratis) / EXCLUDE (ekstra berbayar)
-  consumer      Consumer     @default(PASIEN)  // PASIEN / PENDAMPING
-  
-  // Catatan Khusus
-  notes         String?      // Catatan khusus per transaksi checkout
-  
-  createdAt     DateTime     @default(now())
-
-  @@index([orderCode])
-  @@index([servingDate, mealTime])
-  @@index([patientId])
 }
 
 enum OrderType {

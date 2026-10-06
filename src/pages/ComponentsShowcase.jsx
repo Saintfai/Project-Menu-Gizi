@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Button from '../components/ui/buttons/Button';
 import Alert from '../components/ui/feedback/Alert';
 import SearchBar from '../components/ui/forms/SearchBar';
@@ -14,7 +14,6 @@ import RekapCard from '../components/ui/cards/RekapCard';
 import OrdersTable from '../components/ui/tables/OrdersTable';
 import Tabs from '../components/ui/navigation/Tabs';
 import DateTimeDisplay from '../components/ui/data-display/DateTimeDisplay';
-import NoteDetailModal from '../components/ui/modals/NoteDetailModal';
 import NoteDetailContent from '../components/ui/modals/NoteDetailContent';
 import ConfirmDeliveryContent from '../components/ui/modals/ConfirmDeliveryContent';
 import EditPackageContent from '../components/ui/modals/EditPackageContent';
@@ -27,13 +26,13 @@ const mockOrdersData = [
     hasAllergy: true,
     allergyNote: 'Alergi Seafood (Udang, Cumi)',
     kamar: '102 - VIP A',
-    makanPagi: 'Paket A / Paket B',
+    makanPagi: 'Nasi Tim Ayam / Bubur Ayam',
     menuPagiText: 'Nasi Tim Ayam & Jus Jeruk',
     notePagi: 'Tanpa pedas, nasi lembek.',
-    makanSiang: 'Paket A / Paket B | Paket A',
+    makanSiang: 'Chicken Teriyaki / Soto Bandung | Dori Krispi',
     menuSiangText: 'Bubur Ayam & Buah Segar',
     noteSiang: 'Buah potong kecil-kecil.',
-    makanMalam: 'Paket B 2x | Paket A',
+    makanMalam: 'Farfalle Chicken 2x | Sup Buntut',
     menuMalamText: 'Sup Ayam & Sayur',
     noteMalam: 'Kuah dipisah.',
     tanggalWaktuPesanan: '30-07-2026 | 10:10',
@@ -45,9 +44,9 @@ const mockOrdersData = [
     pasienRM: 'RM-1234567',
     hasAllergy: false,
     kamar: '112- VIP B',
-    makanPagi: 'Paket B 2x',
-    makanSiang: 'Paket A 2x | Paket B',
-    makanMalam: 'Paket A 2x',
+    makanPagi: 'Chicken Teriyaki 2x',
+    makanSiang: 'Dori Krispi 2x | Soto Bandung',
+    makanMalam: 'Ayam Goreng Lengkuas 2x',
     tanggalWaktuPesanan: '30-07-2026 | 10:10',
     tanggalWaktuPengantaran: '31-07-2026',
     hasCatatan: false
@@ -58,13 +57,13 @@ const mockOrdersData = [
     hasAllergy: true,
     allergyNote: 'Diabetes (Rendah Gula)',
     kamar: '95- VIP A',
-    makanPagi: 'Paket A',
+    makanPagi: 'Bubur Sumsum',
     menuPagiText: 'Bubur Oat',
     notePagi: 'Tanpa gula.',
-    makanSiang: 'Paket A | Paket B',
+    makanSiang: 'Soto Bandung | Dori Krispi',
     menuSiangText: 'Nasi Tim & Ikan Bakar',
     noteSiang: 'Porsi kecil.',
-    makanMalam: 'Paket B 2x',
+    makanMalam: 'Chicken Parmiganna 2x',
     menuMalamText: 'Sup Sayur Bening',
     noteMalam: '-',
     tanggalWaktuPesanan: '30-07-2026 | 10:10',

@@ -442,7 +442,7 @@ export default function PatientLogin() {
                   {isLoading ? (
                     <>
                       <Loader2 size={16} className="animate-spin" />
-                      <span>Mencari...</span>
+                      <span>Mencari ke sistem RS...</span>
                     </>
                   ) : (
                     <>

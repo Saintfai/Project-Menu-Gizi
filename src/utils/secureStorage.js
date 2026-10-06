@@ -51,7 +51,7 @@ function decrypt(encoded) {
       cipherBytes[i] = binary.charCodeAt(i) ^ key.charCodeAt(i % key.length);
     }
     return new TextDecoder().decode(cipherBytes);
-  } catch (e) {
+  } catch {
     // If decoding fails (e.g. legacy plaintext data), return raw or null
     return null;
   }

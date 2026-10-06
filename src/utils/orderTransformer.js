@@ -2,8 +2,9 @@
  * Memformat daftar item pesanan pada satu waktu makan menjadi format teks standar Dapur Gizi.
  * 
  * Aturan Notasi Pemisah (PRD 3.8):
- * - Garis Miring (`/`): Memisahkan porsi pasien dan pendamping (cth: "Paket A / Paket B" atau "Paket A 2x")
- * - Garis Tegak (`|`): Memisahkan Paket Utama (INCLUDE) dengan Paket Ekstra (EXCLUDE) (cth: "Paket A 2x | Paket B")
+ * - Menampilkan nama menu aktual (cth: "Chicken Teriyaki", "Soto Bandung")
+ * - Garis Miring (`/`): Memisahkan porsi pasien dan pendamping (cth: "Chicken Teriyaki / Soto Bandung" atau "Chicken Teriyaki 2x")
+ * - Garis Tegak (`|`): Memisahkan Paket Utama (INCLUDE) dengan Paket Ekstra (EXCLUDE) (cth: "Chicken Teriyaki 2x | Soto Bandung")
  * - Tanda Strip (`-`): Ditampilkan jika waktu makan tidak dipesan oleh pasien
  * 
  * @param {Array<object>} [items=[]] - Daftar item pesanan untuk satu waktu makan
@@ -19,7 +20,9 @@ export function formatMealColumn(items = []) {
     if (group.length === 0) return '';
     const counts = {};
     group.forEach(item => {
-      const name = item.paketName || item.menuName || 'Menu';
+      const rawName = item.menuName || item.name || item.paketName || 'Menu';
+      let name = typeof rawName === 'string' ? rawName.trim() : rawName;
+      // Bentuk makanan sekarang ditampilkan di kolom khusus
       counts[name] = (counts[name] || 0) + (item.quantity || 1);
     });
 
@@ -79,7 +82,7 @@ export function hasRealAllergy(allergies) {
 export function groupOrdersForTable(rawOrders = []) {
   if (!rawOrders || rawOrders.length === 0) return [];
 
-  
+
   const grouped = {};
 
   rawOrders.forEach(order => {
@@ -119,7 +122,6 @@ export function groupOrdersForTable(rawOrders = []) {
   });
 
   return Object.values(grouped).map(group => {
-    const dOrder = new Date(group.createdAt);
     const dServing = new Date(group.servingDate);
 
     const pad = (n) => String(n).padStart(2, '0');
@@ -128,6 +130,21 @@ export function groupOrdersForTable(rawOrders = []) {
     const makanPagi = formatMealColumn(group.itemsPagi);
     const makanSiang = formatMealColumn(group.itemsSiang);
     const makanSore = formatMealColumn(group.itemsSore);
+
+    const allItems = [...group.itemsPagi, ...group.itemsSiang, ...group.itemsSore];
+    const bentukSet = new Set(
+      allItems
+        .map(i => i.bentukMakanan)
+        .filter(b => b && b.toLowerCase() !== 'biasa')
+    );
+    const bentukMakananText = bentukSet.size > 0 ? Array.from(bentukSet).join(', ') : '-';
+    const combinedNotesList = allItems
+      .map(i => i.notes || i.catatan)
+      .filter(Boolean);
+    const combinedNotes = combinedNotesList.length > 0
+      ? Array.from(new Set(combinedNotesList)).join('\n')
+      : group.notes;
+    const groupHasCatatan = allItems.some(i => Boolean(i.notes || i.catatan)) || group.hasAllergy;
 
     return {
       id: group.id,
@@ -138,15 +155,19 @@ export function groupOrdersForTable(rawOrders = []) {
       kamar: group.kamar,
       hasAllergy: group.hasAllergy,
       allergyNote: group.allergyNote,
+      itemsPagi: group.itemsPagi,
+      itemsSiang: group.itemsSiang,
+      itemsSore: group.itemsSore,
       makanPagi,
       makanSiang,
       makanSore,
       makanMalam: makanSore, // alias for backwards compatibility
       tanggalWaktuPengantaran: tanggalBesokStr,
       tanggalBesok: tanggalBesokStr,
-      hasCatatan: group.hasCatatan,
-      catatan: group.notes,
-      notes: group.notes,
+      bentukMakananText,
+      hasCatatan: groupHasCatatan,
+      catatan: combinedNotes || null,
+      notes: combinedNotes || null,
       menuPagiText: makanPagi,
       menuSiangText: makanSiang,
       menuSoreText: makanSore,

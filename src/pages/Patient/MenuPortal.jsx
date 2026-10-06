@@ -9,14 +9,13 @@ import MenuCard from '../../components/ui/cards/MenuCard';
 import SearchBar from '../../components/ui/forms/SearchBar';
 import IncludeModal from '../../components/ui/modals/IncludeModal';
 import { usePatient } from '../../context/PatientContext';
-import { supabase } from '../../utils/supabase';
 import PageTransition from '../../components/PageTransition';
 import { getOrders } from '../../services/orderService';
+import { getActiveCycleMenu } from '../../services/menuService';
 import { getCurrentWIBHour } from '../../utils/cutoffValidator';
-import { getMenuCycleByDate } from '../../utils/cycleHelper';
 
 export default function MenuPortal() {
-  const { patient, logoutPatient } = usePatient();
+  const { patient } = usePatient();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -38,44 +37,20 @@ export default function MenuPortal() {
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [validationAlert, setValidationAlert] = useState(null);
   const [hasOrderedMain, setHasOrderedMain] = useState(false);
-
-  
   
   const [quantities, setQuantities] = useState(() => {
-    
     return location.state?.restoredQuantities || {};
   });
   const [searchQuery, setSearchQuery] = useState('');
 
-  if (!patient || !patient.id || !patient.rmNumber) return null;
-
-  const displayPatient = patient;
-
-  const roomClassLower = displayPatient.roomClass?.toLowerCase() || '';
-  const isVip = roomClassLower.includes('vip a') || roomClassLower.includes('vip_a') || roomClassLower.includes('suite');
-  
-  const maxQtyPagi = 2;
-  const maxQtySiang = isVip ? 2 : 1;
-  const maxQtySore = isVip ? 2 : 1;
-
   useEffect(() => {
     async function fetchMenus() {
+      if (!patient?.id) return;
       try {
         setLoading(true);
         
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        
-        // --- BUG FIX #12: Menggunakan fungsi terpusat untuk perhitungan siklus menu ---
-        const cycleId = getMenuCycleByDate(tomorrow);
-
-        const { data, error: fetchError } = await supabase
-          .from('MenuItem')
-          .select('*')
-          .eq('cycleId', cycleId);
-
-        if (fetchError) throw fetchError;
-        
+        // Ambil menu siklus yang sedang aktif dari sistem RS
+        const data = await getActiveCycleMenu();
         
         if (data) {
           setQuantities(prev => {
@@ -93,21 +68,22 @@ export default function MenuPortal() {
 
         setMenuItems(data || []);
 
+        // Cek apakah pasien sudah memesan menu utama untuk jadwal besok
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
         const year = tomorrow.getFullYear();
         const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
         const dateStr = String(tomorrow.getDate()).padStart(2, '0');
-        const servingDateISO = `${year}-${month}-${dateStr}T00:00:00.000Z`;
+        const targetServingDate = `${year}-${month}-${dateStr}`;
 
-        if (displayPatient && displayPatient.id) {
-          const orders = await getOrders({ 
-            servingDate: servingDateISO,
-            patientId: displayPatient.id,
-            type: 'INCLUDE'
-          });
+        const orders = await getOrders({ 
+          servingDate: targetServingDate,
+          patientId: patient.id,
+          type: 'INCLUDE'
+        });
 
-          if (orders && orders.length > 0) {
-            setHasOrderedMain(true);
-          }
+        if (orders && orders.length > 0) {
+          setHasOrderedMain(true);
         }
 
       } catch (err) {
@@ -118,7 +94,18 @@ export default function MenuPortal() {
       }
     }
     fetchMenus();
-  }, []);
+  }, [patient?.id]);
+
+  if (!patient || !patient.id || !patient.rmNumber) return null;
+
+  const displayPatient = patient;
+
+  const roomClassLower = displayPatient.roomClass?.toLowerCase() || '';
+  const isVip = roomClassLower.includes('vip a') || roomClassLower.includes('vip_a') || roomClassLower.includes('suite');
+  
+  const maxQtyPagi = 2;
+  const maxQtySiang = isVip ? 2 : 1;
+  const maxQtySore = isVip ? 2 : 1;
 
   const handleQuantityChange = (item, val, sessionMaxQty) => {
     const currentQtyArr = quantities[item.id] || [];
@@ -272,23 +259,6 @@ export default function MenuPortal() {
   const totalItems = Object.values(quantities).reduce((sum, arr) => sum + (arr ? arr.length : 0), 0);
 
   const handleProceedToCart = () => {
-    let hasPagi = false;
-    let hasSiang = false;
-    let hasSore = false;
-
-    Object.entries(quantities).forEach(([key, consumers]) => {
-      if (!consumers || consumers.length === 0) return;
-      if (key.startsWith('ekstra_')) return;
-      
-      const item = menuItems.find(m => m.id === key);
-      if (!item) return;
-      
-      const mealTime = item.mealTime?.toUpperCase();
-      if (mealTime === 'PAGI') hasPagi = true;
-      if (mealTime === 'SIANG') hasSiang = true;
-      if (mealTime === 'SORE') hasSore = true;
-    });
-
     if (totalItems === 0) {
       if (!hasOrderedMain) {
         setValidationAlert(`Mohon pilih minimal 1 menu untuk dipesan.`);

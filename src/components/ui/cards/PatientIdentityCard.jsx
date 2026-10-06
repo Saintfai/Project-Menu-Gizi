@@ -27,11 +27,7 @@ export const PatientIdentityCard = ({
               RM-{rmNumber}
             </p>
           </div>
-          {roomClass && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-warning-100 text-warning-800 uppercase tracking-wide">
-              {roomClass}
-            </span>
-          )}
+          {/* Label kelas VIP (roomClass) disembunyikan dari UI */}
         </div>
         <p className="text-sm text-neutral-500 mt-1">
           Kamar {room}
