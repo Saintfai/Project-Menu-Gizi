@@ -179,14 +179,16 @@ export default function MenuCycle() {
     try {
       setIsSubmitting(true);
       await updateMenuItem(selectedItem.id, {
+        cycleId: selectedCycle,
+        mealTime: selectedItem.mealTime || currentMealTime,
         paketName: (sanitized.paketName || formData.paketName).trim(),
         name: sanitized.name.trim(),
         description: (sanitized.description || '').trim(),
-        karbohidrat: sanitized.karbohidrat || null,
-        protein: sanitized.protein || null,
-        nabati: sanitized.nabati || null,
-        proteinTambahan: sanitized.proteinTambahan || null,
-        sayur: sanitized.sayur || null,
+        karbohidrat: sanitized.karbohidrat || '-',
+        protein: sanitized.protein || '-',
+        nabati: sanitized.nabati || '-',
+        proteinTambahan: sanitized.proteinTambahan || '-',
+        sayur: sanitized.sayur || '-',
       });
       toast.success('Perubahan menu berhasil disimpan!');
       setIsEditModalOpen(false);

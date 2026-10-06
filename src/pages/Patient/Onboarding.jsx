@@ -144,6 +144,11 @@ export default function Onboarding() {
                 </div>
                 <span className="text-xs font-bold text-neutral-900 text-right">
                   {patient.roomName} - {formatRoomClass(patient.roomClass)}
+                  {patient.titipan && (
+                    <span className="block text-[11px] font-semibold text-primary-600 mt-0.5">
+                      (Titipan dari {patient.originalClass})
+                    </span>
+                  )}
                 </span>
               </div>
               

@@ -64,36 +64,40 @@ export default function Dashboard() {
       const data = await getOrders();
       setRawOrders(data || []);
 
-      // Fetch total active patients
-      const { count, error: countError } = await supabase
-        .from('Patient')
-        .select('*', { count: 'exact', head: true });
-        
-      if (!countError && count !== null) {
-        setTotalActivePatients(count);
+      // Fetch total active patients (dengan fallback ke unique patient_id pesanan)
+      try {
+        const { count, error: countError } = await supabase
+          .from('Patient')
+          .select('*', { count: 'exact', head: true });
+          
+        if (!countError && count !== null) {
+          setTotalActivePatients(count);
+        } else {
+          const uniquePatients = new Set((data || []).map(o => o.patientId).filter(Boolean));
+          setTotalActivePatients(uniquePatients.size || 0);
+        }
+      } catch {
+        const uniquePatients = new Set((data || []).map(o => o.patientId).filter(Boolean));
+        setTotalActivePatients(uniquePatients.size || 0);
       }
     } catch (err) {
       console.error('Failed to fetch orders:', err);
-      setError(err.message || 'Gagal mengambil data pesanan dari database');
+      setError(err.message || 'Gagal mengambil data pesanan dari sistem rumah sakit');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  
   useEffect(() => {
     fetchOrderData();
 
-    
-    const subscription = supabase
-      .channel('public:Order')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'Order' }, () => {
-        fetchOrderData();
-      })
-      .subscribe();
+    // Polling setiap 30 detik untuk sinkronisasi pesanan dari sistem RS
+    const interval = setInterval(() => {
+      fetchOrderData();
+    }, 30000);
 
     return () => {
-      supabase.removeChannel(subscription);
+      clearInterval(interval);
     };
   }, [fetchOrderData]);
 

@@ -24,6 +24,8 @@ export default function Cart() {
   });
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitProgress, setSubmitProgress] = useState('');
+  const [pendingRetryItems, setPendingRetryItems] = useState(null);
   const [errorModalState, setErrorModalState] = useState({ isOpen: false, title: '', message: '' });
 
   React.useEffect(() => {
@@ -255,19 +257,19 @@ export default function Cart() {
       const orderItemsToInsert = [];
       const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
       const randomStr = Math.floor(1000 + Math.random() * 9000);
-      const orderCode = `ORD-${dateStr}-${randomStr}`;
+      const orderCode = `ORD-${dateStr}-${patient.rmNumber || patient.id}-${randomStr}`;
 
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       const year = tomorrow.getFullYear();
       const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
       const date = String(tomorrow.getDate()).padStart(2, '0');
-      const servingDateISO = `${year}-${month}-${date}T00:00:00.000Z`;
+      const servingDateFormatted = `${year}-${month}-${date} 12:00:00`;
 
       if (hasPasienItems || hasPendampingItems) {
         try {
           const existingOrders = await getOrders({
-            servingDate: servingDateISO,
+            servingDate: `${year}-${month}-${date}`,
             patientId: patient.id,
             type: 'INCLUDE'
           });
@@ -295,39 +297,33 @@ export default function Cart() {
         }
       }
 
-
-      const generateUUID = () => {
-        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-          return crypto.randomUUID();
-        }
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-          const r = Math.random() * 16 | 0;
-          const v = c === 'x' ? r : (r & 0x3 | 0x8);
-          return v.toString(16);
-        });
-      };
-
       const addItems = (type, consumer, mealTimeKey, itemsArr) => {
         itemsArr.forEach(entry => {
           orderItemsToInsert.push({
-            id: generateUUID(),
-            orderCode,
+            orderId: orderCode,
             patientId: patient.id,
-            roomNumber: patient.roomName,
-            classType: patient.roomClass,
-            menuName: entry.item.name,
-            paketName: entry.paketName || null,
+            roomNumber: patient.roomName || '-',
+            classType: patient.originalClass || patient.roomClass || '-',
+            titipan: patient.titipan || '',
+            menuName: entry.item.name || '-',
+            paketName: entry.paketName || 'Paket A',
             mealTime: mealTimeKey,
-            servingDate: servingDateISO,
+            servingDate: servingDateFormatted,
             quantity: entry.qty,
             type: type,
             consumer: consumer,
-            notes: sanitizedNote || null,
-            bentukMakanan: entry.item.bentukMakanan || null
+            consumerName: patient.name || 'Pasien',
+            notes: sanitizedNote || '',
+            bentukMakanan: entry.item.bentukMakanan || '-',
+            description: entry.item.description || '-',
+            karbohidrat: entry.item.karbohidrat || '-',
+            protein: entry.item.protein || '-',
+            nabati: entry.item.nabati || '-',
+            proteinTambahan: entry.item.proteinTambahan || entry.item.protein_tambahan || '-',
+            sayur: entry.item.sayur || '-',
           });
         });
       };
-
 
       ['PAGI', 'SIANG', 'SORE'].forEach(key => {
         const pasienItems = orderData.pasien[key] || [];
@@ -337,18 +333,20 @@ export default function Cart() {
         if (pendampingItems.length > 0) addItems('INCLUDE', 'PENDAMPING', key, pendampingItems);
       });
 
-
       ['SIANG', 'SORE'].forEach(key => {
         if (orderData.ekstra[key] && orderData.ekstra[key].length > 0) {
           addItems('EXCLUDE', 'PENDAMPING', key, orderData.ekstra[key]);
         }
       });
 
-      await createOrders(orderItemsToInsert);
+      const itemsToSubmit = pendingRetryItems || orderItemsToInsert;
 
+      await createOrders(itemsToSubmit, ({ current, total }) => {
+        setSubmitProgress(`Mengirim item ${current} dari ${total}...`);
+      });
 
       secureSessionStorage.removeItem('patient_cart_note');
-
+      setPendingRetryItems(null);
 
       const summaryMap = {};
       orderItemsToInsert.forEach(entry => {
@@ -363,14 +361,24 @@ export default function Cart() {
       navigate('/order-success', { state: { summary } });
     } catch (error) {
       console.error(error);
-      setErrorModalState({
-        isOpen: true,
-        title: 'Pesanan Gagal',
-        message: `Terjadi kesalahan saat menyimpan pesanan: ${error.message || 'Silakan coba lagi.'}`
-      });
+      if (error.failedItems && error.failedItems.length > 0) {
+        setPendingRetryItems(error.failedItems);
+        setErrorModalState({
+          isOpen: true,
+          title: 'Sebagian Pesanan Gagal Terkirim',
+          message: `${error.message} Silakan klik tombol 'Coba Lagi' untuk mengirimkan sisa item pesanan tanpa mengulang dari awal.`
+        });
+      } else {
+        setErrorModalState({
+          isOpen: true,
+          title: 'Pesanan Gagal',
+          message: `Terjadi kesalahan saat menyimpan pesanan: ${error.message || 'Silakan coba lagi.'}`
+        });
+      }
     } finally {
       setIsSubmitting(false);
       setShowModal(false);
+      setSubmitProgress('');
     }
   };
 
@@ -521,7 +529,7 @@ export default function Cart() {
                   {isSubmitting ? (
                     <>
                       <Loader2 size={16} className="animate-spin mr-2" />
-                      Memproses...
+                      {submitProgress || 'Memproses...'}
                     </>
                   ) : (
                     'Ya, Kirim Sekarang'
@@ -555,12 +563,34 @@ export default function Cart() {
                 {errorModalState.message}
               </p>
 
-              <button
-                onClick={() => setErrorModalState({ isOpen: false, title: '', message: '' })}
-                className="w-full bg-danger-600 text-white font-semibold py-3 rounded-xl text-sm hover:bg-danger-700 active:scale-[0.98] transition-all outline-none focus:outline-none border-none ring-0 cursor-pointer"
-              >
-                Oke, Mengerti
-              </button>
+              <div className="flex flex-col gap-2">
+                {pendingRetryItems && pendingRetryItems.length > 0 ? (
+                  <>
+                    <button
+                      onClick={() => {
+                        setErrorModalState({ isOpen: false, title: '', message: '' });
+                        handleConfirm();
+                      }}
+                      className="w-full bg-primary-600 text-white font-semibold py-3 rounded-xl text-sm hover:bg-primary-700 active:scale-[0.98] transition-all outline-none focus:outline-none border-none ring-0 cursor-pointer"
+                    >
+                      Coba Lagi ({pendingRetryItems.length} Item Tersisa)
+                    </button>
+                    <button
+                      onClick={() => setErrorModalState({ isOpen: false, title: '', message: '' })}
+                      className="w-full bg-neutral-100 text-neutral-600 font-semibold py-2.5 rounded-xl text-xs hover:bg-neutral-200 transition-all outline-none focus:outline-none border-none ring-0 cursor-pointer"
+                    >
+                      Tutup
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => setErrorModalState({ isOpen: false, title: '', message: '' })}
+                    className="w-full bg-danger-600 text-white font-semibold py-3 rounded-xl text-sm hover:bg-danger-700 active:scale-[0.98] transition-all outline-none focus:outline-none border-none ring-0 cursor-pointer"
+                  >
+                    Oke, Mengerti
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}
