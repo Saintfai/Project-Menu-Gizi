@@ -16,9 +16,6 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '', onMealClic
       return group.map((item, idx) => {
         const rawName = item.menuName || item.paketName || 'Menu';
         let name = typeof rawName === 'string' ? rawName.trim() : rawName;
-        if (item.bentukMakanan && item.bentukMakanan.toLowerCase() !== 'biasa') {
-          name = `${name} (${item.bentukMakanan})`;
-        }
         if (item.quantity > 1) {
             name = `${name} ${item.quantity}x`;
         }
@@ -118,8 +115,8 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '', onMealClic
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <div className="flex justify-center font-semibold text-xs text-neutral-400">
-                        <span>-</span>
+                      <div className="flex justify-center font-semibold text-xs text-neutral-600">
+                        <span>{row.bentukMakananText || '-'}</span>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-center">

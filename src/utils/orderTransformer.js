@@ -22,9 +22,7 @@ export function formatMealColumn(items = []) {
     group.forEach(item => {
       const rawName = item.menuName || item.name || item.paketName || 'Menu';
       let name = typeof rawName === 'string' ? rawName.trim() : rawName;
-      if (item.bentukMakanan && item.bentukMakanan.toLowerCase() !== 'biasa') {
-        name = `${name} (${item.bentukMakanan})`;
-      }
+      // Bentuk makanan sekarang ditampilkan di kolom khusus
       counts[name] = (counts[name] || 0) + (item.quantity || 1);
     });
 
