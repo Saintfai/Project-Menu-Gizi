@@ -19,7 +19,6 @@ export default function Chef() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentDate, setCurrentDate] = useState(() => new Date());
-  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const [selectedMealTime, setSelectedMealTime] = useState('Semua');
 
   const fetchChefData = useCallback(async () => {
@@ -180,6 +179,28 @@ export default function Chef() {
     tambahan: tambahanEntries[i] || null,
   }));
 
+  const groupedNotes = useMemo(() => {
+    const groups = {};
+    (chefStats?.notes || []).forEach(n => {
+      const menuName = n.menu || 'Menu Lainnya';
+      let noteText = n.note;
+      if (n.allergy) {
+         if (noteText) {
+             noteText = `${noteText} (Alergi: ${n.allergy})`;
+         } else {
+             noteText = `Alergi: ${n.allergy}`;
+         }
+      }
+      if (noteText) {
+        if (!groups[menuName]) {
+          groups[menuName] = [];
+        }
+        groups[menuName].push(noteText);
+      }
+    });
+    return groups;
+  }, [chefStats]);
+
   const hasAnyData = maxRows > 0;
 
   const formatServingDateDisplay = (d) => {
@@ -203,17 +224,6 @@ export default function Chef() {
                 ? 'Ringkasan total bahan dan porsi secara keseluruhan (Pagi, Siang, Sore & Ekstra).'
                 : `Ringkasan total bahan dan porsi khusus untuk waktu Makan ${selectedMealTime.charAt(0) + selectedMealTime.slice(1).toLowerCase()}.`}
             </p>
-            <button 
-              onClick={() => setIsNotesModalOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-warning-50 text-warning-800 hover:bg-warning-100 rounded-lg text-sm font-bold transition-colors border border-warning-200"
-            >
-              Lihat Catatan
-              {chefStats?.notes?.length > 0 && (
-                <span className="bg-warning-200 text-warning-900 px-1.5 rounded-full text-xs ml-1">
-                  {chefStats.notes.length}
-                </span>
-              )}
-            </button>
           </div>
           
           <div className="flex items-center gap-3 flex-wrap">
@@ -343,61 +353,31 @@ export default function Chef() {
               </div>
             </div>
             )}
-          </div>
-        )}
 
-        {/* Modal Catatan & Alergi */}
-        {isNotesModalOpen && (
-          <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/50 backdrop-blur-sm transition-all"
-            onClick={() => setIsNotesModalOpen(false)}
-          >
-            <div 
-              className="bg-white w-full max-w-xl max-h-[75vh] rounded-xl shadow-2xl flex flex-col overflow-hidden border border-neutral-200"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="px-5 py-4 bg-white">
-                <h3 className="font-bold text-neutral-900 text-lg">
-                  Catatan Penting & Alergi
+            {/* Notes Section Below Table */}
+            {hasAnyData && Object.keys(groupedNotes).length > 0 && (
+              <div className="mt-8 bg-white border border-neutral-200 rounded-xl p-5 shadow-sm">
+                <h3 className="font-bold text-neutral-900 text-lg mb-4 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary-600" />
+                  Catatan Khusus per Menu
                 </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {Object.entries(groupedNotes).map(([menu, notes], idx) => (
+                    <div key={idx} className="bg-neutral-50 rounded-lg p-4 border border-neutral-100">
+                      <h4 className="font-bold text-neutral-800 text-sm mb-2">{menu} :</h4>
+                      <ol className="list-decimal list-inside space-y-1">
+                        {notes.map((note, nIdx) => (
+                          <li key={nIdx} className="text-sm text-neutral-600">
+                            {note}
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  ))}
+                </div>
               </div>
-              
-              <div className="px-5 pb-5 overflow-y-auto bg-white">
-                {chefStats.notes.length === 0 ? (
-                  <p className="text-center text-neutral-500 py-6 text-sm">Tidak ada catatan untuk hari ini.</p>
-                ) : (
-                  <ul className="divide-y divide-neutral-100">
-                    {chefStats.notes.map((n, idx) => (
-                      <li key={idx} className="py-3.5 flex gap-4 items-start">
-                        <span className="text-xs font-bold text-neutral-500 w-14 pt-0.5">{n.mealTime}</span>
-                        <div className="text-sm text-neutral-800 flex-1">
-                          <p className="font-semibold mb-0.5 text-base">{n.menu}</p>
-                          {n.allergy && (
-                            <p className="text-danger-600 mt-0.5 text-sm">
-                              <span className="font-bold">Alergi:</span> {n.allergy}
-                            </p>
-                          )}
-                          {n.note && (
-                            <p className="text-neutral-600 italic mt-0.5 text-sm">
-                              "{n.note}"
-                            </p>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              
-              <div className="px-5 py-3.5 bg-white flex justify-end border-t border-neutral-100">
-                <button 
-                  onClick={() => setIsNotesModalOpen(false)}
-                  className="px-5 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-sm font-semibold rounded-lg transition-colors"
-                >
-                  Tutup
-                </button>
-              </div>
-            </div>
+            )}
+            
           </div>
         )}
 
