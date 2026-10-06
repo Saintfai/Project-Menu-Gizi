@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  RefreshCw, AlertCircle, FileText, ChefHat, UtensilsCrossed, Info, X
+  RefreshCw, AlertCircle, FileText, ChefHat, UtensilsCrossed, Info, X, ChevronDown
 } from 'lucide-react';
 import { getOrders } from '../../services/orderService';
 import { getMenuItemsByCycle } from '../../services/menuService';
@@ -20,6 +20,7 @@ export default function Chef() {
   const [error, setError] = useState(null);
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
+  const [selectedMealTime, setSelectedMealTime] = useState('Semua');
 
   const fetchChefData = useCallback(async () => {
     try {
@@ -106,6 +107,10 @@ export default function Chef() {
       let meal = (order.mealTime || '').toUpperCase();
       if (meal === 'MALAM') meal = 'SORE';
 
+      if (selectedMealTime !== 'Semua' && meal !== selectedMealTime) {
+        return;
+      }
+
       const paket = (order.paketName || order.menuName || '').trim();
       
       // Find matching menu to get components
@@ -150,7 +155,7 @@ export default function Chef() {
     });
 
     return overallStats;
-  }, [filteredDailyOrders, menuItems]);
+  }, [filteredDailyOrders, menuItems, selectedMealTime]);
 
   // Prepare data for the unified 5-column table
   const karboEntries = Object.entries(chefStats['Karbohidrat']).sort((a, b) => b[1] - a[1]);
@@ -194,7 +199,9 @@ export default function Chef() {
               Rekapitulasi Produksi Dapur
             </h1>
             <p className="text-sm text-neutral-500 mt-1 mb-3">
-              Ringkasan total bahan dan porsi secara keseluruhan (Pagi, Siang, Sore & Ekstra).
+              {selectedMealTime === 'Semua' 
+                ? 'Ringkasan total bahan dan porsi secara keseluruhan (Pagi, Siang, Sore & Ekstra).'
+                : `Ringkasan total bahan dan porsi khusus untuk waktu Makan ${selectedMealTime.charAt(0) + selectedMealTime.slice(1).toLowerCase()}.`}
             </p>
             <button 
               onClick={() => setIsNotesModalOpen(true)}
@@ -241,20 +248,39 @@ export default function Chef() {
             <RefreshCw className="w-6 h-6 text-primary-600 animate-spin" />
             <span>Memuat total produksi dapur...</span>
           </div>
-        ) : !hasAnyData ? (
-          <div className="w-full bg-white rounded-xl border border-neutral-200 p-16 text-center shadow-sm flex flex-col items-center justify-center gap-3">
-            <UtensilsCrossed className="w-12 h-12 text-neutral-300 mb-2" />
-            <h3 className="text-lg font-bold text-neutral-700">Belum Ada Data Produksi</h3>
-            <p className="text-sm text-neutral-500 max-w-sm">
-              Belum ada pesanan yang terdaftar untuk jadwal penyajian besok hari.
-            </p>
-          </div>
         ) : (
           <div className="space-y-6">
+            
+            {/* Filter Section */}
+            <div className="flex pb-2">
+              <div className="relative w-44">
+                <select
+                  value={selectedMealTime}
+                  onChange={(e) => setSelectedMealTime(e.target.value)}
+                  className="w-full h-10 appearance-none bg-white border border-neutral-300 rounded-xl px-3.5 pr-9 text-xs sm:text-sm font-medium text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-xs cursor-pointer"
+                >
+                  <option value="Semua">Semua Waktu</option>
+                  <option value="PAGI">Makan Pagi</option>
+                  <option value="SIANG">Makan Siang</option>
+                  <option value="SORE">Makan Sore</option>
+                </select>
+                <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
 
-
-            {/* Unified 5-Column Table */}
+            {!hasAnyData ? (
+              <div className="w-full bg-white rounded-xl border border-neutral-200 p-16 text-center shadow-sm flex flex-col items-center justify-center gap-3">
+                <UtensilsCrossed className="w-12 h-12 text-neutral-300 mb-2" />
+                <h3 className="text-lg font-bold text-neutral-700">Belum Ada Data Produksi</h3>
+                <p className="text-sm text-neutral-500 max-w-sm">
+                  {selectedMealTime === 'Semua' 
+                    ? 'Belum ada pesanan yang terdaftar untuk jadwal penyajian besok hari.'
+                    : `Belum ada pesanan untuk waktu Makan ${selectedMealTime.charAt(0) + selectedMealTime.slice(1).toLowerCase()} besok hari.`}
+                </p>
+              </div>
+            ) : (
             <div className="bg-white mb-8 overflow-hidden" style={{ border: '1px solid #9ca3af' }}>
+              {/* Unified 5-Column Table */}
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[1000px]">
                   <thead className="bg-primary-50">
@@ -316,6 +342,7 @@ export default function Chef() {
                 </table>
               </div>
             </div>
+            )}
           </div>
         )}
 
