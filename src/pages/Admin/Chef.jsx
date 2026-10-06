@@ -220,13 +220,20 @@ export default function Chef() {
       }
       
       if (noteText) {
-        if (!groups[menuName]) {
-          groups[menuName] = [];
+        const patientKey = `${n.patientName || 'Pasien'}|||${n.room || '-'}`;
+        if (!groups[patientKey]) {
+          groups[patientKey] = {
+            patientName: n.patientName || 'Pasien',
+            room: n.room || '-',
+            notes: []
+          };
         }
-        groups[menuName].push(noteText);
+        if (!groups[patientKey].notes.includes(noteText)) {
+          groups[patientKey].notes.push(noteText);
+        }
       }
     });
-    return groups;
+    return Object.values(groups);
   }, [chefStats]);
 
   const hasAnyData = maxRows > 0;
@@ -383,23 +390,25 @@ export default function Chef() {
             )}
 
             {/* Notes Section Below Table */}
-            {hasAnyData && Object.keys(groupedNotes).length > 0 && (
+            {hasAnyData && groupedNotes.length > 0 && (
               <div className="mt-8 bg-white border border-neutral-200 rounded-xl p-5 shadow-sm">
                 <h3 className="font-bold text-neutral-900 text-lg mb-4 flex items-center gap-2">
                   <FileText className="w-5 h-5 text-primary-600" />
-                  Catatan Khusus per Menu
+                  Catatan Khusus per Pasien
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {Object.entries(groupedNotes).map(([menu, notes], idx) => (
-                    <div key={idx} className="bg-neutral-50 rounded-lg p-4 border border-neutral-100">
-                      <h4 className="font-bold text-neutral-800 text-sm mb-2">{menu} :</h4>
-                      <ol className="list-decimal list-inside space-y-1">
-                        {notes.map((note, nIdx) => (
-                          <li key={nIdx} className="text-sm text-neutral-600">
-                            {note}
-                          </li>
-                        ))}
-                      </ol>
+                  {groupedNotes.map((group, idx) => (
+                    <div key={idx} className="bg-neutral-50 rounded-lg p-4 border border-neutral-200 shadow-sm flex flex-col gap-0.5">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="font-semibold text-neutral-900 text-sm uppercase tracking-wide">{group.patientName}</div>
+                        <div className="text-neutral-500 text-xs text-right shrink-0">Kamar {group.room}</div>
+                      </div>
+                      <div className="text-neutral-900 text-sm mt-1.5">Catatan:</div>
+                      {group.notes.map((noteText, nIdx) => (
+                        <div key={nIdx} className="text-sm text-neutral-800">
+                          {noteText}
+                        </div>
+                      ))}
                     </div>
                   ))}
                 </div>
