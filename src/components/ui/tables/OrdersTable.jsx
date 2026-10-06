@@ -1,38 +1,57 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
-  // Helper to format meal string nicely with PRD delimiters
-  const renderMealCell = (mealStr) => {
-    if (!mealStr || mealStr === '-') {
+export const OrdersTable = ({ data = [], onNoteClick, className = '', onMealClick }) => {
+  const renderMealCell = (items, mealTime, row) => {
+    if (!items || items.length === 0) {
       return <span className="text-neutral-400 font-normal">-</span>;
     }
 
-    if (typeof mealStr !== 'string') {
-      return <span>{String(mealStr)}</span>;
-    }
+    const includeItems = items.filter(i => (i.type || 'INCLUDE').toUpperCase() === 'INCLUDE');
+    const excludeItems = items.filter(i => (i.type || '').toUpperCase() === 'EXCLUDE');
 
-    
-    if (mealStr.includes('|')) {
-      const [includePart, excludePart] = mealStr.split('|').map((s) => s.trim());
-      return (
-        <div className="flex flex-wrap items-center gap-1.5">
-          {includePart && (
-            <span className={includePart === '-' ? 'text-neutral-400 font-normal' : 'font-semibold text-primary-700'}>
-              {includePart}
-              <span className="text-neutral-300 font-bold ml-1.5">|</span>
-            </span>
-          )}
-          {excludePart && (
-            <span className="font-semibold text-success-700 bg-success-50 px-1.5 py-0.5 rounded text-[11px] border border-success-200/60 inline-block">
-              {excludePart}
-            </span>
-          )}
-        </div>
-      );
-    }
+    const formatGroup = (group, isExclude) => {
+      if (group.length === 0) return null;
+      
+      return group.map((item, idx) => {
+        const rawName = item.menuName || item.paketName || 'Menu';
+        let name = typeof rawName === 'string' ? rawName.trim() : rawName;
+        if (item.bentukMakanan && item.bentukMakanan.toLowerCase() !== 'biasa') {
+          name = `${name} (${item.bentukMakanan})`;
+        }
+        if (item.quantity > 1) {
+            name = `${name} ${item.quantity}x`;
+        }
 
-    return <span className="font-semibold text-primary-700">{mealStr}</span>;
+        return (
+          <React.Fragment key={item.id || idx}>
+            <span
+              onClick={(e) => {
+                 e.stopPropagation();
+                 if (onMealClick) {
+                     onMealClick(row, mealTime, [item]);
+                 }
+              }}
+              className={`${isExclude ? 'font-semibold text-success-700 bg-success-50 px-1.5 py-0.5 rounded text-[11px] border border-success-200/60 inline-block align-middle cursor-pointer hover:bg-success-100 m-0.5' : 'font-semibold text-primary-700 cursor-pointer hover:text-primary-800 hover:underline align-middle m-0.5'} transition-colors`}
+            >
+              {name}
+            </span>
+            {idx < group.length - 1 && <span className="text-neutral-300 font-normal mx-1">/</span>}
+          </React.Fragment>
+        );
+      });
+    };
+
+    const includeElems = formatGroup(includeItems, false);
+    const excludeElems = formatGroup(excludeItems, true);
+
+    return (
+      <div className="text-xs leading-relaxed">
+        {includeElems}
+        {includeElems && excludeElems && <span className="text-neutral-300 font-bold mx-1.5 align-middle">|</span>}
+        {excludeElems}
+      </div>
+    );
   };
 
   return (
@@ -85,17 +104,17 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '' }) => {
                     </td>
                     <td className="px-4 py-4 min-w-[120px] max-w-[160px] whitespace-normal">
                       <div className="text-xs">
-                        {renderMealCell(row.makanPagi)}
+                        {renderMealCell(row.itemsPagi, 'PAGI', row)}
                       </div>
                     </td>
                     <td className="px-4 py-4 min-w-[120px] max-w-[160px] whitespace-normal">
                       <div className="text-xs">
-                        {renderMealCell(row.makanSiang)}
+                        {renderMealCell(row.itemsSiang, 'SIANG', row)}
                       </div>
                     </td>
                     <td className="px-4 py-4 min-w-[120px] max-w-[160px] whitespace-normal">
                       <div className="text-xs">
-                        {renderMealCell(row.makanSore || row.makanMalam)}
+                        {renderMealCell(row.itemsSore, 'SORE', row)}
                       </div>
                     </td>
                     <td className="px-4 py-4">

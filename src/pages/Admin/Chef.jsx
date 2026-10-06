@@ -127,13 +127,33 @@ export default function Chef() {
       };
 
       if (matchedMenu) {
-        addStat('Karbohidrat', matchedMenu.karbohidrat);
-        addStat('Protein Hewani', matchedMenu.protein);
-        addStat('Sayur', matchedMenu.sayur);
-        addStat('Protein Nabati', matchedMenu.nabati);
-        addStat('Protein Tambahan', matchedMenu.proteinTambahan);
+        let karbo = matchedMenu.karbohidrat || '';
+        let protein = matchedMenu.protein || '';
+        let sayur = matchedMenu.sayur || '';
+        let nabati = matchedMenu.nabati || '';
+        let tambahan = matchedMenu.proteinTambahan || '';
+
+        const existingNotes = order.notes || '';
+        if (existingNotes) {
+            const parseNote = (label, currentVal) => {
+                if (existingNotes.includes(`[Tanpa ${label}]`)) return '';
+                const match = existingNotes.match(new RegExp(`\\[Ganti ${label}: (.*?)\\]`));
+                return match ? match[1] : currentVal;
+            };
+
+            karbo = parseNote('Karbohidrat', karbo);
+            protein = parseNote('Protein Hewani', protein);
+            sayur = parseNote('Sayur', sayur);
+            nabati = parseNote('Protein Nabati', nabati);
+            tambahan = parseNote('Protein Tambahan', tambahan);
+        }
+
+        addStat('Karbohidrat', karbo);
+        addStat('Protein Hewani', protein);
+        addStat('Sayur', sayur);
+        addStat('Protein Nabati', nabati);
+        addStat('Protein Tambahan', tambahan);
       } else {
-        // Fallback for Ekstra / Unmatched items
         addStat('Karbohidrat', order.menuName);
       }
 
@@ -183,7 +203,15 @@ export default function Chef() {
     const groups = {};
     (chefStats?.notes || []).forEach(n => {
       const menuName = n.menu || 'Menu Lainnya';
-      let noteText = n.note;
+      let noteText = n.note || '';
+
+      const labels = ['Karbohidrat', 'Protein Hewani', 'Sayur', 'Protein Nabati', 'Protein Tambahan'];
+      labels.forEach(label => {
+          noteText = noteText.replace(new RegExp(`\\[Ganti ${label}: .*?\\]\\n?`, 'g'), '');
+          noteText = noteText.replace(new RegExp(`\\[Tanpa ${label}\\]\\n?`, 'g'), '');
+      });
+      noteText = noteText.trim();
+
       if (n.allergy) {
          if (noteText) {
              noteText = `${noteText} (Alergi: ${n.allergy})`;
@@ -191,6 +219,7 @@ export default function Chef() {
              noteText = `Alergi: ${n.allergy}`;
          }
       }
+      
       if (noteText) {
         if (!groups[menuName]) {
           groups[menuName] = [];
