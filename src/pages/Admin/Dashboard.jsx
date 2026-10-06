@@ -17,7 +17,6 @@ import ComponentEditModal from '../../components/ui/modals/ComponentEditModal';
 import { groupOrdersForTable } from '../../utils/orderTransformer';
 import { getOrders, autoGenerateOrdersForKelas } from '../../services/orderService';
 import { checkMainMealCutoff } from '../../utils/cutoffValidator';
-import { supabase } from '../../utils/supabase';
 import PageTransition from '../../components/PageTransition';
 
 
@@ -64,22 +63,9 @@ export default function Dashboard() {
       const data = await getOrders();
       setRawOrders(data || []);
 
-      // Fetch total active patients (dengan fallback ke unique patient_id pesanan)
-      try {
-        const { count, error: countError } = await supabase
-          .from('Patient')
-          .select('*', { count: 'exact', head: true });
-          
-        if (!countError && count !== null) {
-          setTotalActivePatients(count);
-        } else {
-          const uniquePatients = new Set((data || []).map(o => o.patientId).filter(Boolean));
-          setTotalActivePatients(uniquePatients.size || 0);
-        }
-      } catch {
-        const uniquePatients = new Set((data || []).map(o => o.patientId).filter(Boolean));
-        setTotalActivePatients(uniquePatients.size || 0);
-      }
+      // Hitung total pasien aktif berdasarkan ID pasien unik dari pesanan
+      const uniquePatients = new Set((data || []).map(o => o.patientId).filter(Boolean));
+      setTotalActivePatients(uniquePatients.size || 0);
     } catch (err) {
       console.error('Failed to fetch orders:', err);
       setError(err.message || 'Gagal mengambil data pesanan dari sistem rumah sakit');

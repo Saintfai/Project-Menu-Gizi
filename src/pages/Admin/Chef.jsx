@@ -5,7 +5,6 @@ import {
 } from 'lucide-react';
 import { getOrders } from '../../services/orderService';
 import { getMenuItemsByCycle } from '../../services/menuService';
-import { supabase } from '../../utils/supabase';
 import PageTransition from '../../components/PageTransition';
 
 const toDateInputString = (d) => {
@@ -68,14 +67,14 @@ export default function Chef() {
 
   useEffect(() => {
     fetchChefData();
-    const subscription = supabase
-      .channel('public:Order')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'Order' }, () => {
-        fetchChefData();
-      })
-      .subscribe();
+
+    // Polling setiap 30 detik untuk sinkronisasi data pesanan dari sistem RS
+    const interval = setInterval(() => {
+      fetchChefData();
+    }, 30000);
+
     return () => {
-      supabase.removeChannel(subscription);
+      clearInterval(interval);
     };
   }, [fetchChefData]);
 

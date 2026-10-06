@@ -1,4 +1,4 @@
-import { apiGet, apiPostFormData } from './apiClient';
+import { apiGet, apiPostFormData, apiPut } from './apiClient';
 
 /**
  * Normalisasi satu baris data pesanan dari API Edelweiss ke format internal.
@@ -196,6 +196,16 @@ export async function createOrders(orderItems, onProgress) {
 }
 
 /**
+ * Memperbarui catatan (notes / komponen) pesanan pada sistem RS Edelweiss.
+ * 
+ * @param {string|number} id - Order ID
+ * @param {string} notes - Catatan baru
+ */
+export async function updateOrderNotes(id, notes) {
+  return apiPut('/webhook/ubah-order-item', { id, notes });
+}
+
+/**
  * Fallback auto generate (jika tetap dipanggil di background).
  */
 export async function autoGenerateOrdersForKelas() {
@@ -205,5 +215,7 @@ export async function autoGenerateOrdersForKelas() {
 export default {
   getOrders,
   createOrders,
+  updateOrderNotes,
   autoGenerateOrdersForKelas,
 };
+
