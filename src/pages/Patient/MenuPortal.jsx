@@ -9,11 +9,10 @@ import MenuCard from '../../components/ui/cards/MenuCard';
 import SearchBar from '../../components/ui/forms/SearchBar';
 import IncludeModal from '../../components/ui/modals/IncludeModal';
 import { usePatient } from '../../context/PatientContext';
-import { supabase } from '../../utils/supabase';
 import PageTransition from '../../components/PageTransition';
 import { getOrders } from '../../services/orderService';
+import { getActiveCycleMenu } from '../../services/menuService';
 import { getCurrentWIBHour } from '../../utils/cutoffValidator';
-import { getMenuCycleByDate } from '../../utils/cycleHelper';
 
 export default function MenuPortal() {
   const { patient } = usePatient();
@@ -50,18 +49,8 @@ export default function MenuPortal() {
       try {
         setLoading(true);
         
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        
-        // --- BUG FIX #12: Menggunakan fungsi terpusat untuk perhitungan siklus menu ---
-        const cycleId = getMenuCycleByDate(tomorrow);
-
-        const { data, error: fetchError } = await supabase
-          .from('MenuItem')
-          .select('*')
-          .eq('cycleId', cycleId);
-
-        if (fetchError) throw fetchError;
+        // Ambil menu siklus yang sedang aktif dari sistem RS
+        const data = await getActiveCycleMenu();
         
         if (data) {
           setQuantities(prev => {
@@ -79,13 +68,16 @@ export default function MenuPortal() {
 
         setMenuItems(data || []);
 
+        // Cek apakah pasien sudah memesan menu utama untuk jadwal besok
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
         const year = tomorrow.getFullYear();
         const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
         const dateStr = String(tomorrow.getDate()).padStart(2, '0');
-        const servingDateISO = `${year}-${month}-${dateStr}T00:00:00.000Z`;
+        const targetServingDate = `${year}-${month}-${dateStr}`;
 
         const orders = await getOrders({ 
-          servingDate: servingDateISO,
+          servingDate: targetServingDate,
           patientId: patient.id,
           type: 'INCLUDE'
         });
