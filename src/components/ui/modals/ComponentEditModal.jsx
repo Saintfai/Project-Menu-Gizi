@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save } from 'lucide-react';
-import { supabase } from '../../../utils/supabase';
 import toast from 'react-hot-toast';
+import { getMenuItemsByCycle } from '../../../services/menuService';
+import { updateOrderNotes } from '../../../services/orderService';
 
 export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycleNumber }) {
   const [loading, setLoading] = useState(false);
@@ -29,21 +30,18 @@ export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycl
       setTambahan('');
 
       const fetchMenus = async () => {
-        const mealTime = selectedMeal.mealTime;
-        const { data, error } = await supabase
-          .from('MenuItem')
-          .select('name, karbohidrat, protein, sayur, nabati, proteinTambahan')
-          .eq('cycleId', cycleNumber)
-          .eq('mealTime', mealTime);
-        
-        if (!error && data) {
-          setMenus(data);
+        try {
+          const mealTime = (selectedMeal.mealTime || '').toUpperCase();
+          const cycleItems = await getMenuItemsByCycle(cycleNumber);
+          const filtered = (cycleItems || []).filter(item => (item.mealTime || '').toUpperCase() === mealTime);
+          
+          setMenus(filtered);
           
           // Find the matching menu item for the target order
           const targetOrder = selectedMeal.items[0];
           const orderMenuName = targetOrder.menuName || targetOrder.paketName;
           
-          const matchedMenu = data.find(m => m.name === orderMenuName);
+          const matchedMenu = filtered.find(m => m.name === orderMenuName);
           setOriginalMenu(matchedMenu || null);
           
           // Initialize states with matched menu components
@@ -74,6 +72,8 @@ export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycl
           setSayur(initSayur);
           setNabati(initNabati);
           setTambahan(initTambahan);
+        } catch (err) {
+          console.error('Failed to fetch cycle menus for modal:', err);
         }
       };
       fetchMenus();
@@ -131,12 +131,8 @@ export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycl
     addNote('Protein Tambahan', tambahan, originalMenu?.proteinTambahan);
 
     try {
-        const { error } = await supabase
-            .from('Order')
-            .update({ notes: newNotes })
-            .eq('id', targetOrder.id);
-            
-        if (error) throw error;
+        await updateOrderNotes(targetOrder.id, newNotes);
+        targetOrder.notes = newNotes;
         
         toast.custom((t) => (
             <div

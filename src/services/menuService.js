@@ -1,5 +1,4 @@
 import { apiGet, apiPut } from './apiClient';
-import { supabase } from '../utils/supabase';
 import { getMenuCycleByDate } from '../utils/cycleHelper';
 
 /**
@@ -108,49 +107,16 @@ export async function updateMenuItem(id, updates = {}) {
 
 /**
  * Menambahkan item menu baru.
- * (Sesuai kesepakatan, menggunakan Supabase jika admin menambahkan secara lokal).
- * 
- * @param {object} newItem 
- * @returns {Promise<any>}
+ * Catatan: Struktur 11 siklus bersifat tetap (fixed) di sistem RS.
  */
-export async function createMenuItem(newItem) {
-  const { data, error } = await supabase
-    .from('MenuItem')
-    .insert([
-      {
-        ...newItem,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ])
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error creating menu item in Supabase:', error);
-    throw error;
-  }
-
-  return data;
+export async function createMenuItem() {
+  throw new Error('Penambahan item menu baru tidak didukung oleh sistem RS. Silakan ubah konten menu yang ada.');
 }
 
 /**
  * Menghapus item menu.
- * (Sesuai kesepakatan, menggunakan Supabase).
- * 
- * @param {string|number} id 
- * @returns {Promise<boolean>}
+ * Catatan: Struktur 11 siklus bersifat tetap (fixed) di sistem RS.
  */
-export async function deleteMenuItem(id) {
-  const { error } = await supabase
-    .from('MenuItem')
-    .delete()
-    .eq('id', id);
-
-  if (error) {
-    console.error(`Error deleting menu item ${id} from Supabase:`, error);
-    throw error;
-  }
-
-  return true;
+export async function deleteMenuItem() {
+  throw new Error('Penghapusan item menu tidak didukung oleh sistem RS. Silakan ubah konten menu yang ada.');
 }

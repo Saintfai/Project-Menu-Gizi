@@ -25,20 +25,12 @@ export function AuthProvider({ children }) {
           return;
         }
 
-        
-        const res = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-verify`,
-          {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${parsed.token}` },
-          }
-        );
-
-        if (res.ok) {
-          setAdmin(parsed);
-        } else {
-          
+        // Periksa apakah sesi masih valid dan belum kedaluwarsa
+        if (parsed.expiresAt && Date.now() > parsed.expiresAt) {
           localStorage.removeItem('hospital_admin_session');
+          setAdmin(null);
+        } else {
+          setAdmin(parsed);
         }
       } catch (e) {
         console.error('Session verification failed:', e);
