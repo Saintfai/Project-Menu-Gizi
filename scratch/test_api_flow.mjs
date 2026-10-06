@@ -18,6 +18,11 @@ async function run() {
   const dataPatient = await resPatient.json();
   console.log('Patient found:', dataPatient[0]?.nama_pasien, 'kelas:', dataPatient[0]?.kelas, 'titipan:', dataPatient[0]?.titipan);
 
+  console.log('Testing Patient Lookup by Name & DOB (nama=SYIFA&tanggal_lahir=26-04-1988)...');
+  const resPatientDob = await fetch(`${BASE_URL}/webhook/get-patient-date-birth?nama=SYIFA&tanggal_lahir=26-04-1988`, { headers });
+  const dataPatientDob = await resPatientDob.json();
+  console.log('Patient by DOB found:', dataPatientDob[0]?.nama_pasien, 'tgl:', dataPatientDob[0]?.tanggal_lahir, 'kamar:', dataPatientDob[0]?.kamar);
+
   console.log('ALL API VERIFICATIONS PASSED SUCCESSFULLY!');
 }
 

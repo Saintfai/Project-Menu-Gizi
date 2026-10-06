@@ -257,7 +257,7 @@ export default function PatientLogin() {
                      const p = multiplePatients.find(x => x.id === selectedPatientId);
                      if(p) {
                        selectPatient(p);
-                       navigate('/menu');
+                       navigate('/onboarding', { state: { showMultiple: true, multiplePatients } });
                      }
                   }}
                   className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-primary-900/20 active:scale-[0.98] transition-all border-none outline-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"

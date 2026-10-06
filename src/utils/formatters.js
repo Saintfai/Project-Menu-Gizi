@@ -6,6 +6,10 @@
  */
 export const formatDate = (dateString) => {
   if (!dateString) return '-';
+  if (typeof dateString === 'string' && /^\d{2}-\d{2}-\d{4}$/.test(dateString.trim())) {
+    const [d, m, y] = dateString.trim().split('-');
+    return `${d}/${m}/${y}`;
+  }
   const dateObj = new Date(dateString);
   if (isNaN(dateObj.getTime())) return dateString;
   const d = dateObj.getDate().toString().padStart(2, '0');
