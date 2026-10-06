@@ -140,6 +140,12 @@ export function groupOrdersForTable(rawOrders = []) {
         .filter(b => b && b.toLowerCase() !== 'biasa')
     );
     const bentukMakananText = bentukSet.size > 0 ? Array.from(bentukSet).join(', ') : '-';
+    const combinedNotesList = allItems
+      .map(i => i.notes || i.catatan)
+      .filter(Boolean);
+    const combinedNotes = combinedNotesList.length > 0
+      ? Array.from(new Set(combinedNotesList)).join('\n')
+      : group.notes;
     const groupHasCatatan = allItems.some(i => Boolean(i.notes || i.catatan)) || group.hasAllergy;
 
     return {
@@ -162,8 +168,8 @@ export function groupOrdersForTable(rawOrders = []) {
       tanggalBesok: tanggalBesokStr,
       bentukMakananText,
       hasCatatan: groupHasCatatan,
-      catatan: group.notes,
-      notes: group.notes,
+      catatan: combinedNotes || null,
+      notes: combinedNotes || null,
       menuPagiText: makanPagi,
       menuSiangText: makanSiang,
       menuSoreText: makanSore,

@@ -32,24 +32,48 @@ export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycl
       const fetchMenus = async () => {
         try {
           const mealTime = (selectedMeal.mealTime || '').toUpperCase();
-          const cycleItems = await getMenuItemsByCycle(cycleNumber);
-          const filtered = (cycleItems || []).filter(item => (item.mealTime || '').toUpperCase() === mealTime);
-          
-          setMenus(filtered);
-          
-          // Find the matching menu item for the target order
           const targetOrder = selectedMeal.items[0];
-          const orderMenuName = targetOrder.menuName || targetOrder.paketName;
-          
-          const matchedMenu = filtered.find(m => m.name === orderMenuName);
-          setOriginalMenu(matchedMenu || null);
-          
-          // Initialize states with matched menu components
-          let initKarbo = matchedMenu?.karbohidrat || '';
-          let initProtein = matchedMenu?.protein || '';
-          let initSayur = matchedMenu?.sayur || '';
-          let initNabati = matchedMenu?.nabati || '';
-          let initTambahan = matchedMenu?.proteinTambahan || '';
+
+          let cycleItems = [];
+          try {
+            cycleItems = await getMenuItemsByCycle(cycleNumber);
+          } catch (e) {
+            console.warn('Could not fetch cycle items for modal:', e);
+          }
+          const filtered = (cycleItems || []).filter(item => (item.mealTime || '').toUpperCase() === mealTime);
+          setMenus(filtered);
+
+          // Find the matching menu item for the target order (case-insensitive & supports name / paketName)
+          const orderMenuName = (targetOrder.menuName || targetOrder.paketName || '').trim().toLowerCase();
+          const orderPaketName = (targetOrder.paketName || '').trim().toLowerCase();
+
+          const matchedMenu = filtered.find(m => 
+            (m.name && m.name.trim().toLowerCase() === orderMenuName) ||
+            (m.paketName && m.paketName.trim().toLowerCase() === orderMenuName) ||
+            (m.paketName && m.paketName.trim().toLowerCase() === orderPaketName)
+          );
+
+          // Base ingredients: prioritaskan matchedMenu, fallback ke nilai langsung dari targetOrder
+          const baseKarbo = matchedMenu?.karbohidrat || targetOrder.karbohidrat || '';
+          const baseProtein = matchedMenu?.protein || targetOrder.protein || '';
+          const baseSayur = matchedMenu?.sayur || targetOrder.sayur || '';
+          const baseNabati = matchedMenu?.nabati || targetOrder.nabati || '';
+          const baseTambahan = matchedMenu?.proteinTambahan || targetOrder.proteinTambahan || targetOrder.protein_tambahan || '';
+
+          const orig = {
+            karbohidrat: baseKarbo === '-' ? '' : baseKarbo,
+            protein: baseProtein === '-' ? '' : baseProtein,
+            sayur: baseSayur === '-' ? '' : baseSayur,
+            nabati: baseNabati === '-' ? '' : baseNabati,
+            proteinTambahan: baseTambahan === '-' ? '' : baseTambahan,
+          };
+          setOriginalMenu(orig);
+
+          let initKarbo = orig.karbohidrat;
+          let initProtein = orig.protein;
+          let initSayur = orig.sayur;
+          let initNabati = orig.nabati;
+          let initTambahan = orig.proteinTambahan;
 
           // Parse existing notes to reflect previously saved changes
           const existingNotes = targetOrder.notes || '';
@@ -73,7 +97,7 @@ export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycl
           setNabati(initNabati);
           setTambahan(initTambahan);
         } catch (err) {
-          console.error('Failed to fetch cycle menus for modal:', err);
+          console.error('Failed to initialize component modal:', err);
         }
       };
       fetchMenus();
@@ -85,6 +109,10 @@ export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycl
   // Extract unique options
   const uniqueOptions = (field) => {
     const opts = menus.map(m => m[field]).filter(val => val && val.trim() !== '' && val !== '-');
+    const origVal = originalMenu?.[field];
+    if (origVal && origVal.trim() !== '' && origVal !== '-' && !opts.includes(origVal)) {
+      opts.push(origVal);
+    }
     return [...new Set(opts)];
   };
 
@@ -130,9 +158,22 @@ export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycl
     addNote('Protein Nabati', nabati, originalMenu?.nabati);
     addNote('Protein Tambahan', tambahan, originalMenu?.proteinTambahan);
 
+    const updatedFields = {
+      karbohidrat: karbo || '-',
+      protein: protein || '-',
+      sayur: sayur || '-',
+      nabati: nabati || '-',
+      proteinTambahan: tambahan || '-',
+    };
+
     try {
-        await updateOrderNotes(targetOrder.id, newNotes);
+        await updateOrderNotes(targetOrder.id, newNotes, updatedFields);
         targetOrder.notes = newNotes;
+        targetOrder.karbohidrat = updatedFields.karbohidrat;
+        targetOrder.protein = updatedFields.protein;
+        targetOrder.sayur = updatedFields.sayur;
+        targetOrder.nabati = updatedFields.nabati;
+        targetOrder.proteinTambahan = updatedFields.proteinTambahan;
         
         toast.custom((t) => (
             <div
@@ -181,7 +222,7 @@ export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycl
       );
   };
 
-  const hasAnyOptions = menus.length > 0;
+  const hasAnyOptions = menus.length > 0 || !!originalMenu;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all" onClick={onClose}>

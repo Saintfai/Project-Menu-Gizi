@@ -125,13 +125,15 @@ export default function Chef() {
         }
       };
 
-      if (matchedMenu) {
-        let karbo = matchedMenu.karbohidrat || '';
-        let protein = matchedMenu.protein || '';
-        let sayur = matchedMenu.sayur || '';
-        let nabati = matchedMenu.nabati || '';
-        let tambahan = matchedMenu.proteinTambahan || '';
+      let karbo = matchedMenu?.karbohidrat || (order.karbohidrat && order.karbohidrat !== '-' ? order.karbohidrat : '');
+      let protein = matchedMenu?.protein || (order.protein && order.protein !== '-' ? order.protein : '');
+      let sayur = matchedMenu?.sayur || (order.sayur && order.sayur !== '-' ? order.sayur : '');
+      let nabati = matchedMenu?.nabati || (order.nabati && order.nabati !== '-' ? order.nabati : '');
+      let tambahan = matchedMenu?.proteinTambahan || (order.proteinTambahan && order.proteinTambahan !== '-' ? order.proteinTambahan : (order.protein_tambahan && order.protein_tambahan !== '-' ? order.protein_tambahan : ''));
 
+      const hasComponents = karbo || protein || sayur || nabati || tambahan;
+
+      if (hasComponents) {
         const existingNotes = order.notes || '';
         if (existingNotes) {
             const parseNote = (label, currentVal) => {

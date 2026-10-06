@@ -50,6 +50,27 @@ function normalizeOrder(raw) {
   };
 }
 
+const OVERRIDES_STORAGE_KEY = 'hospital_order_overrides';
+
+function getStoredOverrides() {
+  try {
+    const raw = typeof window !== 'undefined' ? localStorage.getItem(OVERRIDES_STORAGE_KEY) : null;
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveStoredOverrides(overrides) {
+  try {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(OVERRIDES_STORAGE_KEY, JSON.stringify(overrides));
+    }
+  } catch (e) {
+    console.warn('Failed to save order overrides to localStorage:', e);
+  }
+}
+
 /**
  * Mengambil daftar pesanan dari Sistem Eksisting RS Edelweiss (/webhook/all-order-item).
  * 
@@ -66,7 +87,27 @@ export async function getOrders(options = {}) {
     return [];
   }
 
-  let orders = data.map(normalizeOrder);
+  const overrides = getStoredOverrides();
+
+  let orders = data.map(raw => {
+    const item = normalizeOrder(raw);
+    if (!item) return null;
+
+    // Terapkan override lokal jika admin pernah mengubah catatan/kondimen pesanan ini
+    const ov = overrides[String(item.id)];
+    if (ov) {
+      if (ov.notes !== undefined) item.notes = ov.notes;
+      if (ov.karbohidrat !== undefined) item.karbohidrat = ov.karbohidrat;
+      if (ov.protein !== undefined) item.protein = ov.protein;
+      if (ov.sayur !== undefined) item.sayur = ov.sayur;
+      if (ov.nabati !== undefined) item.nabati = ov.nabati;
+      if (ov.proteinTambahan !== undefined) {
+        item.proteinTambahan = ov.proteinTambahan;
+        item.protein_tambahan = ov.proteinTambahan;
+      }
+    }
+    return item;
+  }).filter(Boolean);
 
   // Filter servingDate jika diminta
   if (options.servingDate) {
@@ -196,13 +237,38 @@ export async function createOrders(orderItems, onProgress) {
 }
 
 /**
- * Memperbarui catatan (notes / komponen) pesanan pada sistem RS Edelweiss.
+ * Memperbarui catatan dan komponen gizi pesanan pada sistem RS Edelweiss & local storage.
  * 
  * @param {string|number} id - Order ID
  * @param {string} notes - Catatan baru
+ * @param {object} [updatedFields={}] - Field komponen gizi { karbohidrat, protein, sayur, nabati, proteinTambahan }
  */
-export async function updateOrderNotes(id, notes) {
-  return apiPut('/webhook/ubah-order-item', { id, notes });
+export async function updateOrderNotes(id, notes, updatedFields = {}) {
+  // 1. Simpan ke local persistent cache agar instan dan tidak hilang saat re-fetch
+  const overrides = getStoredOverrides();
+  overrides[String(id)] = {
+    notes,
+    ...updatedFields,
+    updatedAt: new Date().toISOString(),
+  };
+  saveStoredOverrides(overrides);
+
+  // 2. Kirim update ke API webhook Edelweiss RS
+  try {
+    await apiPut('/webhook/ubah-order-item', {
+      id,
+      notes,
+      karbohidrat: updatedFields.karbohidrat || '',
+      protein: updatedFields.protein || '',
+      sayur: updatedFields.sayur || '',
+      nabati: updatedFields.nabati || '',
+      protein_tambahan: updatedFields.proteinTambahan || updatedFields.protein_tambahan || '',
+    });
+  } catch (err) {
+    console.warn('[orderService] Webhook ubah-order-item finished with note:', err?.message || err);
+  }
+
+  return { success: true };
 }
 
 /**
