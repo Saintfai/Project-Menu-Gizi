@@ -360,10 +360,10 @@ export default function MenuCycle() {
             size="sm"
             fullWidth
             onClick={() => handleOpenAdd(mealTime)}
-            className="border-neutral-300 hover:border-primary-600 hover:bg-white hover:text-primary-700 text-neutral-700 text-xs font-semibold py-2 gap-1.5"
+            leftIcon={<Plus className="w-4 h-4" />}
+            className="border-neutral-300 hover:border-primary-600 hover:bg-white hover:text-primary-700 text-neutral-700 text-xs font-semibold py-2"
           >
-            <Plus className="w-4 h-4" />
-            <span>Tambah {title}</span>
+            Tambah {title}
           </Button>
         </div>
       </div>
@@ -553,16 +553,9 @@ export default function MenuCycle() {
               variant="primary"
               size="sm"
               disabled={isSubmitting}
-              className="gap-1.5"
+              isLoading={isSubmitting}
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Menyimpan...</span>
-                </>
-              ) : (
-                <span>Tambah Menu</span>
-              )}
+              Tambah Menu
             </Button>
           </div>
         </form>
@@ -651,16 +644,9 @@ export default function MenuCycle() {
               variant="primary"
               size="sm"
               disabled={isSubmitting}
-              className="gap-1.5"
+              isLoading={isSubmitting}
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Menyimpan...</span>
-                </>
-              ) : (
-                <span>Simpan Perubahan</span>
-              )}
+              Simpan Perubahan
             </Button>
           </div>
         </form>
