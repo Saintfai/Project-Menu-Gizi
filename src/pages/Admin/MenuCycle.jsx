@@ -159,7 +159,7 @@ export default function MenuCycle() {
       loadCycleItems(selectedCycle);
     } catch (error) {
       console.error('Error adding menu item:', error);
-      toast.error('Gagal menambahkan menu baru.');
+      toast.error(error?.message || 'Gagal menambahkan menu baru.');
     } finally {
       setIsSubmitting(false);
     }

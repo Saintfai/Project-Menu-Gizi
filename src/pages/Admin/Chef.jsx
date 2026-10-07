@@ -109,53 +109,87 @@ export default function Chef() {
         return;
       }
 
+      const orderMeal = meal;
+      const orderPaket = (order.paketName || '').trim().toLowerCase();
+      const orderMenu = (order.menuName || '').trim().toLowerCase();
       const paket = (order.paketName || order.menuName || '').trim();
       
       // Find matching menu to get components
-      const matchedMenu = menuItems.find(m => 
-        (m.paketName?.trim().toLowerCase() === paket.toLowerCase() || m.name?.trim().toLowerCase() === paket.toLowerCase()) && 
-        m.mealTime === meal
+      const matchedMenu = menuItems.find(m => {
+        const mMeal = (m.mealTime || '').toUpperCase();
+        if (mMeal !== orderMeal) return false;
+        const mPaket = (m.paketName || '').trim().toLowerCase();
+        const mName = (m.name || '').trim().toLowerCase();
+        return (
+          (orderPaket && mPaket === orderPaket) ||
+          (orderMenu && (mName === orderMenu || mPaket === orderMenu)) ||
+          (orderPaket && mName === orderPaket) ||
+          (paket && (mPaket === paket.toLowerCase() || mName === paket.toLowerCase()))
+        );
+      });
+
+      const getInitialComponent = (matchedVal, orderVal) => {
+        if (orderVal && typeof orderVal === 'string' && orderVal.trim() !== '' && orderVal.trim() !== '-') {
+          return orderVal.trim();
+        }
+        if (matchedVal && typeof matchedVal === 'string' && matchedVal.trim() !== '' && matchedVal.trim() !== '-') {
+          return matchedVal.trim();
+        }
+        return '';
+      };
+
+      let karbo = getInitialComponent(matchedMenu?.karbohidrat, order.karbohidrat);
+      let protein = getInitialComponent(matchedMenu?.protein, order.protein);
+      let sayur = getInitialComponent(matchedMenu?.sayur, order.sayur);
+      let nabati = getInitialComponent(matchedMenu?.nabati, order.nabati);
+      let tambahan = getInitialComponent(
+        matchedMenu?.proteinTambahan || matchedMenu?.protein_tambahan,
+        order.proteinTambahan || order.protein_tambahan
       );
 
+      const existingNotes = order.notes || '';
+      if (existingNotes) {
+        const parseNote = (label, currentVal) => {
+          if (existingNotes.includes(`[Tanpa ${label}]`)) return '';
+          const match = existingNotes.match(new RegExp(`\\[Ganti ${label}: (.*?)\\]`));
+          if (match) {
+            const val = match[1].trim();
+            return val && val !== '-' ? val : '';
+          }
+          return currentVal;
+        };
+
+        karbo = parseNote('Karbohidrat', karbo);
+        protein = parseNote('Protein Hewani', protein);
+        sayur = parseNote('Sayur', sayur);
+        nabati = parseNote('Protein Nabati', nabati);
+        tambahan = parseNote('Protein Tambahan', tambahan);
+      }
+
       const addStat = (category, value) => {
-        if (!value) return;
-        const val = value.trim();
-        if (val) {
-          overallStats[category][val] = (overallStats[category][val] || 0) + qty;
+        if (!value || typeof value !== 'string') return;
+        const trimmed = value.trim();
+        if (trimmed && trimmed !== '-') {
+          overallStats[category][trimmed] = (overallStats[category][trimmed] || 0) + qty;
         }
       };
 
-      let karbo = matchedMenu?.karbohidrat || (order.karbohidrat && order.karbohidrat !== '-' ? order.karbohidrat : '');
-      let protein = matchedMenu?.protein || (order.protein && order.protein !== '-' ? order.protein : '');
-      let sayur = matchedMenu?.sayur || (order.sayur && order.sayur !== '-' ? order.sayur : '');
-      let nabati = matchedMenu?.nabati || (order.nabati && order.nabati !== '-' ? order.nabati : '');
-      let tambahan = matchedMenu?.proteinTambahan || (order.proteinTambahan && order.proteinTambahan !== '-' ? order.proteinTambahan : (order.protein_tambahan && order.protein_tambahan !== '-' ? order.protein_tambahan : ''));
+      const isPaket = Boolean(
+        order.paketName || 
+        (order.menuName && /paket/i.test(order.menuName)) ||
+        matchedMenu
+      );
+      const hasNamedComponent = [karbo, protein, sayur, nabati, tambahan].some(val => val && val.trim() !== '' && val !== '-');
 
-      const hasComponents = karbo || protein || sayur || nabati || tambahan;
-
-      if (hasComponents) {
-        const existingNotes = order.notes || '';
-        if (existingNotes) {
-            const parseNote = (label, currentVal) => {
-                if (existingNotes.includes(`[Tanpa ${label}]`)) return '';
-                const match = existingNotes.match(new RegExp(`\\[Ganti ${label}: (.*?)\\]`));
-                return match ? match[1] : currentVal;
-            };
-
-            karbo = parseNote('Karbohidrat', karbo);
-            protein = parseNote('Protein Hewani', protein);
-            sayur = parseNote('Sayur', sayur);
-            nabati = parseNote('Protein Nabati', nabati);
-            tambahan = parseNote('Protein Tambahan', tambahan);
-        }
-
+      if (isPaket || hasNamedComponent) {
         addStat('Karbohidrat', karbo);
         addStat('Protein Hewani', protein);
         addStat('Sayur', sayur);
         addStat('Protein Nabati', nabati);
         addStat('Protein Tambahan', tambahan);
       } else {
-        addStat('Karbohidrat', order.menuName);
+        const fallbackName = order.menuName || order.paketName || '';
+        addStat('Karbohidrat', fallbackName);
       }
 
       // Add notes
@@ -178,11 +212,15 @@ export default function Chef() {
   }, [filteredDailyOrders, menuItems, selectedMealTime]);
 
   // Prepare data for the unified 5-column table
-  const karboEntries = Object.entries(chefStats['Karbohidrat']).sort((a, b) => b[1] - a[1]);
-  const hewaniEntries = Object.entries(chefStats['Protein Hewani']).sort((a, b) => b[1] - a[1]);
-  const sayurEntries = Object.entries(chefStats['Sayur']).sort((a, b) => b[1] - a[1]);
-  const nabatiEntries = Object.entries(chefStats['Protein Nabati']).sort((a, b) => b[1] - a[1]);
-  const tambahanEntries = Object.entries(chefStats['Protein Tambahan']).sort((a, b) => b[1] - a[1]);
+  const sortEntries = (entries) => {
+    return [...entries].sort((a, b) => b[1] - a[1]);
+  };
+
+  const karboEntries = sortEntries(Object.entries(chefStats['Karbohidrat']));
+  const hewaniEntries = sortEntries(Object.entries(chefStats['Protein Hewani']));
+  const sayurEntries = sortEntries(Object.entries(chefStats['Sayur']));
+  const nabatiEntries = sortEntries(Object.entries(chefStats['Protein Nabati']));
+  const tambahanEntries = sortEntries(Object.entries(chefStats['Protein Tambahan']));
 
   const maxRows = Math.max(
     karboEntries.length,

@@ -1,4 +1,4 @@
-import { apiGet, apiPut } from './apiClient';
+import { apiGet, apiPostFormData, apiPut } from './apiClient';
 import { getMenuCycleByDate } from '../utils/cycleHelper';
 
 /**
@@ -106,11 +106,32 @@ export async function updateMenuItem(id, updates = {}) {
 }
 
 /**
- * Menambahkan item menu baru.
- * Catatan: Struktur 11 siklus bersifat tetap (fixed) di sistem RS.
+ * Menambahkan item menu baru ke siklus via API Edelweiss (POST /webhook/add-menu-gizi).
+ * Menggunakan format multipart/form-data.
+ * 
+ * @param {object} item - Data item menu yang akan ditambahkan
+ * @returns {Promise<any>}
  */
-export async function createMenuItem() {
-  throw new Error('Penambahan item menu baru tidak didukung oleh sistem RS. Silakan ubah konten menu yang ada.');
+export async function createMenuItem(item = {}) {
+  const formData = new FormData();
+
+  formData.append('name', String(item.name || '').trim());
+  formData.append('cycle_id', String(item.cycleId ?? item.cycle_id ?? 1));
+  formData.append('meal_time', String(item.mealTime || item.meal_time || 'PAGI').toUpperCase());
+  formData.append('paket_name', String(item.paketName || item.paket_name || 'Paket A').trim());
+  formData.append('description', String(item.description || '').trim());
+  formData.append('karbohidrat', item.karbohidrat && item.karbohidrat.trim() !== '' ? item.karbohidrat.trim() : '-');
+  formData.append('protein', item.protein && item.protein.trim() !== '' ? item.protein.trim() : '-');
+  formData.append('nabati', item.nabati && item.nabati.trim() !== '' ? item.nabati.trim() : '-');
+  formData.append(
+    'protein_tambahan',
+    item.proteinTambahan && item.proteinTambahan.trim() !== ''
+      ? item.proteinTambahan.trim()
+      : (item.protein_tambahan && item.protein_tambahan.trim() !== '' ? item.protein_tambahan.trim() : '-')
+  );
+  formData.append('sayur', item.sayur && item.sayur.trim() !== '' ? item.sayur.trim() : '-');
+
+  return apiPostFormData('/webhook/add-menu-gizi', formData);
 }
 
 /**
