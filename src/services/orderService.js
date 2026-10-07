@@ -40,6 +40,7 @@ function normalizeOrder(raw) {
     created_at: raw.created_at,
     notes: raw.notes || null,
     type: orderType,
+    hasExplicitType: Boolean(raw.type),
     description: raw.description || '-',
     karbohidrat: raw.karbohidrat || '-',
     protein: raw.protein || '-',
@@ -69,6 +70,30 @@ function saveStoredOverrides(overrides) {
   } catch (e) {
     console.warn('Failed to save order overrides to localStorage:', e);
   }
+}
+
+/**
+ * Fallback: API saat ini belum menyimpan kolom `type` (selalu null), sehingga Paket Ekstra
+ * ikut terbaca sebagai INCLUDE. Pola checkout di Cart selalu mengirim item INCLUDE
+ * (pasien lalu pendamping) lebih dulu, kemudian item EXCLUDE (consumer = pendamping,
+ * hanya Siang/Sore). Maka dalam satu order_id + waktu makan, baris pendamping kedua
+ * dan seterusnya dianggap Paket Ekstra.
+ */
+function inferMissingTypes(orders) {
+  const seenPendamping = new Set();
+  const sorted = [...orders].sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
+  sorted.forEach(item => {
+    if (item.hasExplicitType) return;
+    if (item.mealTime !== 'SIANG' && item.mealTime !== 'SORE') return;
+    if ((item.consumer || '').toLowerCase() !== 'pendamping') return;
+    const key = `${item.orderCode}_${item.mealTime}`;
+    if (seenPendamping.has(key)) {
+      item.type = 'EXCLUDE';
+    } else {
+      seenPendamping.add(key);
+    }
+  });
+  return orders;
 }
 
 /**
@@ -108,6 +133,8 @@ export async function getOrders(options = {}) {
     }
     return item;
   }).filter(Boolean);
+
+  orders = inferMissingTypes(orders);
 
   // Filter servingDate jika diminta
   if (options.servingDate) {

@@ -29,7 +29,7 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '', onMealClic
                      onMealClick(row, mealTime, [item]);
                  }
               }}
-              className={`${isExclude ? 'font-semibold text-success-700 bg-success-50 px-1.5 py-0.5 rounded text-[11px] border border-success-200/60 inline-block align-middle cursor-pointer hover:bg-success-100 m-0.5' : 'font-semibold text-primary-700 cursor-pointer hover:text-primary-800 hover:underline align-middle m-0.5'} transition-colors`}
+              className={`${isExclude ? 'font-semibold text-success-700 cursor-pointer hover:text-success-800 hover:underline align-middle m-0.5' : 'font-semibold text-primary-700 cursor-pointer hover:text-primary-800 hover:underline align-middle m-0.5'} transition-colors`}
             >
               {name}
             </span>
@@ -99,17 +99,17 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '', onMealClic
                     <td className="px-4 py-4 text-xs font-medium text-neutral-600">
                       {row.kamar}
                     </td>
-                    <td className="px-4 py-4 min-w-[120px] max-w-[160px] whitespace-normal">
+                    <td className="px-4 py-4 min-w-[120px] max-w-[200px] whitespace-normal">
                       <div className="text-xs">
                         {renderMealCell(row.itemsPagi, 'PAGI', row)}
                       </div>
                     </td>
-                    <td className="px-4 py-4 min-w-[120px] max-w-[160px] whitespace-normal">
+                    <td className="px-4 py-4 min-w-[120px] max-w-[200px] whitespace-normal">
                       <div className="text-xs">
                         {renderMealCell(row.itemsSiang, 'SIANG', row)}
                       </div>
                     </td>
-                    <td className="px-4 py-4 min-w-[120px] max-w-[160px] whitespace-normal">
+                    <td className="px-4 py-4 min-w-[120px] max-w-[200px] whitespace-normal">
                       <div className="text-xs">
                         {renderMealCell(row.itemsSore, 'SORE', row)}
                       </div>
