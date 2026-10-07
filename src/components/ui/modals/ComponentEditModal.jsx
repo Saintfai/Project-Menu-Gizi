@@ -1,8 +1,77 @@
-import React, { useState, useEffect } from 'react';
-import { X, Save } from 'lucide-react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
+import { Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getMenuItemsByCycle } from '../../../services/menuService';
 import { updateOrderNotes } from '../../../services/orderService';
+
+const cycleItemsCache = new Map(); 
+const cycleItemsPending = new Map(); 
+
+const loadCycleItems = (cycleNumber) => {
+  if (cycleItemsCache.has(cycleNumber)) return Promise.resolve(cycleItemsCache.get(cycleNumber));
+  if (cycleItemsPending.has(cycleNumber)) return cycleItemsPending.get(cycleNumber);
+  const p = getMenuItemsByCycle(cycleNumber)
+    .then((items) => {
+      cycleItemsCache.set(cycleNumber, items || []);
+      return items || [];
+    })
+    .catch((e) => {
+      console.warn('Could not fetch cycle items for modal:', e);
+      return [];
+    })
+    .finally(() => cycleItemsPending.delete(cycleNumber));
+  cycleItemsPending.set(cycleNumber, p);
+  return p;
+};
+
+const clean = (v) => (v === '-' ? '' : v || '');
+
+const computeInitialState = (cycleItems, selectedMeal) => {
+  const mealTime = (selectedMeal.mealTime || '').toUpperCase();
+  const targetOrder = selectedMeal.items?.[0] || {};
+  const filtered = (cycleItems || []).filter(item => (item.mealTime || '').toUpperCase() === mealTime);
+
+  const orderMenuName = (targetOrder.menuName || targetOrder.paketName || '').trim().toLowerCase();
+  const orderPaketName = (targetOrder.paketName || '').trim().toLowerCase();
+
+  const matchedMenu = filtered.find(m =>
+    (m.name && m.name.trim().toLowerCase() === orderMenuName) ||
+    (m.paketName && m.paketName.trim().toLowerCase() === orderMenuName) ||
+    (m.paketName && m.paketName.trim().toLowerCase() === orderPaketName)
+  );
+
+  const orig = {
+    karbohidrat: clean(matchedMenu?.karbohidrat || targetOrder.karbohidrat),
+    protein: clean(matchedMenu?.protein || targetOrder.protein),
+    sayur: clean(matchedMenu?.sayur || targetOrder.sayur),
+    nabati: clean(matchedMenu?.nabati || targetOrder.nabati),
+    proteinTambahan: clean(matchedMenu?.proteinTambahan || targetOrder.proteinTambahan || targetOrder.protein_tambahan),
+  };
+
+  const values = {
+    karbo: orig.karbohidrat,
+    protein: orig.protein,
+    sayur: orig.sayur,
+    nabati: orig.nabati,
+    tambahan: orig.proteinTambahan,
+  };
+
+  const existingNotes = targetOrder.notes || '';
+  if (existingNotes) {
+    const parseNote = (label, currentVal) => {
+      if (existingNotes.includes(`[Tanpa ${label}]`)) return '';
+      const match = existingNotes.match(new RegExp(`\\[Ganti ${label}: (.*?)\\]`));
+      return match ? match[1] : currentVal;
+    };
+    values.karbo = parseNote('Karbohidrat', values.karbo);
+    values.protein = parseNote('Protein Hewani', values.protein);
+    values.sayur = parseNote('Sayur', values.sayur);
+    values.nabati = parseNote('Protein Nabati', values.nabati);
+    values.tambahan = parseNote('Protein Tambahan', values.tambahan);
+  }
+
+  return { filtered, orig, values };
+};
 
 export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycleNumber }) {
   const [loading, setLoading] = useState(false);
@@ -17,96 +86,56 @@ export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycl
 
   const [originalMenu, setOriginalMenu] = useState(null);
 
-  // Fetch available menu components for the current cycle & mealTime
   useEffect(() => {
-    if (isOpen && selectedMeal && cycleNumber) {
-      // Clear previous data immediately to prevent flickering of old menu data
-      setMenus([]);
-      setOriginalMenu(null);
-      setKarbo('');
-      setProtein('');
-      setSayur('');
-      setNabati('');
-      setTambahan('');
+    if (!cycleNumber) return;
+    if (!cycleItemsPending.has(cycleNumber)) cycleItemsCache.delete(cycleNumber);
+    loadCycleItems(cycleNumber);
+  }, [cycleNumber]);
 
-      const fetchMenus = async () => {
-        try {
-          const mealTime = (selectedMeal.mealTime || '').toUpperCase();
-          const targetOrder = selectedMeal.items[0];
+  useLayoutEffect(() => {
+    if (!isOpen || !selectedMeal || !cycleNumber) return;
 
-          let cycleItems = [];
-          try {
-            cycleItems = await getMenuItemsByCycle(cycleNumber);
-          } catch (e) {
-            console.warn('Could not fetch cycle items for modal:', e);
-          }
-          const filtered = (cycleItems || []).filter(item => (item.mealTime || '').toUpperCase() === mealTime);
-          setMenus(filtered);
+    let cancelled = false;
+    const apply = (cycleItems) => {
+      if (cancelled) return;
+      try {
+        const { filtered, orig, values } = computeInitialState(cycleItems, selectedMeal);
+        setMenus(filtered);
+        setOriginalMenu(orig);
+        setKarbo(values.karbo);
+        setProtein(values.protein);
+        setSayur(values.sayur);
+        setNabati(values.nabati);
+        setTambahan(values.tambahan);
+      } catch (err) {
+        console.error('Failed to initialize component modal:', err);
+      }
+    };
 
-          // Find the matching menu item for the target order (case-insensitive & supports name / paketName)
-          const orderMenuName = (targetOrder.menuName || targetOrder.paketName || '').trim().toLowerCase();
-          const orderPaketName = (targetOrder.paketName || '').trim().toLowerCase();
-
-          const matchedMenu = filtered.find(m => 
-            (m.name && m.name.trim().toLowerCase() === orderMenuName) ||
-            (m.paketName && m.paketName.trim().toLowerCase() === orderMenuName) ||
-            (m.paketName && m.paketName.trim().toLowerCase() === orderPaketName)
-          );
-
-          // Base ingredients: prioritaskan matchedMenu, fallback ke nilai langsung dari targetOrder
-          const baseKarbo = matchedMenu?.karbohidrat || targetOrder.karbohidrat || '';
-          const baseProtein = matchedMenu?.protein || targetOrder.protein || '';
-          const baseSayur = matchedMenu?.sayur || targetOrder.sayur || '';
-          const baseNabati = matchedMenu?.nabati || targetOrder.nabati || '';
-          const baseTambahan = matchedMenu?.proteinTambahan || targetOrder.proteinTambahan || targetOrder.protein_tambahan || '';
-
-          const orig = {
-            karbohidrat: baseKarbo === '-' ? '' : baseKarbo,
-            protein: baseProtein === '-' ? '' : baseProtein,
-            sayur: baseSayur === '-' ? '' : baseSayur,
-            nabati: baseNabati === '-' ? '' : baseNabati,
-            proteinTambahan: baseTambahan === '-' ? '' : baseTambahan,
-          };
-          setOriginalMenu(orig);
-
-          let initKarbo = orig.karbohidrat;
-          let initProtein = orig.protein;
-          let initSayur = orig.sayur;
-          let initNabati = orig.nabati;
-          let initTambahan = orig.proteinTambahan;
-
-          // Parse existing notes to reflect previously saved changes
-          const existingNotes = targetOrder.notes || '';
-          if (existingNotes) {
-              const parseNote = (label, currentVal) => {
-                  if (existingNotes.includes(`[Tanpa ${label}]`)) return '';
-                  const match = existingNotes.match(new RegExp(`\\[Ganti ${label}: (.*?)\\]`));
-                  return match ? match[1] : currentVal;
-              };
-
-              initKarbo = parseNote('Karbohidrat', initKarbo);
-              initProtein = parseNote('Protein Hewani', initProtein);
-              initSayur = parseNote('Sayur', initSayur);
-              initNabati = parseNote('Protein Nabati', initNabati);
-              initTambahan = parseNote('Protein Tambahan', initTambahan);
-          }
-
-          setKarbo(initKarbo);
-          setProtein(initProtein);
-          setSayur(initSayur);
-          setNabati(initNabati);
-          setTambahan(initTambahan);
-        } catch (err) {
-          console.error('Failed to initialize component modal:', err);
-        }
-      };
-      fetchMenus();
+    const cached = cycleItemsCache.get(cycleNumber);
+    if (cached) {
+      apply(cached);
+    } else {
+      apply([]);
+      loadCycleItems(cycleNumber).then(apply);
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen, selectedMeal, cycleNumber]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isOpen]);
 
   if (!isOpen || !selectedMeal) return null;
 
-  // Extract unique options
   const uniqueOptions = (field) => {
     const opts = menus.map(m => m[field]).filter(val => val && val.trim() !== '' && val !== '-');
     const origVal = originalMenu?.[field];
@@ -225,7 +254,7 @@ export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycl
   const hasAnyOptions = menus.length > 0 || !!originalMenu;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all" onClick={onClose}>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-white w-full max-w-md rounded-xl shadow-2xl flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
         
         {/* Header */}
@@ -243,7 +272,7 @@ export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycl
                   <p className="text-sm text-neutral-500 italic text-center animate-pulse">Memuat opsi menu komponen...</p>
               </div>
           ) : (
-              <div className="animate-in fade-in duration-200">
+              <div>
                   <p className="text-xs text-neutral-600 mb-3">Pilih komponen baru jika pasien meminta penggantian.</p>
                   {renderSelect('Karbohidrat', karbo, setKarbo, 'karbohidrat')}
                   {renderSelect('Protein Hewani', protein, setProtein, 'protein')}

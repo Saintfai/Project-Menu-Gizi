@@ -102,6 +102,7 @@ export default {
         success: {
           50: 'var(--color-success-50)',
           100: 'var(--color-success-100)',
+          200: 'var(--color-success-200)',
           500: 'var(--color-success-500)',
           600: 'var(--color-success-600)',
           700: 'var(--color-success-700)',
