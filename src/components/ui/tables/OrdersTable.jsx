@@ -44,7 +44,7 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '', onMealClic
     const excludeElems = formatGroup(excludeItems, true);
 
     return (
-      <div className="text-xs leading-relaxed">
+      <div className="text-xs leading-relaxed whitespace-normal break-words">
         {includeElems}
         {includeElems && excludeElems && <span className="text-neutral-400 font-bold mx-1.5 align-middle">|</span>}
         {excludeElems}
@@ -59,9 +59,9 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '', onMealClic
           <thead className="bg-primary-50">
             <tr>
               <th className="px-3 py-3 text-xs font-bold text-neutral-900 text-center w-12" style={{ border: '1px solid #9ca3af' }}>NO</th>
-              <th className="px-3 py-3 text-xs font-bold text-neutral-900 text-center w-28" style={{ border: '1px solid #9ca3af' }}>NO. RM</th>
+              <th className="px-3 py-3 text-xs font-bold text-neutral-900 w-28" style={{ border: '1px solid #9ca3af' }}>NO. RM</th>
               <th className="px-3 py-3 text-xs font-bold text-neutral-900" style={{ border: '1px solid #9ca3af' }}>PASIEN</th>
-              <th className="px-3 py-3 text-xs font-bold text-neutral-900 text-center w-24" style={{ border: '1px solid #9ca3af' }}>KAMAR</th>
+              <th className="px-3 py-3 text-xs font-bold text-neutral-900 w-24" style={{ border: '1px solid #9ca3af' }}>KAMAR</th>
               <th className="px-3 py-3 text-xs font-bold text-neutral-900" style={{ border: '1px solid #9ca3af' }}>MAKAN PAGI</th>
               <th className="px-3 py-3 text-xs font-bold text-neutral-900" style={{ border: '1px solid #9ca3af' }}>MAKAN SIANG</th>
               <th className="px-3 py-3 text-xs font-bold text-neutral-900" style={{ border: '1px solid #9ca3af' }}>MAKAN SORE</th>
@@ -86,29 +86,29 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '', onMealClic
                     <td className="px-3 py-2.5 text-xs text-neutral-900 text-center align-top font-medium" style={{ border: '1px solid #9ca3af' }}>
                       {index + 1}
                     </td>
-                    <td className="px-3 py-2.5 text-xs font-semibold text-primary-700 text-center align-top" style={{ border: '1px solid #9ca3af' }}>
+                    <td className="px-3 py-2.5 text-xs font-semibold text-primary-700 align-top" style={{ border: '1px solid #9ca3af' }}>
                       {displayRm}
                     </td>
-                    <td className="px-3 py-2.5 min-w-[140px] max-w-[180px] align-top" style={{ border: '1px solid #9ca3af' }}>
-                      <div className="flex items-center gap-1.5 font-semibold text-neutral-900 text-xs sm:text-sm">
+                    <td className="px-3 py-2.5 min-w-[200px] align-top" style={{ border: '1px solid #9ca3af' }}>
+                      <div className="flex items-start gap-1.5 font-semibold text-neutral-900 text-xs sm:text-sm whitespace-normal break-words">
                         {row.hasAllergy && (
-                          <div className="w-3.5 h-3.5 rounded-full bg-danger-100 flex items-center justify-center flex-shrink-0" title={row.allergyNote || 'Riwayat Alergi'}>
+                          <div className="w-3.5 h-3.5 rounded-full bg-danger-100 flex items-center justify-center flex-shrink-0 mt-0.5" title={row.allergyNote || 'Riwayat Alergi'}>
                             <div className="w-2 h-2 rounded-full bg-danger-600"></div>
                           </div>
                         )}
-                        <span>{displayName}</span>
+                        <span className="leading-tight">{displayName}</span>
                       </div>
                     </td>
-                    <td className="px-3 py-2.5 text-xs font-medium text-neutral-700 text-center align-top" style={{ border: '1px solid #9ca3af' }}>
+                    <td className="px-3 py-2.5 text-xs font-medium text-neutral-700 align-top" style={{ border: '1px solid #9ca3af' }}>
                       {row.kamar}
                     </td>
-                    <td className="px-3 py-2.5 min-w-[120px] max-w-[200px] align-top" style={{ border: '1px solid #9ca3af' }}>
+                    <td className="px-3 py-2.5 min-w-[150px] max-w-[250px] align-top whitespace-normal break-words" style={{ border: '1px solid #9ca3af' }}>
                       {renderMealCell(row.itemsPagi, 'PAGI', row)}
                     </td>
-                    <td className="px-3 py-2.5 min-w-[120px] max-w-[200px] align-top" style={{ border: '1px solid #9ca3af' }}>
+                    <td className="px-3 py-2.5 min-w-[150px] max-w-[250px] align-top whitespace-normal break-words" style={{ border: '1px solid #9ca3af' }}>
                       {renderMealCell(row.itemsSiang, 'SIANG', row)}
                     </td>
-                    <td className="px-3 py-2.5 min-w-[120px] max-w-[200px] align-top" style={{ border: '1px solid #9ca3af' }}>
+                    <td className="px-3 py-2.5 min-w-[150px] max-w-[250px] align-top whitespace-normal break-words" style={{ border: '1px solid #9ca3af' }}>
                       {renderMealCell(row.itemsSore, 'SORE', row)}
                     </td>
                     <td className="px-3 py-2.5 text-center align-top" style={{ border: '1px solid #9ca3af' }}>

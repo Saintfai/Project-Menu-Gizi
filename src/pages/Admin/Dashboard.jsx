@@ -346,55 +346,58 @@ export default function Dashboard() {
       </section>
 
       {/* Search & Filter Controls */}
-      <section className="space-y-3 pt-2">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <h2 className="text-base sm:text-lg font-bold text-neutral-900">
-            Detail Rekap Pesanan Pasien
-          </h2>
-          <span className="text-xs font-semibold text-neutral-500">
-            Batas Pemesanan Utama (Cut-Off): 15:00 WIB
-          </span>
+      {/* Search & Filter Controls & Table */}
+      <section className="space-y-3 pt-2 w-full">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base sm:text-lg font-bold text-neutral-900">
+              Detail Rekap Pesanan Pasien
+            </h2>
+            <p className="text-xs text-neutral-500 font-medium mt-0.5">
+              Batas Pemesanan Utama (Cut-Off): <strong className="text-danger-600">15:00 WIB</strong>
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
+            {/* Search Input */}
+            <div className="relative w-full sm:w-64">
+              <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Cari Nama / No. RM / Kamar..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-9 pl-9 pr-3 text-xs bg-white border border-neutral-300 rounded-lg text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-xs"
+              />
+            </div>
+
+            {/* Filter Dropdown */}
+            <div className="relative w-full sm:w-36">
+              <select
+                value={selectedFilter}
+                onChange={(e) => setSelectedFilter(e.target.value)}
+                className="w-full h-9 appearance-none bg-white border border-neutral-300 rounded-lg pl-3 pr-7 text-xs font-semibold text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer shadow-xs"
+              >
+                <option value="ALL">Semua</option>
+                <option value="ALLERGY">Ada Alergi</option>
+                <option value="NOTE">Ada Catatan</option>
+                <option value="VIP">Kelas VIP</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full">
-          {/* Search Input */}
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Cari Nama Pasien, No. RM, atau Nomor Kamar..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-10 pl-10 pr-4 text-xs sm:text-sm bg-white border border-neutral-300 rounded-xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-xs"
-            />
-          </div>
-
-          {/* Filter Dropdown */}
-          <div className="relative w-full sm:w-44">
-            <select
-              value={selectedFilter}
-              onChange={(e) => setSelectedFilter(e.target.value)}
-              className="w-full h-10 appearance-none bg-white border border-neutral-300 rounded-xl px-3.5 pr-9 text-xs sm:text-sm font-medium text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-xs cursor-pointer"
-            >
-              <option value="ALL">Semua Pesanan</option>
-              <option value="ALLERGY">Dengan Alergi</option>
-              <option value="NOTE">Dengan Catatan</option>
-              <option value="VIP">Kelas VIP</option>
-            </select>
-            <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
+        <div className="w-full">
+          {loading && tableData.length === 0 ? (
+            <div className="w-full bg-white rounded-xl border border-neutral-200 p-12 text-center text-sm text-neutral-500 shadow-sm flex flex-col items-center justify-center gap-3">
+              <RefreshCw className="w-6 h-6 text-primary-600 animate-spin" />
+              <span>Memuat rekapitulasi pesanan pasien...</span>
+            </div>
+          ) : (
+            <OrdersTable data={filteredData} onNoteClick={handleOpenNote} onMealClick={handleMealClick} />
+          )}
         </div>
-      </section>
-
-      <section className="w-full">
-        {loading && tableData.length === 0 ? (
-          <div className="w-full bg-white rounded-xl border border-neutral-200 p-12 text-center text-sm text-neutral-500 shadow-sm flex flex-col items-center justify-center gap-3">
-            <RefreshCw className="w-6 h-6 text-primary-600 animate-spin" />
-            <span>Memuat rekapitulasi pesanan pasien...</span>
-          </div>
-        ) : (
-          <OrdersTable data={filteredData} onNoteClick={handleOpenNote} onMealClick={handleMealClick} />
-        )}
       </section>
 
       <NoteDetailModal

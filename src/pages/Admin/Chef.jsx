@@ -199,7 +199,7 @@ export default function Chef() {
       if (order.notes || hasAllergy) {
         overallStats.notes.push({
           patientName: order.patientName || order.patient?.name,
-          room: order.roomNumber || order.kamar || '-',
+          room: (order.roomNumber ? `${order.roomNumber} - ${order.classType || ''}` : (order.kamar || '-')).replace(/\s*\|\s*$/, ''),
           note: order.notes,
           allergy: hasAllergy ? allergy : null,
           menu: order.menuName || order.paketName,

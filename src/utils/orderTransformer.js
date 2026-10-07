@@ -98,7 +98,7 @@ export function groupOrdersForTable(rawOrders = []) {
         patientName: order.patient?.name || order.patientName || order.pasienRM || 'Pasien',
         rmNumber: order.patient?.rmNumber || order.rmNumber || 'RM-000',
         pasienRM: `${order.patient?.name || order.patientName || 'Pasien'} (${order.patient?.rmNumber || order.rmNumber || 'RM-000'})`,
-        kamar: order.roomNumber ? `${order.roomNumber} - ${order.classType || ''}` : (order.kamar || '-'),
+        kamar: (order.roomNumber ? `${order.roomNumber} - ${order.classType || ''}` : (order.kamar || '-')).replace(/\s*\|\s*$/, ''),
         hasAllergy: isAllergic,
         allergyNote: isAllergic ? allergyRaw : null,
         notes: order.notes || order.catatan || null,
