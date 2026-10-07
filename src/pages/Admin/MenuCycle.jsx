@@ -243,9 +243,6 @@ export default function MenuCycle() {
               </p>
             </div>
           </div>
-          <span className="text-xs font-bold px-2.5 py-1 rounded-md border border-primary-200 bg-white text-primary-800">
-            Siklus {selectedCycle}
-          </span>
         </div>
 
         {/* List of Items */}
