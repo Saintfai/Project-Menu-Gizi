@@ -10,30 +10,30 @@ export const RekapCard = ({
   className = '' 
 }) => {
   return (
-    <div className={`flex flex-col p-4 bg-neutral-0 border border-neutral-200 rounded-xl shadow-sm ${className}`}>
-      <div className="flex items-center gap-2 mb-3">
+    <div className={`flex flex-col p-4 bg-white border border-neutral-200 rounded-xl shadow-xs ${className}`}>
+      <div className="flex items-center gap-2 mb-2.5 pb-2 border-b border-neutral-100">
         {icon && (
-          <div className="text-primary-600">
+          <div className="flex-shrink-0">
             {icon}
           </div>
         )}
-        <h3 className="font-semibold text-neutral-900 text-sm">{title}</h3>
+        <h3 className="font-bold text-neutral-800 text-xs uppercase tracking-wider">{title}</h3>
       </div>
 
-      <div className="flex items-baseline gap-2 mb-4">
-        <span className="text-3xl font-bold text-primary-700 leading-none">{total}</span>
-        <span className="text-xs text-neutral-500 font-medium">{totalLabel}</span>
+      <div className="flex items-baseline gap-2 mb-3">
+        <span className="text-2xl sm:text-3xl font-extrabold text-neutral-900 leading-none">{total}</span>
+        <span className="text-xs text-neutral-500 font-semibold">{totalLabel}</span>
       </div>
 
       {details.length > 0 && (
-        <div className="mt-auto space-y-1.5 flex-1 flex flex-col justify-end">
+        <div className="mt-auto space-y-1.5 flex-1 flex flex-col justify-end pt-2 border-t border-neutral-100">
           {details.map((detail, index) => (
             <div key={index} className="flex justify-between items-center text-xs">
-              <span className="text-neutral-500">{detail.label}</span>
+              <span className="text-neutral-500 font-medium">{detail.label}</span>
               {detail.icon ? (
-                <div className="text-primary-500">{detail.icon}</div>
+                <div className="text-primary-600">{detail.icon}</div>
               ) : (
-                <span className="font-semibold text-primary-600">{detail.value}</span>
+                <span className="font-bold text-neutral-800">{detail.value}</span>
               )}
             </div>
           ))}
@@ -59,3 +59,4 @@ RekapCard.propTypes = {
 };
 
 export default RekapCard;
+

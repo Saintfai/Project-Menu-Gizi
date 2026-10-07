@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { 
-  RotateCw, 
+  RefreshCw, 
   ChevronDown, 
   Info, 
   Sun, 
@@ -10,7 +10,8 @@ import {
   Pencil, 
   Trash2, 
   AlertCircle, 
-  Loader2
+  Loader2,
+  UtensilsCrossed
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getMenuCycleByDate } from '../../utils/cycleHelper';
@@ -227,45 +228,38 @@ export default function MenuCycle() {
 
   // Render a Single Meal Column
   const renderMealColumn = (title, items, mealTime, icon) => {
-    const isPagi = mealTime === 'PAGI';
-    const isSiang = mealTime === 'SIANG';
-
-    const bgBadge = isPagi ? 'bg-amber-50 text-amber-700 border-amber-200' : isSiang ? 'bg-primary-50 text-primary-700 border-primary-200' : 'bg-indigo-50 text-indigo-700 border-indigo-200';
-    const iconWrapper = isPagi ? 'bg-amber-100/70 text-amber-600' : isSiang ? 'bg-primary-100/70 text-primary-600' : 'bg-indigo-100/70 text-indigo-600';
-    const tagBorder = isPagi ? 'border-amber-200 bg-amber-50/50 text-amber-800' : isSiang ? 'border-primary-200 bg-primary-50/50 text-primary-800' : 'border-indigo-200 bg-indigo-50/50 text-indigo-800';
-
     return (
-      <div className="bg-neutral-0 rounded-xl border border-neutral-200 shadow-xs flex flex-col h-full overflow-hidden transition-all duration-200 hover:shadow-sm">
+      <div className="bg-white rounded-xl border border-neutral-300 shadow-xs flex flex-col h-full overflow-hidden transition-all duration-200">
         {/* Column Header */}
-        <div className="p-4 sm:p-5 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/40">
-          <div className="flex items-center gap-3">
-            <div className={`p-2.5 rounded-lg ${iconWrapper}`}>
+        <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-primary-50">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-lg bg-white border border-primary-200 text-primary-700 flex-shrink-0">
               {icon}
             </div>
             <div>
-              <h2 className="font-bold text-neutral-900 text-base">{title}</h2>
-              <p className="text-xs text-neutral-500 font-medium">
-                {items.length} Paket Tersedia
+              <h2 className="font-bold text-neutral-900 text-sm sm:text-base">{title}</h2>
+              <p className="text-xs text-neutral-600 font-medium">
+                {items.length} Paket Menu Terdaftar
               </p>
             </div>
           </div>
-          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${bgBadge}`}>
+          <span className="text-xs font-bold px-2.5 py-1 rounded-md border border-primary-200 bg-white text-primary-800">
             Siklus {selectedCycle}
           </span>
         </div>
 
         {/* List of Items */}
-        <div className="p-4 sm:p-5 flex-1 space-y-3.5 overflow-y-auto">
+        <div className="p-4 flex-1 space-y-3 overflow-y-auto">
           {isLoading ? (
             <div className="py-12 flex flex-col items-center justify-center text-neutral-400 space-y-2">
-              <Loader2 className="w-6 h-6 animate-spin text-primary-500" />
-              <p className="text-xs font-medium text-neutral-500">Memuat menu...</p>
+              <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
+              <p className="text-xs font-medium text-neutral-500">Memuat paket menu...</p>
             </div>
           ) : items.length === 0 ? (
-            <div className="py-10 px-4 rounded-xl border border-dashed border-neutral-200 bg-neutral-50/60 text-center flex flex-col items-center justify-center">
+            <div className="py-10 px-4 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 text-center flex flex-col items-center justify-center">
               <AlertCircle className="w-8 h-8 text-neutral-300 mb-2" />
               <p className="text-sm font-semibold text-neutral-700">Belum Ada Menu</p>
-              <p className="text-xs text-neutral-400 mt-1 max-w-[200px]">
+              <p className="text-xs text-neutral-500 mt-1 max-w-[200px]">
                 Belum ada hidangan yang diatur untuk {title.toLowerCase()} pada Siklus {selectedCycle}.
               </p>
             </div>
@@ -273,20 +267,20 @@ export default function MenuCycle() {
             items.map((item) => (
               <div
                 key={item.id}
-                className="group relative p-4 rounded-xl border border-neutral-200/80 bg-white hover:border-primary-300 hover:shadow-xs transition-all duration-200 space-y-2.5"
+                className="group relative p-3.5 rounded-xl border border-neutral-200 bg-white hover:border-primary-400 hover:shadow-xs transition-all duration-200 space-y-2"
               >
                 {/* Header item: Badge & Actions */}
                 <div className="flex items-center justify-between gap-2">
-                  <span className={`text-xs font-bold px-2.5 py-0.5 rounded-md border ${tagBorder}`}>
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-md border border-neutral-300 bg-neutral-100 text-neutral-800">
                     {item.paketName || 'Paket'}
                   </span>
                   
                   {/* Action Buttons */}
-                  <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
                     <button
                       type="button"
                       onClick={() => handleOpenEdit(item)}
-                      className="p-1.5 text-neutral-500 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors"
+                      className="p-1.5 text-neutral-600 hover:text-primary-700 hover:bg-primary-50 rounded-md transition-colors"
                       title="Edit Menu"
                     >
                       <Pencil className="w-3.5 h-3.5" />
@@ -298,7 +292,7 @@ export default function MenuCycle() {
                       className={`p-1.5 rounded-md transition-colors ${
                         isActiveCycle
                           ? 'text-neutral-300 cursor-not-allowed'
-                          : 'text-neutral-500 hover:text-danger-600 hover:bg-danger-50'
+                          : 'text-neutral-600 hover:text-danger-600 hover:bg-danger-50'
                       }`}
                       title={isActiveCycle ? "Menu tidak dapat dihapus saat siklus sedang aktif" : "Hapus Menu"}
                     >
@@ -314,8 +308,44 @@ export default function MenuCycle() {
 
                 {/* Description */}
                 {item.description && (
-                  <div className="text-xs text-neutral-600 bg-neutral-50/90 rounded-lg p-2.5 border border-neutral-100 leading-relaxed font-normal">
+                  <div className="text-xs text-neutral-600 bg-neutral-50 rounded-lg p-2 border border-neutral-100 leading-relaxed font-normal">
                     {item.description}
+                  </div>
+                )}
+
+                {/* Nutrition breakdown pill table */}
+                {(item.karbohidrat || item.protein || item.sayur || item.nabati || item.proteinTambahan) && (
+                  <div className="text-[11px] bg-neutral-50/70 rounded-lg p-2 border border-neutral-200 space-y-1">
+                    {item.karbohidrat && item.karbohidrat !== '-' && (
+                      <div className="flex justify-between gap-1 text-neutral-600">
+                        <span className="text-neutral-400 font-medium">Karbohidrat:</span>
+                        <span className="font-semibold text-neutral-800 text-right truncate">{item.karbohidrat}</span>
+                      </div>
+                    )}
+                    {item.protein && item.protein !== '-' && (
+                      <div className="flex justify-between gap-1 text-neutral-600">
+                        <span className="text-neutral-400 font-medium">Prot. Hewani:</span>
+                        <span className="font-semibold text-neutral-800 text-right truncate">{item.protein}</span>
+                      </div>
+                    )}
+                    {item.sayur && item.sayur !== '-' && (
+                      <div className="flex justify-between gap-1 text-neutral-600">
+                        <span className="text-neutral-400 font-medium">Sayur:</span>
+                        <span className="font-semibold text-neutral-800 text-right truncate">{item.sayur}</span>
+                      </div>
+                    )}
+                    {item.nabati && item.nabati !== '-' && (
+                      <div className="flex justify-between gap-1 text-neutral-600">
+                        <span className="text-neutral-400 font-medium">Prot. Nabati:</span>
+                        <span className="font-semibold text-neutral-800 text-right truncate">{item.nabati}</span>
+                      </div>
+                    )}
+                    {item.proteinTambahan && item.proteinTambahan !== '-' && (
+                      <div className="flex justify-between gap-1 text-neutral-600">
+                        <span className="text-neutral-400 font-medium">Prot. Tambahan:</span>
+                        <span className="font-semibold text-neutral-800 text-right truncate">{item.proteinTambahan}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -324,13 +354,13 @@ export default function MenuCycle() {
         </div>
 
         {/* Footer Button Add */}
-        <div className="p-4 border-t border-neutral-100 bg-neutral-50/30">
+        <div className="p-3.5 border-t border-neutral-200 bg-neutral-50">
           <Button
             variant="outline"
             size="sm"
             fullWidth
             onClick={() => handleOpenAdd(mealTime)}
-            className="border-dashed border-neutral-300 hover:border-primary-500 hover:bg-primary-50/50 hover:text-primary-700 text-neutral-600 text-xs font-semibold py-2 gap-1.5"
+            className="border-neutral-300 hover:border-primary-600 hover:bg-white hover:text-primary-700 text-neutral-700 text-xs font-semibold py-2 gap-1.5"
           >
             <Plus className="w-4 h-4" />
             <span>Tambah {title}</span>
@@ -344,73 +374,71 @@ export default function MenuCycle() {
     <PageTransition>
     <div className="space-y-6 w-full pb-10">
       {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-200">
         <div>
-          <h1 className="text-xl font-bold text-neutral-900 tracking-tight flex items-center gap-2">
-            Kelola Siklus Menu
+          <h1 className="text-xl font-bold text-neutral-900 flex items-center gap-2">
+            <UtensilsCrossed className="w-6 h-6 text-primary-600" />
+            Manajemen Siklus Menu Gizi
           </h1>
-          <p className="text-sm text-neutral-500 mt-0.5">
-            Daftar dan konfigurasi paket makanan pasien berdasarkan siklus gizi (Siklus 1 - 11).
+          <p className="text-sm text-neutral-500 mt-1 mb-3">
+            Daftar dan konfigurasi paket makanan pasien berdasarkan 11 Siklus Dietetik Rumah Sakit.
           </p>
         </div>
 
         {/* Active Badge & Refresh */}
-        <div className="flex items-center gap-2">
-          <div className="inline-flex items-center gap-2 px-3.5 py-2 bg-primary-50 border border-primary-200 rounded-lg text-neutral-800 text-sm font-semibold shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
-            <span>Siklus Aktif Hari Ini: <strong>Siklus {activeCycle}</strong></span>
-          </div>
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary-600 animate-pulse"></span>
+            Siklus Aktif Hari Ini: Siklus {activeCycle}
+          </span>
 
           <button
             type="button"
             onClick={() => loadCycleItems(selectedCycle, true)}
             disabled={isRefreshing || isLoading}
-            className="p-2 bg-neutral-0 border border-neutral-200 text-neutral-600 hover:text-primary-600 hover:bg-neutral-50 rounded-lg shadow-xs transition-all disabled:opacity-50"
-            title="Refresh Data"
+            className="flex items-center gap-1.5 text-xs font-semibold text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-800 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+            title="Refresh Data Siklus"
           >
-            <RotateCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-primary-600' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
           </button>
         </div>
       </div>
 
       {/* Cycle Switcher & Information Banner */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-3.5 bg-white border border-neutral-200 rounded-xl shadow-xs">
         {/* Cycle Dropdown */}
-        <div className="flex items-center gap-3 shrink-0 bg-neutral-0 p-2.5 rounded-xl border border-neutral-200 shadow-xs">
-          <label htmlFor="cycle-select" className="text-sm font-bold text-neutral-700 select-none whitespace-nowrap pl-1">
-            Pilih Siklus:
+        <div className="flex items-center gap-3 shrink-0">
+          <label htmlFor="cycle-select" className="text-xs sm:text-sm font-bold text-neutral-800 whitespace-nowrap pl-1">
+            Pilih Siklus Menu:
           </label>
-          <div className="relative">
+          <div className="relative w-48 sm:w-56">
             <select
               id="cycle-select"
               value={selectedCycle}
               onChange={(e) => setSelectedCycle(Number(e.target.value))}
-              className="appearance-none bg-neutral-50 hover:bg-neutral-100/80 border border-neutral-300 rounded-lg pl-3.5 pr-9 py-2 text-sm font-bold text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 cursor-pointer transition-colors min-w-[170px]"
+              className="w-full h-10 appearance-none bg-neutral-50 hover:bg-neutral-100 border border-neutral-300 rounded-xl pl-3.5 pr-9 text-xs sm:text-sm font-bold text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent cursor-pointer transition-all shadow-xs"
             >
               {Array.from({ length: 11 }, (_, i) => i + 1).map((c) => (
                 <option key={c} value={c}>
-                  Siklus {c} {c === 11 ? '(Khusus Tgl 31)' : ''} {c === activeCycle ? '★ Aktif' : ''}
+                  Siklus {c} {c === 11 ? '(Khusus Tgl 31)' : ''} {c === activeCycle ? '★ Aktif Besok' : ''}
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-4 h-4 text-neutral-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-neutral-500 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
 
-        <div className={`flex-1 flex items-center gap-3 px-4 py-3 border-l-4 rounded-r-xl text-neutral-800 text-sm shadow-xs ${
-          isActiveCycle 
-            ? 'bg-amber-50/80 border-amber-500' 
-            : 'bg-primary-50 border-primary-600'
-        }`}>
-          <Info className={`w-5 h-5 shrink-0 ${isActiveCycle ? 'text-amber-600' : 'text-primary-600'}`} />
-          <p className="leading-snug text-xs sm:text-sm text-neutral-700">
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-neutral-700 bg-neutral-50 px-3.5 py-2 rounded-lg border border-neutral-200">
+          <Info className={`w-4 h-4 shrink-0 ${isActiveCycle ? 'text-amber-600' : 'text-primary-600'}`} />
+          <p className="leading-snug">
             {isActiveCycle ? (
               <>
-                <strong>Siklus {selectedCycle}</strong> sedang aktif untuk jadwal pemesanan besok (T+1). Anda dapat <strong>mengedit</strong> atau <strong>menambah</strong> menu, namun <strong>penghapusan menu diblokir</strong> demi keamanan data & kestabilan pesanan pasien.
+                <strong>Siklus {selectedCycle}</strong> aktif untuk T+1. Menu dapat diedit atau ditambah; <strong>penghapusan dikunci</strong>.
               </>
             ) : (
               <>
-                Sistem otomatis menerapkan paket menu dari <strong>Siklus {selectedCycle}</strong> untuk pemesanan pasien. Anda dapat mengubah detail menu, menambah paket baru, atau menghapus menu.
+                Sistem menerapkan <strong>Siklus {selectedCycle}</strong>. Anda dapat mengedit, menambah, atau menghapus menu secara bebas.
               </>
             )}
           </p>
@@ -424,24 +452,21 @@ export default function MenuCycle() {
           'Makan Pagi',
           pagiItems,
           'PAGI',
-          <Sun className="w-5 h-5" />,
-          'amber'
+          <Sun className="w-5 h-5 text-warning-600" />
         )}
 
         {renderMealColumn(
           'Makan Siang',
           siangItems,
           'SIANG',
-          <Utensils className="w-5 h-5" />,
-          'sky'
+          <Utensils className="w-5 h-5 text-primary-600" />
         )}
 
         {renderMealColumn(
           'Makan Sore',
           soreItems,
           'SORE',
-          <Moon className="w-5 h-5" />,
-          'indigo'
+          <Moon className="w-5 h-5 text-indigo-600" />
         )}
       </div>
 

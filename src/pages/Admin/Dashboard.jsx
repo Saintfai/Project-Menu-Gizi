@@ -8,7 +8,8 @@ import {
   RefreshCw, 
   AlertCircle, 
   ChevronDown,
-  Users
+  Users,
+  ClipboardList
 } from 'lucide-react';
 import RekapCard from '../../components/ui/cards/RekapCard';
 import { OrdersTable } from '../../components/ui/tables/OrdersTable';
@@ -257,38 +258,37 @@ export default function Dashboard() {
 
   return (
     <PageTransition>
-    <div className="space-y-6 w-full">
+    <div className="space-y-6 w-full pb-10">
       {/* Header Info */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-200">
-        {/* Left Meta */}
+        <div>
+          <h1 className="text-xl font-bold text-neutral-900 flex items-center gap-2">
+            <ClipboardList className="w-6 h-6 text-primary-600" />
+            Rekapitulasi Pesanan Pasien
+          </h1>
+          <p className="text-sm text-neutral-500 mt-1 mb-3">
+            Monitoring dan rekapitulasi distribusi paket menu gizi rawat inap untuk jadwal penyajian besok (T+1).
+          </p>
+        </div>
+
         <div className="flex items-center gap-3 flex-wrap">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] sm:text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200/60">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200">
             <span className="w-1.5 h-1.5 rounded-full bg-primary-600 animate-pulse"></span>
             Siklus Hari {cycleNumber}
           </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] sm:text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200/60">
-            <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200">
+            <Users className="w-3.5 h-3.5 text-primary-600" />
             {totalActivePatients} Pasien Aktif
           </span>
-          <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-neutral-600">
-            <span>Penyajian T+1:</span>
-            <span className="font-semibold text-neutral-800">{formatServingDateDisplay(tomorrowObj)}</span>
+          <div className="px-3 py-1.5 rounded-lg text-xs font-bold bg-neutral-100 text-neutral-700 border border-neutral-200 flex flex-col items-end">
+            <span className="text-[10px] text-neutral-500 leading-none">Penyajian T+1</span>
+            <span>{formatServingDateDisplay(tomorrowObj)}</span>
           </div>
-          <span className="text-[11px] sm:text-xs text-neutral-400 font-medium hidden sm:inline">
-            •
-          </span>
-          <span className="text-[11px] sm:text-xs text-neutral-500 font-medium">
-            Cut-Off: 15:00 WIB
-          </span>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center gap-3">
           <button
             onClick={fetchOrderData}
             disabled={loading}
-            className="flex items-center gap-1.5 text-xs font-semibold text-primary-700 hover:text-primary-800 bg-primary-50 hover:bg-primary-100 active:bg-primary-200/70 px-3 py-1.5 rounded-lg border border-primary-200/80 transition-colors disabled:opacity-50 cursor-pointer"
-            title="Muat ulang data dari database"
+            className="flex items-center gap-1.5 text-xs font-semibold text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-800 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+            title="Muat ulang data pesanan dari database"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
@@ -298,8 +298,8 @@ export default function Dashboard() {
 
       {/* Error Banner */}
       {error && (
-        <div className="bg-danger-50 border border-danger-200 p-3 rounded-lg flex items-center gap-2 text-xs text-danger-700">
-          <AlertCircle className="w-4 h-4 text-danger-500 flex-shrink-0" />
+        <div className="bg-danger-50 border border-danger-200 p-3 rounded-lg flex items-center gap-2 text-sm text-danger-700">
+          <AlertCircle className="w-5 h-5 text-danger-500 flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -347,9 +347,14 @@ export default function Dashboard() {
 
       {/* Search & Filter Controls */}
       <section className="space-y-3 pt-2">
-        <h2 className="text-base sm:text-lg font-bold text-neutral-900">
-          Detail Rekap Pesanan
-        </h2>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <h2 className="text-base sm:text-lg font-bold text-neutral-900">
+            Detail Rekap Pesanan Pasien
+          </h2>
+          <span className="text-xs font-semibold text-neutral-500">
+            Batas Pemesanan Utama (Cut-Off): 15:00 WIB
+          </span>
+        </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full">
           {/* Search Input */}
@@ -360,7 +365,7 @@ export default function Dashboard() {
               placeholder="Cari Nama Pasien, No. RM, atau Nomor Kamar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-11 pl-10 pr-4 text-xs sm:text-sm bg-white border border-neutral-300 rounded-xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-xs"
+              className="w-full h-10 pl-10 pr-4 text-xs sm:text-sm bg-white border border-neutral-300 rounded-xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-xs"
             />
           </div>
 
@@ -369,32 +374,23 @@ export default function Dashboard() {
             <select
               value={selectedFilter}
               onChange={(e) => setSelectedFilter(e.target.value)}
-              className="w-full h-11 appearance-none bg-white border border-neutral-300 rounded-xl px-3.5 pr-9 text-xs sm:text-sm font-medium text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-xs cursor-pointer"
+              className="w-full h-10 appearance-none bg-white border border-neutral-300 rounded-xl px-3.5 pr-9 text-xs sm:text-sm font-medium text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-xs cursor-pointer"
             >
-              <option value="ALL">Semua</option>
-              <option value="ALLERGY">Alergi</option>
-              <option value="NOTE">Ada Catatan</option>
+              <option value="ALL">Semua Pesanan</option>
+              <option value="ALLERGY">Dengan Alergi</option>
+              <option value="NOTE">Dengan Catatan</option>
               <option value="VIP">Kelas VIP</option>
             </select>
             <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
-
-          {/* Search Button */}
-          <button
-            type="button"
-            className="h-11 flex items-center justify-center gap-2 px-5 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-xs active:scale-[0.98] cursor-pointer flex-shrink-0"
-          >
-            <Search className="w-4 h-4" />
-            <span>Cari Data</span>
-          </button>
         </div>
       </section>
 
       <section className="w-full">
         {loading && tableData.length === 0 ? (
-          <div className="w-full bg-white rounded-xl border border-neutral-200 p-12 text-center text-xs text-neutral-500 shadow-sm flex flex-col items-center justify-center gap-2">
-            <RefreshCw className="w-5 h-5 text-primary-600 animate-spin" />
-            <span>Memuat data pesanan dari database...</span>
+          <div className="w-full bg-white rounded-xl border border-neutral-200 p-12 text-center text-sm text-neutral-500 shadow-sm flex flex-col items-center justify-center gap-3">
+            <RefreshCw className="w-6 h-6 text-primary-600 animate-spin" />
+            <span>Memuat rekapitulasi pesanan pasien...</span>
           </div>
         ) : (
           <OrdersTable data={filteredData} onNoteClick={handleOpenNote} onMealClick={handleMealClick} />
