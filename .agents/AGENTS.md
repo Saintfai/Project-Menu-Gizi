@@ -259,15 +259,15 @@ Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
         Kamar) dan Filter Kategori/Status.
     -   Tabel Detail Rekap Pesanan Terintegrasi:
         -   Kolom: `NO`, `NO. RM`, `PASIEN`, `KAMAR`, `MAKAN PAGI`, `MAKAN SIANG`,
-            `MAKAN MALAM`, `TANGGAL & WAKTU`, `CATATAN` (Kolom menu tambahan dilebur ke dalam kolom makan).
+            `MAKAN SORE`, `BENTUK MAKANAN`, `CATATAN` (Kolom menu tambahan dilebur ke dalam kolom makan).
         -   Format Pemisah & Status Kolom Makan:
             -   Garis Miring (`/`): Memisahkan porsi Pasien dan Penunggu (contoh: `Paket A / Paket B` atau jika sama `Paket A 2x`).
             -   Garis Tegak (`|`): Memisahkan Paket Utama dengan Paket Ekstra (contoh: `Paket A 2x | Paket B` atau `Paket A / Paket B | Paket A`).
             -   Tanda Strip (`-`): Ditampilkan pada slot waktu makan yang tidak dipesan oleh pasien (contoh: pasien hanya memesan Makan Pagi, maka kolom Makan Siang dan Sore terisi `-`).
         -   Indikator Alergi: Pasien dengan riwayat alergi memiliki tanda
             lingkaran merah (🔴) di samping Nama Pasien.
-        -   Kolom Tanggal & Waktu: Memuat jadwal T+1 untuk seluruh
-            pesanan (Paket Utama maupun Paket Ekstra).
+        -   Kolom Bentuk Makanan: Menampilkan informasi bentuk makanan (Diet Normal/Lunak/Cair) untuk
+            pesanan pasien terkait.
         -   Kolom Catatan: Tombol ikon dokumen yang membuka pop-up/modal
             berisi seluruh catatan khusus pesanan pasien.
         -   Pagination tabel navigasi halaman.
@@ -277,11 +277,10 @@ Portal Admin Dapur Gizi memiliki 3 menu navigasi utama pada header:
     -   Pengaturan komponen makanan per waktu makan (Pagi, Siang, Sore).
 
 3.  **Statistik (Laporan & Analitik Gizi):**
-    -   Visualisasi grafik tren pemesanan menu gizi harian, mingguan, dan
-        bulanan.
-    -   Distribusi preferensi paket menu (Paket A vs Paket B vs Ekstra).
-    -   Rekapitulasi porsi per kelas kamar dan per ruangan/bangsal.
-    -   Export data laporan untuk kebutuhan logistik dan audit gizi.
+    -   Rekapitulasi tren menu terfavorit (paling banyak dipesan) dan menu terendah (paling sedikit dipesan).
+    -   Tabel evaluasi komprehensif kontribusi porsi untuk seluruh menu.
+    -   Filter data berdasarkan periode bulan dan tahun penyajian.
+    -   Export/Cetak data laporan resmi untuk kebutuhan logistik dan audit gizi.
 
 **4. Alur Pengguna (User Flow)**
 
