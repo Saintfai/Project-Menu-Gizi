@@ -91,6 +91,9 @@ export default function PatientLogin() {
       if (err.message && (err.message.includes('Terlalu banyak') || err.message.includes('tunggu'))) {
         toast.error(err.message);
         setErrorMsg(err.message);
+      } else if (err.message && (err.message.toLowerCase().includes('timeout') || err.message.toLowerCase().includes('batas waktu') || err.message.toLowerCase().includes('koneksi') || err.message.toLowerCase().includes('fetch'))) {
+        toast.error(err.message);
+        setErrorMsg(err.message);
       } else {
         setShowNotFound(true);
       }

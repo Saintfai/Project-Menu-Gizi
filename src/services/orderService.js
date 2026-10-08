@@ -72,11 +72,18 @@ function saveStoredOverrides(overrides) {
   }
 }
 
+function isVipAKelas(classType) {
+  const c = (classType || '').toUpperCase();
+  return c.includes('VIP A') || c.includes('VVIP') || c.includes('SUITE');
+}
+
 /**
  * Fallback untuk data riwayat lama di mana kolom `type` masih null:
- * Pola checkout di Cart selalu mengirim item INCLUDE (pasien lalu pendamping) lebih dulu,
- * kemudian item EXCLUDE (consumer = pendamping, hanya Siang/Sore).
- * Maka dalam satu order_id + waktu makan, baris pendamping kedua dan seterusnya dianggap Paket Ekstra.
+ * 1. Jika data sudah memiliki type resmi dari API (data baru), fungsi ini tidak mengubah apapun (hasExplicitType = true).
+ * 2. Untuk data lama yang type-nya null:
+ *    - Pada kelas non-VIP A (VIP B, VIP C, Kelas 1, 2, 3), kuota Paket Utama Siang & Sore hanya untuk pasien (tidak ada jatah pendamping).
+ *      Maka pesanan pendamping di Siang/Sore pada kelas ini otomatis adalah Paket Ekstra (EXCLUDE).
+ *    - Pada kelas VIP A ke atas, baris pendamping kedua dan seterusnya pada waktu makan yang sama adalah Paket Ekstra (EXCLUDE).
  */
 function inferMissingTypes(orders) {
   const seenPendamping = new Set();
@@ -85,11 +92,18 @@ function inferMissingTypes(orders) {
     if (item.hasExplicitType) return;
     if (item.mealTime !== 'SIANG' && item.mealTime !== 'SORE') return;
     if ((item.consumer || '').toLowerCase() !== 'pendamping') return;
+
     const key = `${item.orderCode}_${item.mealTime}`;
-    if (seenPendamping.has(key)) {
+    const isVipA = isVipAKelas(item.classType);
+
+    if (!isVipA) {
       item.type = 'EXCLUDE';
     } else {
-      seenPendamping.add(key);
+      if (seenPendamping.has(key)) {
+        item.type = 'EXCLUDE';
+      } else {
+        seenPendamping.add(key);
+      }
     }
   });
   return orders;
@@ -135,20 +149,38 @@ export async function getOrders(options = {}) {
 
   orders = inferMissingTypes(orders);
 
-  // Filter servingDate jika diminta
+  // Filter servingDate jika diminta (dengan parsing tanggal lokal & UTC yang tahan banting)
   if (options.servingDate) {
     const targetDateStr = String(options.servingDate).slice(0, 10);
     orders = orders.filter(item => {
-      if (!item.servingDate) return false;
-      const itemDateStr = String(item.servingDate).slice(0, 10);
-      return itemDateStr === targetDateStr;
+      const rawDate = item.servingDate || item.createdAt;
+      if (!rawDate) return false;
+
+      const rawStr = String(rawDate);
+      if (rawStr.slice(0, 10) === targetDateStr) return true;
+
+      const d = new Date(rawDate);
+      if (!isNaN(d.getTime())) {
+        const pad = (n) => String(n).padStart(2, '0');
+        const localDateStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        return localDateStr === targetDateStr;
+      }
+
+      return false;
     });
   }
 
-  // Filter patientId jika diminta
+  // Filter patientId jika diminta (menormalisasi prefix RM-, spasi, dan leading zeroes)
   if (options.patientId !== undefined && options.patientId !== null) {
-    const targetPid = String(options.patientId);
-    orders = orders.filter(item => String(item.patientId) === targetPid);
+    const normalizePid = (val) => {
+      if (val === undefined || val === null) return '';
+      const s = String(val).trim().replace(/^RM-?/i, '');
+      const num = parseInt(s, 10);
+      return !isNaN(num) ? String(num) : s.toLowerCase();
+    };
+
+    const targetPid = normalizePid(options.patientId);
+    orders = orders.filter(item => normalizePid(item.patientId) === targetPid);
   }
 
   // Filter type jika diminta
@@ -175,6 +207,9 @@ export async function getOrders(options = {}) {
 async function postSingleOrderItem(item, maxRetries = 3) {
   const formData = new FormData();
 
+  const rawMeal = String(item.mealTime || 'pagi').toLowerCase();
+  const mealTime = rawMeal === 'malam' ? 'sore' : rawMeal;
+
   formData.append('patient_id', String(item.patientId));
   formData.append('room_number', String(item.roomNumber || '-'));
   formData.append('class_type', String(item.classType || '-'));
@@ -182,7 +217,7 @@ async function postSingleOrderItem(item, maxRetries = 3) {
   formData.append('notes', String(item.notes || ''));
   formData.append('consumer', String(item.consumer || 'pasien').toLowerCase());
   formData.append('consumer_name', String(item.consumerName || item.patientName || 'Pasien'));
-  formData.append('meal_time', String(item.mealTime || 'pagi').toLowerCase());
+  formData.append('meal_time', mealTime);
   formData.append('menu_name', String(item.menuName || '-'));
   formData.append('paket_name', String(item.paketName || 'paket a').toLowerCase());
   formData.append('bentuk_makanan', String(item.bentukMakanan || '-'));
@@ -190,7 +225,7 @@ async function postSingleOrderItem(item, maxRetries = 3) {
   formData.append('karbohidrat', String(item.karbohidrat || '-'));
   formData.append('protein', String(item.protein || '-'));
   formData.append('nabati', String(item.nabati || '-'));
-  formData.append('protein_tambahan', String(item.proteinTambahan || '-'));
+  formData.append('protein_tambahan', String(item.proteinTambahan || item.protein_tambahan || '-'));
   formData.append('sayur', String(item.sayur || '-'));
   formData.append('quantity', String(item.quantity || 1));
   formData.append('serving_date', String(item.servingDate || ''));

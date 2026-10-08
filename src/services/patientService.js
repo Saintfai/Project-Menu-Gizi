@@ -80,12 +80,14 @@ export async function getPatientByRm(rmNumber) {
 
   const result = await apiGet('/webhook/get-patient', { pid: cleanId });
 
-  if (!Array.isArray(result) || result.length === 0) {
+  const list = Array.isArray(result) ? result : (result && typeof result === 'object' ? [result] : []);
+
+  if (list.length === 0) {
     throw new Error('Data pasien tidak ditemukan.');
   }
 
   // Filter hanya data yang memiliki no_rm atau nama_pasien valid
-  const validPatients = result.filter(
+  const validPatients = list.filter(
     (item) => item && (item.no_rm || item.nama_pasien) && (!item.message || !item.message.toLowerCase().includes('tidak ditemukan'))
   );
 
@@ -130,12 +132,14 @@ export async function getPatientByNameAndDob(name, dob) {
     tanggal_lahir: formattedDob,
   });
 
-  if (!Array.isArray(result) || result.length === 0) {
+  const list = Array.isArray(result) ? result : (result && typeof result === 'object' ? [result] : []);
+
+  if (list.length === 0) {
     throw new Error('Data pasien tidak ditemukan.');
   }
 
   // Filter hanya data yang memiliki no_rm atau nama_pasien valid
-  const validPatients = result.filter(
+  const validPatients = list.filter(
     (item) => item && (item.no_rm || item.nama_pasien) && (!item.message || !item.message.toLowerCase().includes('tidak ditemukan'))
   );
 

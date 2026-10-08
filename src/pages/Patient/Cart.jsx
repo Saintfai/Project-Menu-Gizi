@@ -346,6 +346,7 @@ export default function Cart() {
       });
 
       secureSessionStorage.removeItem('patient_cart_note');
+      secureSessionStorage.removeItem('patient_cart');
       setPendingRetryItems(null);
 
       const summaryMap = {};

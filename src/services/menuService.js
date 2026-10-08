@@ -43,27 +43,50 @@ export async function getActiveCycleMenu(cycleId) {
   return getMenuItemsByCycle(targetCycle);
 }
 
+let menuItemsCache = null;
+let menuItemsCacheTime = 0;
+const CACHE_TTL_MS = 60000; // 60 detik
+
+/**
+ * Membersihkan cache menu lokal.
+ */
+export function clearMenuCache() {
+  menuItemsCache = null;
+  menuItemsCacheTime = 0;
+}
+
 /**
  * Mengambil seluruh menu (116 menu / seluruh 11 siklus) dari API Edelweiss.
+ * Dilengkapi in-memory caching untuk mencegah latensi tinggi berulang.
  * 
+ * @param {boolean} [forceRefresh=false]
  * @returns {Promise<Array<object>>}
  */
-export async function getAllMenuItems() {
+export async function getAllMenuItems(forceRefresh = false) {
+  const now = Date.now();
+  if (!forceRefresh && menuItemsCache && (now - menuItemsCacheTime < CACHE_TTL_MS)) {
+    return menuItemsCache;
+  }
+
   const data = await apiGet('/webhook/menu-gizi');
   if (!Array.isArray(data)) {
-    return [];
+    return menuItemsCache || [];
   }
-  return data.map(normalizeMenuItem);
+  const normalized = data.map(normalizeMenuItem);
+  menuItemsCache = normalized;
+  menuItemsCacheTime = now;
+  return normalized;
 }
 
 /**
  * Mengambil menu berdasarkan ID Siklus (1 - 11).
  * 
  * @param {number|string} cycleId 
+ * @param {boolean} [forceRefresh=false]
  * @returns {Promise<Array<object>>}
  */
-export async function getMenuItemsByCycle(cycleId) {
-  const allItems = await getAllMenuItems();
+export async function getMenuItemsByCycle(cycleId, forceRefresh = false) {
+  const allItems = await getAllMenuItems(forceRefresh);
   const numId = Number(cycleId);
   return allItems.filter(item => Number(item.cycleId) === numId);
 }
@@ -100,9 +123,12 @@ export async function updateMenuItem(id, updates = {}) {
     nabati: updates.nabati || '-',
     protein_tambahan: updates.proteinTambahan || updates.protein_tambahan || '-',
     sayur: updates.sayur || '-',
+    bentuk_makanan: updates.bentukMakanan || updates.bentuk_makanan || '-',
   };
 
-  return apiPut('/webhook/edit-menu-gizi', params);
+  const res = await apiPut('/webhook/edit-menu-gizi', params);
+  clearMenuCache();
+  return res;
 }
 
 /**
@@ -130,8 +156,11 @@ export async function createMenuItem(item = {}) {
       : (item.protein_tambahan && item.protein_tambahan.trim() !== '' ? item.protein_tambahan.trim() : '-')
   );
   formData.append('sayur', item.sayur && item.sayur.trim() !== '' ? item.sayur.trim() : '-');
+  formData.append('bentuk_makanan', String(item.bentukMakanan || item.bentuk_makanan || '-'));
 
-  return apiPostFormData('/webhook/add-menu-gizi', formData);
+  const res = await apiPostFormData('/webhook/add-menu-gizi', formData);
+  clearMenuCache();
+  return res;
 }
 
 /**
