@@ -73,11 +73,10 @@ function saveStoredOverrides(overrides) {
 }
 
 /**
- * Fallback: API saat ini belum menyimpan kolom `type` (selalu null), sehingga Paket Ekstra
- * ikut terbaca sebagai INCLUDE. Pola checkout di Cart selalu mengirim item INCLUDE
- * (pasien lalu pendamping) lebih dulu, kemudian item EXCLUDE (consumer = pendamping,
- * hanya Siang/Sore). Maka dalam satu order_id + waktu makan, baris pendamping kedua
- * dan seterusnya dianggap Paket Ekstra.
+ * Fallback untuk data riwayat lama di mana kolom `type` masih null:
+ * Pola checkout di Cart selalu mengirim item INCLUDE (pasien lalu pendamping) lebih dulu,
+ * kemudian item EXCLUDE (consumer = pendamping, hanya Siang/Sore).
+ * Maka dalam satu order_id + waktu makan, baris pendamping kedua dan seterusnya dianggap Paket Ekstra.
  */
 function inferMissingTypes(orders) {
   const seenPendamping = new Set();
