@@ -127,7 +127,7 @@ sakit.
     -   Tanggal 21--30: Berulang ke Siklus Menu 1--10
     -   Tanggal 31: Khusus Siklus Menu 11
 -   Batas Kuota Porsi (Qty) Paket Utama:
-    -   Kelas VIP A ke Atas (VIP A, VVIP, Suite): Maksimal 2 porsi per
+    -   Kelas VIP A ke Atas (VIP A, Suite): Maksimal 2 porsi per
         waktu makan (Pagi: 2, Siang: 2, Sore: 2).
     -   Kelas VIP B ke Bawah (VIP B, Kelas 1, 2, 3): Pagi: 2 porsi,
         Siang: 1 porsi, Sore: 1 porsi.
