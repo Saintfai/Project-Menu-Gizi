@@ -64,8 +64,13 @@ export default function PatientLogin() {
       }
       identifier = rmNumber.trim();
     } else {
-      if (!name.trim()) {
+      const trimmedName = name.trim();
+      if (!trimmedName) {
         setErrorMsg('Masukkan nama pasien.');
+        return;
+      }
+      if (trimmedName.length < 3) {
+        setErrorMsg('Masukkan minimal satu kata dari nama pasien.');
         return;
       }
       if (!dob) {
@@ -384,7 +389,7 @@ export default function PatientLogin() {
                       <Input
                         label="Nomor Rekam Medis"
                         type="text"
-                        placeholder="Contoh: RM-12345"
+                        placeholder="Contoh: 12345"
                         value={rmNumber}
                         onChange={(e) => setRmNumber(e.target.value)}
                         leftIcon={<Hash size={16} strokeWidth={2} />}
