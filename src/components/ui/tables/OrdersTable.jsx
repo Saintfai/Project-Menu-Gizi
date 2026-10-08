@@ -30,7 +30,7 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '', onMealClic
                      onMealClick(row, mealTime, [item]);
                  }
               }}
-              className={`${isExclude ? 'font-semibold text-success-700 bg-success-50 px-1.5 py-0.5 rounded text-[11px] border border-success-200/60 inline-block align-middle cursor-pointer hover:bg-success-100 m-0.5' : 'font-semibold text-primary-700 cursor-pointer hover:text-primary-800 hover:underline align-middle m-0.5'} transition-colors`}
+              className={`${isExclude ? 'font-semibold text-success-700 cursor-pointer hover:text-success-800 hover:underline align-middle m-0.5' : 'font-semibold text-primary-700 cursor-pointer hover:text-primary-800 hover:underline align-middle m-0.5'} transition-colors`}
             >
               {name}
             </span>
@@ -47,12 +47,6 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '', onMealClic
       <div className="text-xs leading-relaxed whitespace-normal break-words">
         {includeElems}
         {includeElems && excludeElems && <span className="text-neutral-400 font-bold mx-1.5 align-middle">|</span>}
-        {!includeElems && excludeElems && (
-          <>
-            <span className="text-neutral-400 font-normal mr-1">-</span>
-            <span className="text-neutral-400 font-bold mr-1.5 align-middle">|</span>
-          </>
-        )}
         {excludeElems}
       </div>
     );
