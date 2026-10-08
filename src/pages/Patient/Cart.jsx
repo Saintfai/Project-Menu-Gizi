@@ -29,6 +29,12 @@ export default function Cart() {
   const [errorModalState, setErrorModalState] = useState({ isOpen: false, title: '', message: '' });
 
   React.useEffect(() => {
+    if (!patient || !patient.id) {
+      navigate('/login', { replace: true });
+    }
+  }, [patient, navigate]);
+
+  React.useEffect(() => {
     secureSessionStorage.setItem('patient_cart_note', note);
   }, [note]);
 
@@ -349,7 +355,7 @@ export default function Cart() {
       setPendingRetryItems(null);
 
       const summaryMap = {};
-      orderItemsToInsert.forEach(entry => {
+      itemsToSubmit.forEach(entry => {
         const keyName = entry.paketName || entry.menuName;
         if (!summaryMap[keyName]) {
           summaryMap[keyName] = { name: keyName, qty: 0 };
