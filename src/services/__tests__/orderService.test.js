@@ -144,4 +144,36 @@ describe('orderService - getOrders normalization', () => {
     expect(res).toHaveLength(1);
     expect(res[0].id).toBe(50);
   });
+
+  it('memperkaya pesanan dengan riwayat alergi pasien jika withPatientAllergies true', async () => {
+    // Mock 1: /webhook/all-order-item
+    apiClient.apiGet.mockImplementation(async (endpoint, params) => {
+      if (endpoint === '/webhook/all-order-item') {
+        return [
+          {
+            id: 60,
+            order_id: 'ORD-60',
+            patient_id: 12345,
+            consumer_name: 'Pasien Uji',
+            meal_time: 'pagi',
+          },
+        ];
+      }
+      if (endpoint === '/webhook/get-patient' && params?.pid === '12345') {
+        return [
+          {
+            no_rm: 12345,
+            nama_pasien: 'Pasien Uji',
+            alergi: 'Seafood, Telur',
+          },
+        ];
+      }
+      return [];
+    });
+
+    const res = await getOrders({ withPatientAllergies: true });
+    expect(res).toHaveLength(1);
+    expect(res[0].allergies).toBe('Seafood, Telur');
+    expect(res[0].patient?.allergies).toBe('Seafood, Telur');
+  });
 });

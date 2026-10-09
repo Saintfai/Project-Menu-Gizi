@@ -25,7 +25,7 @@ export default function Chef() {
       setLoading(true);
       setError(null);
       const [ordersData] = await Promise.all([
-        getOrders(),
+        getOrders({ withPatientAllergies: true }),
       ]);
       setRawOrders(ordersData || []);
     } catch (err) {

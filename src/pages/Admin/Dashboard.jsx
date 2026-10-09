@@ -43,7 +43,7 @@ export default function Dashboard() {
       setLoading(true);
       setError(null);
 
-      const data = await getOrders();
+      const data = await getOrders({ withPatientAllergies: true });
       setRawOrders(data || []);
 
       // Hitung total pasien aktif berdasarkan ID pasien unik dari pesanan

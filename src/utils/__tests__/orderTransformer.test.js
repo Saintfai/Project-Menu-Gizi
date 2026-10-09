@@ -35,9 +35,9 @@ describe('Transformasi & Format Rekapitulasi Dapur Gizi (PRD 3.8)', () => {
       expect(formatMealColumn(items)).toBe('Paket A 2x | Paket B');
     });
 
-    it('harus menampilkan (- | Menu Ekstra) jika hanya memesan Paket Ekstra tanpa Paket Utama', () => {
+    it('harus menampilkan nama Menu Ekstra langsung jika hanya memesan Paket Ekstra tanpa Paket Utama', () => {
       const items = [{ paketName: 'Paket C Spesial', quantity: 1, type: 'EXCLUDE' }];
-      expect(formatMealColumn(items)).toBe('- | Paket C Spesial');
+      expect(formatMealColumn(items)).toBe('Paket C Spesial');
     });
 
     it('harus memprioritaskan nama menu aktual (menuName) daripada tulisan Paket A / Paket B', () => {

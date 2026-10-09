@@ -1,4 +1,5 @@
 import { apiGet, apiPostFormData, apiPut } from './apiClient';
+import { enrichOrdersWithPatientAllergies } from './patientService';
 
 /**
  * Normalisasi satu baris data pesanan dari API Edelweiss ke format internal.
@@ -194,6 +195,11 @@ export async function getOrders(options = {}) {
     orders = orders.filter(item => item.orderCode === options.orderCode);
   }
 
+  // Jika diminta memperkaya data dengan riwayat alergi pasien (2nd GET ke /webhook/get-patient)
+  if (options.withPatientAllergies) {
+    orders = await enrichOrdersWithPatientAllergies(orders);
+  }
+
   return orders;
 }
 
@@ -344,5 +350,6 @@ export default {
   createOrders,
   updateOrderNotes,
   autoGenerateOrdersForKelas,
+  enrichOrdersWithPatientAllergies,
 };
 

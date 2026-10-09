@@ -92,9 +92,10 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '', onMealClic
                     <td className="px-3 py-2.5 min-w-[200px] align-top" style={{ border: '1px solid #9ca3af' }}>
                       <div className="flex items-start gap-1.5 font-semibold text-neutral-900 text-xs sm:text-sm whitespace-normal break-words">
                         {row.hasAllergy && (
-                          <div className="w-3.5 h-3.5 rounded-full bg-danger-100 flex items-center justify-center flex-shrink-0 mt-0.5" title={row.allergyNote || 'Riwayat Alergi'}>
-                            <div className="w-2 h-2 rounded-full bg-danger-600"></div>
-                          </div>
+                          <span
+                            className="w-2.5 h-2.5 rounded-full bg-danger-600 flex-shrink-0 mt-1 inline-block"
+                            title={row.allergyNote ? `Alergi: ${row.allergyNote}` : 'Riwayat Alergi'}
+                          />
                         )}
                         <span className="leading-tight">{displayName}</span>
                       </div>

@@ -160,9 +160,107 @@ export async function getPatientByNameAndDob(name, dob) {
   };
 }
 
+// In-memory cache untuk data alergi pasien agar tidak membebani network
+const patientInfoCache = new Map();
+
+/**
+ * Mengambil data alergi untuk sekumpulan ID pasien (No. RM / patient_id).
+ * Menggunakan cache in-memory dan fetching paralel via Promise.allSettled agar tahan banting.
+ * 
+ * @param {Array<string|number>} patientIds 
+ * @returns {Promise<Map<string, { allergies: string, patient: object|null }>>}
+ */
+export async function getPatientsAllergiesMap(patientIds = []) {
+  const uniqueIds = [...new Set(
+    patientIds
+      .filter(id => id !== undefined && id !== null && String(id).trim() !== '')
+      .map(id => String(id).replace(/^RM-?/i, '').trim())
+  )];
+
+  const resultMap = new Map();
+  const idsToFetch = [];
+
+  uniqueIds.forEach(id => {
+    if (patientInfoCache.has(id)) {
+      resultMap.set(id, patientInfoCache.get(id));
+    } else {
+      idsToFetch.push(id);
+    }
+  });
+
+  if (idsToFetch.length === 0) {
+    return resultMap;
+  }
+
+  await Promise.allSettled(
+    idsToFetch.map(async (cleanId) => {
+      try {
+        const res = await getPatientByRm(cleanId);
+        const patient = res?.patient || (res?.patients && res.patients[0]) || null;
+        const entry = {
+          allergies: patient?.allergies || 'Tidak Ada',
+          patient,
+        };
+        patientInfoCache.set(cleanId, entry);
+        resultMap.set(cleanId, entry);
+      } catch {
+        // Jika tidak ditemukan atau timeout, fallback ke default agar tabel tetap tampil
+        const fallback = {
+          allergies: 'Tidak Ada',
+          patient: null,
+        };
+        patientInfoCache.set(cleanId, fallback);
+        resultMap.set(cleanId, fallback);
+      }
+    })
+  );
+
+  return resultMap;
+}
+
+/**
+ * Memperkaya daftar order dengan data alergi pasien dari API /webhook/get-patient (2nd GET).
+ * 
+ * @param {Array<object>} orders
+ * @returns {Promise<Array<object>>}
+ */
+export async function enrichOrdersWithPatientAllergies(orders = []) {
+  if (!Array.isArray(orders) || orders.length === 0) return orders;
+
+  const patientIds = orders.map(o => o.patientId || o.patient_id).filter(Boolean);
+  if (patientIds.length === 0) return orders;
+
+  const allergiesMap = await getPatientsAllergiesMap(patientIds);
+
+  return orders.map(order => {
+    const rawPid = order.patientId || order.patient_id || '';
+    const cleanId = String(rawPid).replace(/^RM-?/i, '').trim();
+    const info = allergiesMap.get(cleanId);
+
+    if (info) {
+      const allergyText = info.allergies || 'Tidak Ada';
+      return {
+        ...order,
+        allergies: allergyText,
+        allergyNote: allergyText,
+        patient: {
+          ...(order.patient || {}),
+          name: info.patient?.name || order.patientName || 'Pasien',
+          rmNumber: info.patient?.rmNumber || order.rmNumber || cleanId,
+          allergies: allergyText,
+        },
+      };
+    }
+
+    return order;
+  });
+}
+
 export default {
   getPatientByRm,
   getPatientByNameAndDob,
+  getPatientsAllergiesMap,
+  enrichOrdersWithPatientAllergies,
   normalizePatient,
   formatDobForApi,
 };
