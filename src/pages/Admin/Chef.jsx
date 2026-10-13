@@ -24,9 +24,7 @@ export default function Chef() {
     try {
       setLoading(true);
       setError(null);
-      const [ordersData] = await Promise.all([
-        getOrders({ withPatientAllergies: true }),
-      ]);
+      const ordersData = await getOrders();
       setRawOrders(ordersData || []);
     } catch (err) {
       console.error('Failed to fetch chef data:', err);
@@ -192,16 +190,12 @@ export default function Chef() {
         addStat('Karbohidrat', fallbackName);
       }
 
-      // Add notes
-      const allergy = order.patient?.allergies ?? order.allergies ?? order.allergyNote;
-      const hasAllergy = allergy && allergy.trim().toLowerCase() !== 'tidak ada' && allergy.trim() !== '-';
-      
-      if (order.notes || hasAllergy) {
+      // Add notes (hanya catatan khusus pesanan, tidak menampilkan alergi)
+      if (order.notes && typeof order.notes === 'string' && order.notes.trim() !== '' && order.notes.trim() !== '-') {
         overallStats.notes.push({
           patientName: order.patientName || order.patient?.name,
           room: (order.roomNumber ? `${order.roomNumber} - ${order.classType || ''}` : (order.kamar || '-')).replace(/\s*\|\s*$/, ''),
           note: order.notes,
-          allergy: hasAllergy ? allergy : null,
           menu: order.menuName || order.paketName,
           mealTime: meal
         });
@@ -250,14 +244,6 @@ export default function Chef() {
           noteText = noteText.replace(new RegExp(`\\[Tanpa ${label}\\]\\n?`, 'g'), '');
       });
       noteText = noteText.trim();
-
-      if (n.allergy) {
-         if (noteText) {
-             noteText = `${noteText} (Alergi: ${n.allergy})`;
-         } else {
-             noteText = `Alergi: ${n.allergy}`;
-         }
-      }
       
       if (noteText) {
         const patientKey = `${n.patientName || 'Pasien'}|||${n.room || '-'}`;
