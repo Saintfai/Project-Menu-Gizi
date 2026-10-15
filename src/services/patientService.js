@@ -73,13 +73,31 @@ export function normalizePatient(raw) {
 }
 
 /**
+ * Memeriksa apakah pasien berhak mengakses pemesanan mandiri (hanya pasien VIP / Suite).
+ * Pasien non-VIP (Kelas 1, 2, 3) pesanannya diatur otomatis oleh sistem dapur gizi.
+ * 
+ * @param {object} raw - Data mentah pasien dari API RS
+ * @returns {boolean} True jika pasien berstatus VIP / Suite
+ */
+export function isVipPatient(raw) {
+  if (!raw) return false;
+  const effectiveClass = raw.titipan && String(raw.titipan).trim() !== ''
+    ? String(raw.titipan).trim()
+    : String(raw.kelas || '').trim();
+
+  const c = effectiveClass.toUpperCase();
+  return c.includes('VIP') || c.includes('SUITE');
+}
+
+/**
  * Mengambil data pasien berdasarkan Nomor RM.
  * Endpoint: /webhook/get-patient?pid={noRm}
  * 
  * @param {string|number} rmNumber 
+ * @param {object} [options={ vipOnly: true }] - Opsi filter (default: hanya izinkan pasien VIP)
  * @returns {Promise<{ type: 'single'|'multiple', patient?: object, patients?: Array<object> }>}
  */
-export async function getPatientByRm(rmNumber) {
+export async function getPatientByRm(rmNumber, options = { vipOnly: true }) {
   const cleanId = String(rmNumber).replace(/^RM-?/i, '').trim();
   if (!cleanId) {
     throw new Error('Nomor RM tidak valid.');
@@ -94,9 +112,19 @@ export async function getPatientByRm(rmNumber) {
   }
 
   // Filter hanya data yang memiliki no_rm atau nama_pasien valid
-  const validPatients = list.filter(
+  let validPatients = list.filter(
     (item) => item && (item.no_rm || item.nama_pasien) && (!item.message || !item.message.toLowerCase().includes('tidak ditemukan'))
   );
+
+  if (validPatients.length === 0) {
+    throw new Error('Data pasien tidak ditemukan.');
+  }
+
+  // Aturan Rumah Sakit: Hanya pasien berstatus VIP / Suite yang diperbolehkan memesan mandiri.
+  // Pasien Kelas (non-VIP) otomatis ditolak dengan respons "Data pasien tidak ditemukan."
+  if (options?.vipOnly) {
+    validPatients = validPatients.filter(isVipPatient);
+  }
 
   if (validPatients.length === 0) {
     throw new Error('Data pasien tidak ditemukan.');
@@ -121,9 +149,10 @@ export async function getPatientByRm(rmNumber) {
  * 
  * @param {string} name 
  * @param {string|Date} dob 
+ * @param {object} [options={ vipOnly: true }] - Opsi filter (default: hanya izinkan pasien VIP)
  * @returns {Promise<{ type: 'single'|'multiple', patient?: object, patients?: Array<object> }>}
  */
-export async function getPatientByNameAndDob(name, dob) {
+export async function getPatientByNameAndDob(name, dob, options = { vipOnly: true }) {
   const cleanName = String(name || '').trim();
   if (!cleanName) {
     throw new Error('Nama pasien wajib diisi.');
@@ -146,9 +175,19 @@ export async function getPatientByNameAndDob(name, dob) {
   }
 
   // Filter hanya data yang memiliki no_rm atau nama_pasien valid
-  const validPatients = list.filter(
+  let validPatients = list.filter(
     (item) => item && (item.no_rm || item.nama_pasien) && (!item.message || !item.message.toLowerCase().includes('tidak ditemukan'))
   );
+
+  if (validPatients.length === 0) {
+    throw new Error('Data pasien tidak ditemukan.');
+  }
+
+  // Aturan Rumah Sakit: Hanya pasien berstatus VIP / Suite yang diperbolehkan memesan mandiri.
+  // Pasien Kelas (non-VIP) otomatis ditolak dengan respons "Data pasien tidak ditemukan."
+  if (options?.vipOnly) {
+    validPatients = validPatients.filter(isVipPatient);
+  }
 
   if (validPatients.length === 0) {
     throw new Error('Data pasien tidak ditemukan.');
@@ -202,7 +241,7 @@ export async function getPatientsAllergiesMap(patientIds = []) {
   await Promise.allSettled(
     idsToFetch.map(async (cleanId) => {
       try {
-        const res = await getPatientByRm(cleanId);
+        const res = await getPatientByRm(cleanId, { vipOnly: false });
         const patient = res?.patient || (res?.patients && res.patients[0]) || null;
         const entry = {
           allergies: patient?.allergies || 'Tidak Ada',
@@ -277,5 +316,6 @@ export default {
   getPatientsAllergiesMap,
   enrichOrdersWithPatientAllergies,
   normalizePatient,
+  isVipPatient,
   formatDobForApi,
 };
