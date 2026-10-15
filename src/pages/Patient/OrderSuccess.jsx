@@ -5,13 +5,16 @@ import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import PatientFooter from '../../components/ui/layout/PatientFooter';
 import { usePatient } from '../../context/PatientContext';
 
+// Halaman konfirmasi sukses setelah pesanan berhasil dikirim
 export default function OrderSuccess() {
   const navigate = useNavigate();
   const location = useLocation();
   const { patient } = usePatient();
   
+  // Data ringkasan pesanan dari Cart
   const { summary } = location.state || {};
 
+  // Tampilan error jika diakses langsung tanpa data pesanan
   if (!summary) {
     return (
       <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-6 text-center">
@@ -77,6 +80,7 @@ export default function OrderSuccess() {
           </div>
         </div>
 
+        {/* Kembali ke katalog menu (menu utama akan terkunci otomatis) */}
         <button
           onClick={() => navigate('/menu')}
           className="w-full bg-primary-600 text-white font-semibold py-3.5 rounded-xl hover:bg-primary-700 active:scale-[0.98] transition-all outline-none focus:outline-none border-none ring-0 cursor-pointer"

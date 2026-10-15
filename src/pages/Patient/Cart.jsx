@@ -9,43 +9,51 @@ import { validateNote } from '../../utils/inputValidator';
 import { secureSessionStorage } from '../../utils/secureStorage';
 import { getCurrentWIBHour } from '../../utils/cutoffValidator';
 
+// Jadwal jam penyajian per waktu makan
 const MEAL_SCHEDULE = {
   PAGI: { label: 'Pagi', time: '06:30 - 08:30 WIB', icon: Sun },
   SIANG: { label: 'Siang', time: '11:30 - 13:30 WIB', icon: Cloud },
   SORE: { label: 'Sore', time: '17:30 - 19:30 WIB', icon: Moon },
 };
 
+// Halaman ringkasan dan konfirmasi checkout pesanan pasien
 export default function Cart() {
   const navigate = useNavigate();
   const location = useLocation();
   const { patient } = usePatient();
+
   const [note, setNote] = useState(() => {
     return secureSessionStorage.getItem('patient_cart_note') || '';
   });
+
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitProgress, setSubmitProgress] = useState('');
-  const [pendingRetryItems, setPendingRetryItems] = useState(null);
+  const [pendingRetryItems, setPendingRetryItems] = useState(null); // Item yang gagal terkirim (untuk retry)
   const [errorModalState, setErrorModalState] = useState({ isOpen: false, title: '', message: '' });
 
+  // Proteksi: alihkan ke login jika data pasien kosong
   React.useEffect(() => {
     if (!patient || !patient.id) {
       navigate('/login', { replace: true });
     }
   }, [patient, navigate]);
 
+  // Simpan catatan ke session storage agar tidak hilang saat reload
   React.useEffect(() => {
     secureSessionStorage.setItem('patient_cart_note', note);
   }, [note]);
 
   const { quantities = {}, menuItems = [] } = location.state || {};
 
+  // Map menuItems berdasarkan ID untuk pencarian cepat
   const menuMap = useMemo(() => {
     const map = {};
     menuItems.forEach(item => { map[item.id] = item; });
     return map;
   }, [menuItems]);
 
+  // Kelompokkan item terpilih ke kategori: pasien, pendamping, dan ekstra
   const orderData = useMemo(() => {
     const pasien = { PAGI: [], SIANG: [], SORE: [] };
     const pendamping = { PAGI: [], SIANG: [], SORE: [] };
@@ -63,7 +71,6 @@ export default function Cart() {
       const normalizedMealTime = mealTime;
 
       if (isEkstra) {
-        // All ekstra items go into the ekstra section
         const count = consumers.length;
         if (count > 0 && ekstra[normalizedMealTime]) {
           ekstra[normalizedMealTime].push({
@@ -73,7 +80,6 @@ export default function Cart() {
           });
         }
       } else {
-
         const pasienCount = consumers.filter(c => c === 'PASIEN').length;
         const pendampingCount = consumers.filter(c => c === 'PENDAMPING').length;
 
@@ -101,6 +107,7 @@ export default function Cart() {
   const hasPendampingItems = Object.values(orderData.pendamping).some(arr => arr.length > 0);
   const hasEkstraItems = Object.values(orderData.ekstra).some(arr => arr.length > 0);
 
+  // Total porsi paket ekstra berbayar untuk kalkulasi tagihan
   const totalExtraQuantity = useMemo(() => {
     let total = 0;
     ['SIANG', 'SORE'].forEach(key => {
@@ -129,6 +136,7 @@ export default function Cart() {
     );
   }
 
+  // Warna & ikon sesuai waktu makan
   const getMealStyle = (key) => {
     switch (key) {
       case 'PAGI': return { bg: 'bg-primary-50', icon: 'text-neutral-600' };
@@ -138,6 +146,7 @@ export default function Cart() {
     }
   };
 
+  // Render rincian paket menu utama (Include)
   const renderMealSection = (mealTimeKey, items, showIncludedBadge = true) => {
     if (items.length === 0) return null;
     const schedule = MEAL_SCHEDULE[mealTimeKey] || MEAL_SCHEDULE.PAGI;
@@ -177,6 +186,7 @@ export default function Cart() {
     );
   };
 
+  // Render rincian paket menu ekstra (Berbayar)
   const renderEkstraMealSection = (mealTimeKey, items) => {
     if (items.length === 0) return null;
     const schedule = MEAL_SCHEDULE[mealTimeKey] || MEAL_SCHEDULE.SIANG;
@@ -214,10 +224,12 @@ export default function Cart() {
     );
   };
 
+  // Kirim pesanan ke database (validasi input, cut-off time, & cek order ganda)
   const handleConfirm = async () => {
     setIsSubmitting(true);
     try {
 
+      // 1. Validasi catatan khusus
       const { valid: noteValid, sanitized: sanitizedNote, error: noteError } = validateNote(note);
       if (!noteValid) {
         setErrorModalState({
@@ -230,6 +242,7 @@ export default function Cart() {
         return;
       }
 
+      // 2. Cek cut-off time real-time
       const currentHour = getCurrentWIBHour();
       let invalidLock = null;
 
@@ -260,6 +273,7 @@ export default function Cart() {
         return;
       }
 
+      // 3. Buat kode pesanan unik & format tanggal saji T+1
       const orderItemsToInsert = [];
       const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
       const randomStr = Math.floor(1000 + Math.random() * 9000);
@@ -272,6 +286,7 @@ export default function Cart() {
       const date = String(tomorrow.getDate()).padStart(2, '0');
       const servingDateFormatted = `${year}-${month}-${date} 12:00:00`;
 
+      // 4. Pastikan menu utama belum pernah dipesan hari ini untuk besok
       if (hasPasienItems || hasPendampingItems) {
         try {
           const existingOrders = await getOrders({
@@ -303,6 +318,7 @@ export default function Cart() {
         }
       }
 
+      // 5. Susun payload ke format tabel orders
       const addItems = (type, consumer, mealTimeKey, itemsArr) => {
         itemsArr.forEach(entry => {
           orderItemsToInsert.push({
@@ -331,6 +347,7 @@ export default function Cart() {
         });
       };
 
+      // Alokasikan menu utama (Include)
       ['PAGI', 'SIANG', 'SORE'].forEach(key => {
         const pasienItems = orderData.pasien[key] || [];
         const pendampingItems = orderData.pendamping[key] || [];
@@ -339,22 +356,27 @@ export default function Cart() {
         if (pendampingItems.length > 0) addItems('INCLUDE', 'PENDAMPING', key, pendampingItems);
       });
 
+      // Alokasikan menu ekstra (Berbayar / Exclude)
       ['SIANG', 'SORE'].forEach(key => {
         if (orderData.ekstra[key] && orderData.ekstra[key].length > 0) {
           addItems('EXCLUDE', 'PENDAMPING', key, orderData.ekstra[key]);
         }
       });
 
+      // Gunakan pendingRetryItems jika sebelumnya ada transaksi parsial yang gagal
       const itemsToSubmit = pendingRetryItems || orderItemsToInsert;
 
+      // 6. Kirim pesanan ke API sistem RS
       await createOrders(itemsToSubmit, ({ current, total }) => {
         setSubmitProgress(`Mengirim item ${current} dari ${total}...`);
       });
 
+      // 7. Bersihkan storage dan buka halaman sukses
       secureSessionStorage.removeItem('patient_cart_note');
       secureSessionStorage.removeItem('patient_cart');
       setPendingRetryItems(null);
 
+      // Hitung ringkasan porsi untuk halaman sukses
       const summaryMap = {};
       itemsToSubmit.forEach(entry => {
         const keyName = entry.paketName || entry.menuName;
@@ -368,6 +390,7 @@ export default function Cart() {
       navigate('/order-success', { state: { summary } });
     } catch (error) {
       console.error(error);
+      // 8. Tangani error / retry jika gagal parsial
       if (error.failedItems && error.failedItems.length > 0) {
         setPendingRetryItems(error.failedItems);
         setErrorModalState({
@@ -393,6 +416,7 @@ export default function Cart() {
     <PageTransition>
       <div className="min-h-screen relative bg-transparent flex flex-col font-sans text-neutral-900 pt-[60px] pb-8">
 
+        {/* 1. Header atas aplikasi mobile */}
         <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-neutral-100">
           <HeaderMobile
             title={
@@ -406,6 +430,7 @@ export default function Cart() {
 
         <div className="w-full max-w-4xl mx-auto px-4 py-4 relative z-10">
 
+          {/* 2. Tombol kembali ke menu katalog & judul halaman */}
           <div className="flex items-center gap-3 mb-1">
             <button
               onClick={() => navigate('/menu', { state: { restoredQuantities: quantities } })}
@@ -419,6 +444,7 @@ export default function Cart() {
             </div>
           </div>
 
+          {/* 3. Kartu rincian menu utama untuk Pasien */}
           {hasPasienItems && (
             <div className="mt-5">
               <div className="flex items-center gap-2 mb-3">
@@ -433,6 +459,7 @@ export default function Cart() {
             </div>
           )}
 
+          {/* 4. Kartu rincian menu utama untuk Pendamping */}
           {hasPendampingItems && (
             <div className="mt-5">
               <div className="flex items-center gap-2 mb-3">
@@ -447,6 +474,7 @@ export default function Cart() {
             </div>
           )}
 
+          {/* 5. Kartu rincian menu ekstra (berbayar) */}
           {hasEkstraItems && (
             <div className="mt-5">
               <div className="flex items-center gap-2 mb-3">
@@ -461,6 +489,7 @@ export default function Cart() {
             </div>
           )}
 
+          {/* 6. Form input catatan khusus untuk seluruh pesanan */}
           <div className="mt-5">
             <h2 className="text-base font-bold text-neutral-800 mb-3">Catatan Khusus</h2>
             <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-4 md:p-5">
@@ -477,6 +506,7 @@ export default function Cart() {
             </div>
           </div>
 
+          {/* 7. Total estimasi biaya menu ekstra (masuk ke billing RS) */}
           {hasEkstraItems && (
             <div className="mt-5">
               <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-4 md:p-5">
@@ -500,6 +530,7 @@ export default function Cart() {
             </div>
           )}
 
+          {/* 8. Tombol konfirmasi untuk membuka modal */}
           <div className="mt-8">
             <button
               onClick={() => setShowModal(true)}
@@ -512,6 +543,7 @@ export default function Cart() {
 
         </div>
 
+        {/* 9. Modal popup konfirmasi kirim pesanan */}
         {showModal && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-sm">
             <div className="bg-white w-full max-w-[320px] rounded-2xl p-6 text-center shadow-xl">
@@ -555,6 +587,7 @@ export default function Cart() {
           </div>
         )}
 
+        {/* 10. Modal popup error / batas waktu / coba lagi item gagal */}
         {errorModalState.isOpen && (
           <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-sm">
             <div className="bg-white w-full max-w-[320px] rounded-2xl p-6 text-center shadow-xl animate-in fade-in zoom-in-95 duration-200">
