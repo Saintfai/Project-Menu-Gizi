@@ -57,7 +57,6 @@ function normalizeOrder(raw) {
 }
 
 const OVERRIDES_STORAGE_KEY = 'hospital_order_overrides';
-const LOCAL_ORDERS_STORAGE_KEY = 'hospital_local_orders';
 
 export function getStoredOverrides() {
   try {
@@ -75,53 +74,6 @@ export function saveStoredOverrides(overrides) {
     }
   } catch (e) {
     console.warn('Failed to save order overrides to localStorage:', e);
-  }
-}
-
-let inMemoryLocalOrders = [];
-
-function getStorage() {
-  if (typeof window !== 'undefined' && window.localStorage) return window.localStorage;
-  if (typeof localStorage !== 'undefined') return localStorage;
-  return null;
-}
-
-export function getStoredLocalOrders() {
-  try {
-    const storage = getStorage();
-    if (storage) {
-      const raw = storage.getItem(LOCAL_ORDERS_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
-    }
-    return inMemoryLocalOrders;
-  } catch {
-    return inMemoryLocalOrders;
-  }
-}
-
-export function saveStoredLocalOrders(orders) {
-  try {
-    const storage = getStorage();
-    if (storage) {
-      storage.setItem(LOCAL_ORDERS_STORAGE_KEY, JSON.stringify(orders));
-    }
-    inMemoryLocalOrders = Array.isArray(orders) ? orders : [];
-  } catch (e) {
-    console.warn('Failed to save local orders to localStorage:', e);
-    inMemoryLocalOrders = Array.isArray(orders) ? orders : [];
-  }
-}
-
-export function clearStoredLocalOrders() {
-  try {
-    const storage = getStorage();
-    if (storage) {
-      storage.removeItem(LOCAL_ORDERS_STORAGE_KEY);
-    }
-    inMemoryLocalOrders = [];
-  } catch (e) {
-    console.warn('Failed to clear local orders from localStorage:', e);
-    inMemoryLocalOrders = [];
   }
 }
 
@@ -164,8 +116,7 @@ function inferMissingTypes(orders) {
 
 /**
  * Mengambil daftar pesanan dari Sistem Eksisting RS Edelweiss (/webhook/all-order-item).
- * Menggabungkan data server dengan pesanan lokal (local orders) agar pesanan baru
- * langsung tampil di Dashboard Dapur dan Menu Portal.
+ * Data bersumber murni dari server — tidak ada penggabungan dengan data lokal (localStorage).
  * 
  * @param {object} [options={}] - Filter opsional
  * @param {string} [options.servingDate] - Filter tanggal penyajian (ISO string atau YYYY-MM-DD)
@@ -175,18 +126,10 @@ function inferMissingTypes(orders) {
  * @returns {Promise<Array<object>>}
  */
 export async function getOrders(options = {}) {
-  let data = [];
-  try {
-    const res = await apiGet('/webhook/all-order-item');
-    if (Array.isArray(res)) {
-      data = res;
-    }
-  } catch (err) {
-    console.warn('[orderService] Gagal fetch all-order-item dari server, menggunakan local orders fallback:', err.message);
-  }
+  const res = await apiGet('/webhook/all-order-item');
+  let data = Array.isArray(res) ? res : [];
 
   const overrides = getStoredOverrides();
-  const localOrders = getStoredLocalOrders();
 
   let orders = data.map(raw => {
     const item = normalizeOrder(raw);
@@ -207,38 +150,6 @@ export async function getOrders(options = {}) {
     }
     return item;
   }).filter(Boolean);
-
-  // Gabungkan pesanan lokal yang belum ada di response server (deduplikasi berdasarkan orderCode + mealTime + consumer)
-  if (localOrders.length > 0) {
-    const serverOrderCodes = new Set(orders.map(o => o.orderCode).filter(Boolean));
-    const serverMealKeys = new Set(
-      orders.map(o => `${o.patientId}_${String(o.servingDate || '').slice(0, 10)}_${(o.mealTime || '').toUpperCase()}_${(o.consumer || '').toLowerCase()}`)
-    );
-
-    localOrders.forEach(localItem => {
-      const hasCode = localItem.orderCode && serverOrderCodes.has(localItem.orderCode);
-      const hasMeal = serverMealKeys.has(
-        `${localItem.patientId}_${String(localItem.servingDate || '').slice(0, 10)}_${(localItem.mealTime || '').toUpperCase()}_${(localItem.consumer || '').toLowerCase()}`
-      );
-
-      if (!hasCode && !hasMeal) {
-        // Terapkan override jika ada
-        const ov = overrides[String(localItem.id)];
-        if (ov) {
-          if (ov.notes !== undefined) localItem.notes = ov.notes;
-          if (ov.karbohidrat !== undefined) localItem.karbohidrat = ov.karbohidrat;
-          if (ov.protein !== undefined) localItem.protein = ov.protein;
-          if (ov.sayur !== undefined) localItem.sayur = ov.sayur;
-          if (ov.nabati !== undefined) localItem.nabati = ov.nabati;
-          if (ov.proteinTambahan !== undefined) {
-            localItem.proteinTambahan = ov.proteinTambahan;
-            localItem.protein_tambahan = ov.proteinTambahan;
-          }
-        }
-        orders.push(localItem);
-      }
-    });
-  }
 
   orders = inferMissingTypes(orders);
 
@@ -360,11 +271,42 @@ async function postSingleOrderItem(item, maxRetries = 3) {
 }
 
 /**
+ * Memverifikasi apakah pesanan benar-benar tersimpan di database server
+ * dengan melakukan polling ke /webhook/all-order-item setelah POST berhasil.
+ * 
+ * @param {string} orderId - Order ID yang dicari
+ * @param {string|number} patientId - ID pasien
+ * @param {number} [maxAttempts=3] - Maksimal percobaan verifikasi
+ * @param {number} [delayMs=2000] - Jeda antar percobaan (ms)
+ * @returns {Promise<boolean>} true jika ditemukan di server
+ */
+async function verifyOrderPersisted(orderId, patientId, maxAttempts = 3, delayMs = 2000) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    await new Promise(res => setTimeout(res, delayMs));
+    try {
+      const allOrders = await apiGet('/webhook/all-order-item');
+      if (Array.isArray(allOrders)) {
+        const found = allOrders.some(o =>
+          (o.order_id === orderId || o.orderId === orderId) &&
+          String(o.patient_id) === String(patientId)
+        );
+        if (found) return true;
+      }
+    } catch (err) {
+      console.warn(`[orderService] Verifikasi percobaan ${attempt}/${maxAttempts}:`, err.message);
+    }
+  }
+  return false;
+}
+
+/**
  * Mengirimkan sejumlah item pesanan ke API Edelweiss.
  * Setiap item dikirim sebagai 1 permintaan POST independen dengan order_id yang sama.
+ * Setelah semua item berhasil dikirim, melakukan verifikasi bahwa data benar-benar
+ * tersimpan di database server (bukan hanya diterima webhook).
  * 
  * @param {Array<object>} orderItems - Daftar item pesanan yang akan di-submit
- * @param {function} [onProgress] - Callback untuk melaporkan kemajuan (progress: { current, total, item })
+ * @param {function} [onProgress] - Callback untuk melaporkan kemajuan (progress: { current, total, item, phase })
  * @returns {Promise<{ success: boolean, total: number, succeeded: Array<object> }>}
  */
 export async function createOrders(orderItems, onProgress) {
@@ -378,7 +320,7 @@ export async function createOrders(orderItems, onProgress) {
   for (let i = 0; i < orderItems.length; i++) {
     const item = orderItems[i];
     if (onProgress) {
-      onProgress({ current: i + 1, total: orderItems.length, item });
+      onProgress({ current: i + 1, total: orderItems.length, item, phase: 'sending' });
     }
 
     try {
@@ -392,71 +334,34 @@ export async function createOrders(orderItems, onProgress) {
     }
   }
 
-  // Simpan item yang berhasil dikirim ke penyimpanan lokal (local orders)
-  // agar langsung muncul di Dashboard Rekap Dapur dan Menu Portal (hasOrderedMain)
-  // meskipun background write di server rumah sakit mengalami jeda/delay
-  if (succeeded.length > 0) {
-    const existingLocal = getStoredLocalOrders();
-    const newLocalEntries = succeeded.map((item, idx) => {
-      const regNumber = item.noreg || item.noReg || item.no_reg || item.no_regis || null;
-      const rawMeal = String(item.mealTime || 'PAGI').toUpperCase();
-      const mealTime = rawMeal === 'MALAM' ? 'SORE' : rawMeal;
-      const orderType = item.type ? String(item.type).toUpperCase() : 'INCLUDE';
-
-      return {
-        id: `local-${Date.now()}-${idx}-${Math.floor(100 + Math.random() * 900)}`,
-        orderCode: item.orderId || `ORD-${item.patientId}`,
-        orderId: item.orderId,
-        order_id: item.orderId,
-        patientId: item.patientId,
-        patient_id: item.patientId,
-        noReg: regNumber,
-        noreg: regNumber,
-        no_reg: regNumber,
-        no_regis: regNumber,
-        patientName: item.consumerName || item.patientName || 'Pasien',
-        consumer_name: item.consumerName || item.patientName || 'Pasien',
-        consumer: String(item.consumer || 'pasien').toLowerCase(),
-        rmNumber: String(item.patientId),
-        roomNumber: item.roomNumber || '-',
-        room_number: item.roomNumber,
-        classType: item.classType || '-',
-        class_type: item.classType,
-        titipan: item.titipan || '',
-        mealTime,
-        meal_time: item.mealTime,
-        menuName: item.menuName || '-',
-        menu_name: item.menuName,
-        paketName: item.paketName || 'Paket A',
-        paket_name: item.paketName,
-        bentukMakanan: item.bentukMakanan || '-',
-        bentuk_makanan: item.bentukMakanan,
-        quantity: Number(item.quantity) || 1,
-        servingDate: item.servingDate,
-        serving_date: item.servingDate,
-        createdAt: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        notes: item.notes || null,
-        type: orderType,
-        hasExplicitType: true,
-        description: item.description || '-',
-        karbohidrat: item.karbohidrat || '-',
-        protein: item.protein || '-',
-        nabati: item.nabati || '-',
-        proteinTambahan: item.proteinTambahan || item.protein_tambahan || '-',
-        protein_tambahan: item.proteinTambahan || item.protein_tambahan || '-',
-        sayur: item.sayur || '-',
-      };
-    });
-
-    saveStoredLocalOrders([...existingLocal, ...newLocalEntries]);
-  }
-
   if (failed.length > 0) {
     const error = new Error(`Gagal mengirim sebagian pesanan (${succeeded.length}/${orderItems.length} berhasil).`);
     error.succeededItems = succeeded;
     error.failedItems = orderItems.slice(succeeded.length);
     throw error;
+  }
+
+  // Verifikasi bahwa pesanan benar-benar tersimpan di database server.
+  // n8n webhook bisa saja merespons 200 OK tapi gagal menulis ke database (silent failure).
+  if (succeeded.length > 0 && onProgress) {
+    onProgress({ current: succeeded.length, total: orderItems.length, phase: 'verifying' });
+  }
+
+  const firstItem = succeeded[0];
+  const orderId = firstItem?.orderId;
+  const patientId = firstItem?.patientId;
+
+  if (orderId && patientId) {
+    const persisted = await verifyOrderPersisted(orderId, patientId, 3, 2000);
+    if (!persisted) {
+      const error = new Error(
+        'Pesanan telah dikirim ke server, tetapi belum terverifikasi masuk ke database. ' +
+        'Silakan tunggu beberapa saat lalu periksa kembali, atau hubungi petugas gizi.'
+      );
+      error.succeededItems = succeeded;
+      error.verificationFailed = true;
+      throw error;
+    }
   }
 
   return {
@@ -508,11 +413,26 @@ export async function autoGenerateOrdersForKelas() {
   return { success: false, generatedOrdersCount: 0, message: 'Diabaikan di sistem eksisting' };
 }
 
+/**
+ * Membersihkan data local orders lama dari localStorage (jika ada dari versi sebelumnya).
+ * Dipanggil sekali saat aplikasi dimuat untuk memastikan tidak ada ghost data.
+ */
+export function cleanupLegacyLocalOrders() {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.removeItem('hospital_local_orders');
+    }
+  } catch {
+    // Ignore cleanup errors
+  }
+}
+
 export default {
   getOrders,
   createOrders,
   updateOrderNotes,
   autoGenerateOrdersForKelas,
   enrichOrdersWithPatientAllergies,
+  cleanupLegacyLocalOrders,
 };
 

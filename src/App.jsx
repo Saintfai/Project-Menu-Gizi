@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
+import { cleanupLegacyLocalOrders } from './services/orderService';
 
 
 import { AuthProvider } from './context/AuthContext';
@@ -34,6 +36,12 @@ import ComponentsShowcase from './pages/ComponentsShowcase';
 
 function App() {
   const location = useLocation();
+
+  // Bersihkan data local orders lama dari localStorage (legacy dari versi sebelumnya)
+  // agar tidak ada ghost data yang muncul di dashboard atau mengunci pasien
+  useEffect(() => {
+    cleanupLegacyLocalOrders();
+  }, []);
 
   return (
     <AuthProvider>

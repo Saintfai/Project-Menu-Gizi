@@ -369,8 +369,12 @@ export default function Cart() {
 
       const itemsToSubmit = pendingRetryItems || orderItemsToInsert;
 
-      await createOrders(itemsToSubmit, ({ current, total }) => {
-        setSubmitProgress(`Mengirim item ${current} dari ${total}...`);
+      await createOrders(itemsToSubmit, ({ current, total, phase }) => {
+        if (phase === 'verifying') {
+          setSubmitProgress('Memverifikasi pesanan di server...');
+        } else {
+          setSubmitProgress(`Mengirim item ${current} dari ${total}...`);
+        }
       });
 
       secureSessionStorage.removeItem('patient_cart_note');
@@ -390,7 +394,14 @@ export default function Cart() {
       navigate('/order-success', { state: { summary } });
     } catch (error) {
       console.error(error);
-      if (error.failedItems && error.failedItems.length > 0) {
+      if (error.verificationFailed) {
+        // Server menerima POST (200 OK) tapi data tidak muncul di database
+        setErrorModalState({
+          isOpen: true,
+          title: 'Pesanan Belum Terverifikasi',
+          message: error.message
+        });
+      } else if (error.failedItems && error.failedItems.length > 0) {
         setPendingRetryItems(error.failedItems);
         setErrorModalState({
           isOpen: true,
