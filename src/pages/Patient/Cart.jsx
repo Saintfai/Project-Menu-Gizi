@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag, Loader2, Info, AlertCircle } from 'lucide-react';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import { usePatient } from '../../context/PatientContext';
-import { createOrders, getOrders } from '../../services/orderService';
+import { createOrders, getOrders, checkPatientHasOrderedMain, getTomorrowServingDate } from '../../services/orderService';
 import { getPatientByRm } from '../../services/patientService';
 import PageTransition from '../../components/PageTransition';
 import { validateNote } from '../../utils/inputValidator';
@@ -29,10 +29,33 @@ export default function Cart() {
   const [pendingRetryItems, setPendingRetryItems] = useState(null);
   const [errorModalState, setErrorModalState] = useState({ isOpen: false, title: '', message: '' });
 
+  const [serverHasOrderedMain, setServerHasOrderedMain] = useState(false);
+
   React.useEffect(() => {
     if (!patient || !patient.id) {
       navigate('/login', { replace: true });
+      return;
     }
+
+    let isMounted = true;
+    async function verifyDatabaseStatus() {
+      try {
+        const tomorrowStr = getTomorrowServingDate();
+        const ordered = await checkPatientHasOrderedMain(
+          patient.id || patient.rmNumber,
+          tomorrowStr,
+          patient.noReg || patient.noreg
+        );
+        if (isMounted) {
+          setServerHasOrderedMain(ordered);
+        }
+      } catch (err) {
+        console.warn('Gagal memverifikasi status order di server:', err);
+      }
+    }
+
+    verifyDatabaseStatus();
+    return () => { isMounted = false; };
   }, [patient, navigate]);
 
   React.useEffect(() => {
@@ -282,37 +305,62 @@ export default function Cart() {
       const randomStr = Math.floor(1000 + Math.random() * 9000);
       const orderCode = `ORD-${dateStr}-${effectivePatient.rmNumber || effectivePatient.id}-${randomStr}`;
 
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const year = tomorrow.getFullYear();
-      const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
-      const date = String(tomorrow.getDate()).padStart(2, '0');
+      const tomorrowServingDateStr = getTomorrowServingDate();
+      const [year, month, date] = tomorrowServingDateStr.split('-');
       const servingDateFormatted = `${year}-${month}-${date} 12:00:00`;
 
+      // 1. Validasi Batas Kuota Porsi Berdasarkan Kelas Kamar Pasien (PRD 3.2)
+      if (hasPasienItems || hasPendampingItems) {
+        const roomClassLower = (effectivePatient.roomClass || '').toLowerCase();
+        const isVipA = roomClassLower.includes('vip a') || roomClassLower.includes('vip_a') || roomClassLower.includes('suite');
+        const maxPortions = {
+          PAGI: 2,
+          SIANG: isVipA ? 2 : 1,
+          SORE: isVipA ? 2 : 1,
+        };
+
+        for (const meal of ['PAGI', 'SIANG', 'SORE']) {
+          const pCount = (orderData.pasien[meal] || []).reduce((sum, item) => sum + (item.qty || 0), 0);
+          const pendCount = (orderData.pendamping[meal] || []).reduce((sum, item) => sum + (item.qty || 0), 0);
+          const totalMain = pCount + pendCount;
+          if (totalMain > maxPortions[meal]) {
+            setErrorModalState({
+              isOpen: true,
+              title: 'Batas Porsi Terlampaui',
+              message: `Jumlah porsi Menu Utama Makan ${meal} (${totalMain} porsi) melebihi batas kuota kelas ${effectivePatient.roomClass || 'kamar'} (maksimal ${maxPortions[meal]} porsi).`
+            });
+            setIsSubmitting(false);
+            setShowModal(false);
+            return;
+          }
+        }
+      }
+
+      // 2. Validasi Menu Sudah Dipesan Langsung ke Database Server
       if (hasPasienItems || hasPendampingItems) {
         try {
-          const existingOrders = await getOrders({
-            servingDate: `${year}-${month}-${date}`,
-            patientId: effectivePatient.id,
-            type: 'INCLUDE'
-          });
+          const hasAlreadyOrdered = await checkPatientHasOrderedMain(
+            effectivePatient.id || effectivePatient.rmNumber,
+            tomorrowServingDateStr,
+            effectivePatient.noReg || effectivePatient.noreg
+          );
 
-          if (existingOrders && existingOrders.length > 0) {
+          if (hasAlreadyOrdered) {
             setErrorModalState({
               isOpen: true,
               title: 'Menu Sudah Dipesan',
-              message: 'Menu utama untuk penyajian esok hari sudah dipesan sebelumnya. Anda hanya dapat memesan menu utama 1 kali per hari.'
+              message: 'Menu utama untuk penyajian esok hari sudah terdaftar di database server. Anda hanya dapat memesan menu utama 1 kali per hari.'
             });
             setIsSubmitting(false);
             setShowModal(false);
             return;
           }
         } catch (err) {
-          console.error("Gagal memeriksa pesanan ganda:", err);
+          console.error("Gagal memeriksa pesanan ganda di server:", err);
           setErrorModalState({
             isOpen: true,
             title: 'Gagal Memverifikasi',
-            message: 'Terjadi kesalahan saat memverifikasi status pesanan Anda. Silakan coba lagi.'
+            message: 'Terjadi kesalahan saat memverifikasi status pesanan Anda ke database server. Silakan coba lagi.'
           });
           setIsSubmitting(false);
           setShowModal(false);
@@ -451,6 +499,15 @@ export default function Cart() {
               <p className="text-xs text-neutral-400 -mt-0.5">Periksa kembali menu sebelum dikirim</p>
             </div>
           </div>
+
+          {serverHasOrderedMain && (hasPasienItems || hasPendampingItems) && (
+            <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-start gap-3">
+              <AlertCircle size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="text-xs text-amber-800 leading-relaxed">
+                <span className="font-bold">Menu Utama Sudah Dipesan di Database:</span> Anda telah melakukan pemesanan Paket Utama untuk jadwal esok hari. Sesuai aturan sesi tunggal (PRD 3.2), menu utama tidak dapat dipesan kembali.
+              </div>
+            </div>
+          )}
 
           {hasPasienItems && (
             <div className="mt-5">

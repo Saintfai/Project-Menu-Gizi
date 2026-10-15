@@ -43,6 +43,12 @@ export async function apiFetch(endpoint, options = {}) {
   if (!headers.has('Authorization')) {
     headers.set('Authorization', getBasicAuthHeader());
   }
+  if (!headers.has('Cache-Control')) {
+    headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  }
+  if (!headers.has('Pragma')) {
+    headers.set('Pragma', 'no-cache');
+  }
 
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const maxRetries = options.retries ?? (options.method === 'GET' || !options.method ? 2 : 0);
@@ -57,6 +63,7 @@ export async function apiFetch(endpoint, options = {}) {
 
     try {
       const response = await fetch(url, {
+        cache: options.cache || 'no-store',
         ...options,
         headers,
         signal: options.signal || controller.signal,

@@ -213,6 +213,61 @@ export async function getOrders(options = {}) {
 }
 
 /**
+ * Mendapatkan tanggal penyajian esok hari (T+1) dalam zona waktu WIB (UTC+7)
+ * dengan format YYYY-MM-DD.
+ * 
+ * @returns {string} Tanggal esok hari format YYYY-MM-DD
+ */
+export function getTomorrowServingDate() {
+  const now = new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const wibTime = new Date(utc + 3600000 * 7);
+  wibTime.setDate(wibTime.getDate() + 1);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${wibTime.getFullYear()}-${pad(wibTime.getMonth() + 1)}-${pad(wibTime.getDate())}`;
+}
+
+/**
+ * Memeriksa langsung ke database server apakah pasien telah memiliki pesanan Paket Utama
+ * untuk tanggal penyajian tertentu (default: esok hari T+1).
+ * 
+ * Validasi ini 100% mengacu pada data riil yang ada di database server (/webhook/all-order-item).
+ * 
+ * @param {string|number} patientId - ID Pasien / No. RM
+ * @param {string} [servingDate] - Format YYYY-MM-DD (default: esok hari WIB)
+ * @param {string} [noReg] - No. Registrasi pasien (opsional, untuk verifikasi ganda)
+ * @returns {Promise<boolean>} true jika pesanan Paket Utama sudah ada di database server
+ */
+export async function checkPatientHasOrderedMain(patientId, servingDate, noReg = null) {
+  if (!patientId && !noReg) return false;
+
+  const targetDate = servingDate || getTomorrowServingDate();
+
+  // Ambil data langsung dari server tanpa cache browser
+  const orders = await getOrders({ 
+    servingDate: targetDate, 
+    type: 'INCLUDE' 
+  });
+
+  const normalizePid = (val) => {
+    if (val === undefined || val === null) return '';
+    const s = String(val).trim().replace(/^RM-?/i, '');
+    const num = parseInt(s, 10);
+    return !isNaN(num) ? String(num) : s.toLowerCase();
+  };
+
+  const targetPid = normalizePid(patientId);
+  const targetReg = noReg ? String(noReg).trim().toLowerCase() : null;
+
+  return orders.some(o => {
+    const matchPid = targetPid && normalizePid(o.patientId) === targetPid;
+    const itemReg = String(o.noReg || o.noreg || '').trim().toLowerCase();
+    const matchReg = targetReg && itemReg && itemReg === targetReg;
+    return matchPid || matchReg;
+  });
+}
+
+/**
  * Mengirimkan satu item pesanan ke API Edelweiss via POST Multipart/form-data.
  * Mendukung percobaan ulang (retry) otomatis jika terjadi kegagalan jaringan sementara.
  * 
@@ -430,6 +485,8 @@ export function cleanupLegacyLocalOrders() {
 export default {
   getOrders,
   createOrders,
+  checkPatientHasOrderedMain,
+  getTomorrowServingDate,
   updateOrderNotes,
   autoGenerateOrdersForKelas,
   enrichOrdersWithPatientAllergies,

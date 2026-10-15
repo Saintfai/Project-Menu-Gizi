@@ -275,5 +275,36 @@ describe('orderService - getOrders normalization', () => {
       ])
     ).rejects.toThrow('belum terverifikasi');
   }, 15000);
+
+  it('checkPatientHasOrderedMain mendeteksi pesanan yang ada di database server', async () => {
+    const { checkPatientHasOrderedMain } = await import('../orderService');
+
+    apiClient.apiGet.mockResolvedValue([
+      {
+        id: 226,
+        order_id: 'ORD-20261015-148075-5231',
+        patient_id: 148075,
+        noreg: '2610110116',
+        serving_date: '2026-10-16T05:00:00.000Z',
+        type: 'include',
+      },
+    ]);
+
+    // Cocok dengan ID
+    const hasOrderedById = await checkPatientHasOrderedMain('148075', '2026-10-16');
+    expect(hasOrderedById).toBe(true);
+
+    // Cocok dengan noReg
+    const hasOrderedByReg = await checkPatientHasOrderedMain('RM-148075', '2026-10-16', '2610110116');
+    expect(hasOrderedByReg).toBe(true);
+
+    // Pasien lain tidak terdeteksi
+    const otherPatient = await checkPatientHasOrderedMain('999999', '2026-10-16');
+    expect(otherPatient).toBe(false);
+
+    // Tanggal berbeda tidak terdeteksi
+    const differentDate = await checkPatientHasOrderedMain('148075', '2026-10-20');
+    expect(differentDate).toBe(false);
+  });
 });
 

@@ -10,7 +10,7 @@ import SearchBar from '../../components/ui/forms/SearchBar';
 import IncludeModal from '../../components/ui/modals/IncludeModal';
 import { usePatient } from '../../context/PatientContext';
 import PageTransition from '../../components/PageTransition';
-import { getOrders } from '../../services/orderService';
+import { getOrders, checkPatientHasOrderedMain, getTomorrowServingDate } from '../../services/orderService';
 import { getActiveCycleMenu } from '../../services/menuService';
 import { getCurrentWIBHour } from '../../utils/cutoffValidator';
 
@@ -68,22 +68,27 @@ export default function MenuPortal() {
 
         setMenuItems(data || []);
 
-        // Cek apakah pasien sudah memesan menu utama untuk jadwal besok
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const year = tomorrow.getFullYear();
-        const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
-        const dateStr = String(tomorrow.getDate()).padStart(2, '0');
-        const targetServingDate = `${year}-${month}-${dateStr}`;
+        // Cek apakah pasien sudah memesan menu utama untuk jadwal besok langsung ke database server
+        const targetServingDate = getTomorrowServingDate();
+        const hasOrdered = await checkPatientHasOrderedMain(
+          patient.id || patient.rmNumber,
+          targetServingDate,
+          patient.noReg || patient.noreg
+        );
 
-        const orders = await getOrders({ 
-          servingDate: targetServingDate,
-          patientId: patient.id,
-          type: 'INCLUDE'
-        });
+        setHasOrderedMain(hasOrdered);
 
-        if (orders && orders.length > 0) {
-          setHasOrderedMain(true);
+        if (hasOrdered) {
+          // Bersihkan item menu utama dari keranjang lokal jika di server sudah tercatat pesanan
+          setQuantities(prev => {
+            const next = {};
+            for (const [key, val] of Object.entries(prev)) {
+              if (key.startsWith('ekstra_')) {
+                next[key] = val;
+              }
+            }
+            return next;
+          });
         }
 
       } catch (err) {
