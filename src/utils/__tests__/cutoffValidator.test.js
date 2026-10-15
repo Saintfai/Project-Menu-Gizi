@@ -1,3 +1,11 @@
+/**
+ * Pengujian Unit: cutoffValidator
+ * Menguji batas waktu pemesanan makanan (cut-off time) berdasarkan zona waktu WIB (UTC+7):
+ * - Paket Utama: Maksimal pukul 15:00 WIB
+ * - Paket Ekstra Makan Siang: Maksimal pukul 10:00 WIB
+ * - Paket Ekstra Makan Sore: Maksimal pukul 14:00 WIB
+ */
+
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { checkMainMealCutoff, getCurrentWIBHour } from '../cutoffValidator';
 
@@ -10,6 +18,7 @@ describe('Batas Waktu Cut-Off Pemesanan (PRD 3.2 & 3.3)', () => {
     vi.useRealTimers();
   });
 
+  // Uji konversi zona waktu internasional (UTC) ke Waktu Indonesia Barat (WIB / UTC+7)
   describe('getCurrentWIBHour()', () => {
     it('harus mengonversi waktu UTC ke WIB (UTC+7) dengan benar', () => {
       // 03:00 UTC = 10:00 WIB
@@ -26,6 +35,7 @@ describe('Batas Waktu Cut-Off Pemesanan (PRD 3.2 & 3.3)', () => {
     });
   });
 
+  // Uji batas cut-off Paket Utama (maksimal pukul 15:00 WIB)
   describe('checkMainMealCutoff() - Paket Utama Maksimal 15:00 WIB', () => {
     it('harus berstatus isPastCutoff = false jika waktu masih sebelum 15:00 WIB', () => {
       // 07:30 UTC = 14:30 WIB
@@ -56,6 +66,7 @@ describe('Batas Waktu Cut-Off Pemesanan (PRD 3.2 & 3.3)', () => {
     });
   });
 
+  // Uji cut-off bertingkat sesuai waktu makan (Ekstra Siang: 10:00, Ekstra Sore: 14:00, Utama: 15:00)
   describe('Validasi Cut-off Bertingkat (PRD 3.3)', () => {
     it('pada jam 09:00 WIB: Paket Utama, Ekstra Siang, dan Ekstra Sore semua terbuka', () => {
       // 02:00 UTC = 09:00 WIB

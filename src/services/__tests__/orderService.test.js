@@ -1,3 +1,9 @@
+/**
+ * Pengujian Unit: orderService
+ * Menguji normalisasi pesanan dari API RS, fallback tipe pesanan (INCLUDE/EXCLUDE),
+ * filtering multi-kriteria (RM, tanggal, noreg), enrichment alergi, dan integrasi penyimpanan lokal.
+ */
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getOrders } from '../orderService';
 import * as apiClient from '../apiClient';
@@ -13,6 +19,7 @@ describe('orderService - getOrders normalization', () => {
     vi.clearAllMocks();
   });
 
+  // Uji prioritas tipe resmi API jika field 'type' sudah tersedia
   it('menggunakan nilai type resmi dari API (INCLUDE / EXCLUDE)', async () => {
     apiClient.apiGet.mockResolvedValueOnce([
       {
@@ -39,8 +46,8 @@ describe('orderService - getOrders normalization', () => {
     expect(result[1].type).toBe('EXCLUDE');
   });
 
+  // Uji fallback tipe pesanan riwayat lama untuk kelas reguler non-VIP A
   it('melakukan fallback untuk data riwayat lama pada kelas non-VIP A (VIP C, Kelas 1-3) jika type null', async () => {
-    // Pada PRD 3.2, kelas non-VIP A tidak memiliki kuota pendamping di Paket Utama Siang/Sore
     apiClient.apiGet.mockResolvedValueOnce([
       {
         id: 20,
@@ -67,6 +74,7 @@ describe('orderService - getOrders normalization', () => {
     expect(result[1].type).toBe('EXCLUDE');
   });
 
+  // Uji fallback tipe pesanan riwayat lama untuk kelas VIP A (jatah pendamping kedua = EXCLUDE)
   it('melakukan fallback untuk data riwayat lama pada kelas VIP A jika kolom type bernilai null', async () => {
     apiClient.apiGet.mockResolvedValueOnce([
       {
@@ -94,6 +102,7 @@ describe('orderService - getOrders normalization', () => {
     expect(result[1].type).toBe('EXCLUDE');
   });
 
+  // Uji fleksibilitas pencarian ID Pasien dengan format RM-, angka murni, atau leading zeroes
   it('memfilter patientId secara tangguh dengan format RM-, leading zeroes, atau numeric', async () => {
     apiClient.apiGet.mockResolvedValueOnce([
       {
@@ -110,12 +119,12 @@ describe('orderService - getOrders normalization', () => {
       },
     ]);
 
-    // Matching dengan 'RM-42689'
+    // Pencarian dengan prefix 'RM-42689'
     const resWithRm = await getOrders({ patientId: 'RM-42689' });
     expect(resWithRm).toHaveLength(1);
     expect(resWithRm[0].id).toBe(40);
 
-    // Matching dengan leading zeroes '042689'
+    // Pencarian dengan format leading zeroes '042689'
     apiClient.apiGet.mockResolvedValueOnce([
       { id: 40, patient_id: 42689, meal_time: 'pagi' },
     ]);
@@ -124,6 +133,7 @@ describe('orderService - getOrders normalization', () => {
     expect(resWithZero[0].id).toBe(40);
   });
 
+  // Uji akurasi filter tanggal penyajian (T+1) terlepas dari perbedaan zona waktu
   it('memfilter servingDate dengan tepat terlepas dari zona waktu UTC atau format string', async () => {
     apiClient.apiGet.mockResolvedValueOnce([
       {
@@ -145,8 +155,8 @@ describe('orderService - getOrders normalization', () => {
     expect(res[0].id).toBe(50);
   });
 
+  // Uji penggabungan data riwayat alergi pasien dari endpoint /webhook/get-patient
   it('memperkaya pesanan dengan riwayat alergi pasien jika withPatientAllergies true', async () => {
-    // Mock 1: /webhook/all-order-item
     apiClient.apiGet.mockImplementation(async (endpoint, params) => {
       if (endpoint === '/webhook/all-order-item') {
         return [
@@ -177,6 +187,7 @@ describe('orderService - getOrders normalization', () => {
     expect(res[0].patient?.allergies).toBe('Seafood, Telur');
   });
 
+  // Uji normalisasi dan filter berdasarkan nomor registrasi (noreg / noReg)
   it('menormalisasi dan memfilter atribut noreg / noReg dari respons API', async () => {
     apiClient.apiGet.mockResolvedValueOnce([
       {
@@ -202,6 +213,7 @@ describe('orderService - getOrders normalization', () => {
     expect(res[0].noreg).toBe('2610140210');
   });
 
+  // Uji pengiriman parameter noreg ke server dan penyimpanan fallback ke storage lokal
   it('createOrders menyertakan noreg, no_reg, dan no_regis dalam FormData dan menyimpan ke local orders', async () => {
     let capturedFormData = null;
     apiClient.apiPostFormData.mockImplementation(async (endpoint, formData) => {
@@ -234,6 +246,7 @@ describe('orderService - getOrders normalization', () => {
     expect(stored[0].noReg).toBe('2610140210');
   });
 
+  // Uji integrasi penggabungan (merge) antara data server dengan pesanan lokal
   it('getOrders menggabungkan data lokal yang belum ada di server', async () => {
     const { saveStoredLocalOrders, clearStoredLocalOrders } = await import('../orderService');
     clearStoredLocalOrders();

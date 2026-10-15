@@ -1,7 +1,14 @@
+/**
+ * Pengujian Unit: formatters
+ * Menguji helper formatting data dan masking data pribadi pasien (PII)
+ * seperti nomor telepon, nomor/blok alamat, dan standarisasi nama kelas kamar.
+ */
+
 import { describe, it, expect } from 'vitest';
 import { formatDate, maskAddress, maskPhone, formatRoomClass } from '../formatters';
 
 describe('Formatters & Masking Data Privasi Pasien (PII)', () => {
+  // Uji formatting tanggal ke standar format Indonesia (DD/MM/YYYY)
   describe('formatDate() - Format Tanggal Indonesia DD/MM/YYYY', () => {
     it('harus memformat string ISO ke DD/MM/YYYY', () => {
       expect(formatDate('2026-09-25T00:00:00.000Z')).toMatch(/\d{2}\/\d{2}\/2026/);
@@ -19,6 +26,7 @@ describe('Formatters & Masking Data Privasi Pasien (PII)', () => {
     });
   });
 
+  // Uji penyensoran (masking) nomor kontak telepon demi privasi pasien
   describe('maskPhone() - Perlindungan Privasi Nomor Telepon', () => {
     it('harus menyamarkan digit tengah nomor telepon dengan tanda bintang (*)', () => {
       const masked = maskPhone('081234567890');
@@ -38,6 +46,7 @@ describe('Formatters & Masking Data Privasi Pasien (PII)', () => {
     });
   });
 
+  // Uji penyensoran (masking) nomor rumah dan blok pada alamat pasien
   describe('maskAddress() - Perlindungan Privasi Alamat Pasien', () => {
     it('harus menyamarkan nomor/blok pada alamat lengkap', () => {
       const address = 'Komplek Dago Resort, Cluster Pine Hill Blok B2 No. 15, Cibeunying Kaler, Bandung';
@@ -55,6 +64,7 @@ describe('Formatters & Masking Data Privasi Pasien (PII)', () => {
     });
   });
 
+  // Uji format tampilan nama kelas kamar (mengubah format snake_case ke spasi)
   describe('formatRoomClass() - Pembersihan Kode Kelas Kamar', () => {
     it('harus mengubah underscore menjadi spasi untuk tampilan UI', () => {
       expect(formatRoomClass('VIP_A')).toBe('VIP A');

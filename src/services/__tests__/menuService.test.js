@@ -1,3 +1,8 @@
+/**
+ * Pengujian Unit: menuService
+ * Menguji pembuatan hidangan menu gizi, konversi FormData, dan pengisian nilai default nutrisi.
+ */
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as apiClient from '../apiClient';
 import { createMenuItem } from '../menuService';
@@ -7,6 +12,7 @@ describe('menuService - createMenuItem', () => {
     vi.restoreAllMocks();
   });
 
+  // Uji pengiriman data form-data lengkap ke endpoint webhook tambah menu
   it('mengirim form-data yang sesuai ke endpoint /webhook/add-menu-gizi', async () => {
     let capturedEndpoint = '';
     let capturedFormData = null;
@@ -47,6 +53,7 @@ describe('menuService - createMenuItem', () => {
     expect(result).toEqual({ success: true, message: 'Menu added successfully' });
   });
 
+  // Uji pengisian tanda strip '-' otomatis jika field nutrisi tidak diisi oleh admin
   it('mengisi nilai default "-" untuk komponen nutrisi yang kosong', async () => {
     let capturedFormData = null;
 
