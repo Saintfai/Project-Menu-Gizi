@@ -187,7 +187,10 @@ export default function PatientLogin() {
                             <User size={12} strokeWidth={2} className={isSelected ? 'text-primary-600' : 'text-neutral-400'} />
                             <span className="text-[10px] font-medium text-neutral-400 uppercase tracking-wider">No. RM</span>
                           </div>
-                          <p className="text-xs font-bold text-neutral-800 pl-[18px]">{p.rmNumber}</p>
+                          <p className="text-xs font-bold text-neutral-800 pl-[18px]">
+                            {p.rmNumber}
+                            {p.noReg && <span className="block text-[10px] font-normal text-neutral-500">Reg: {p.noReg}</span>}
+                          </p>
                         </div>
 
                         {/* Nama Pasien */}

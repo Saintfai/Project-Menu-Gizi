@@ -87,7 +87,12 @@ export const OrdersTable = ({ data = [], onNoteClick, className = '', onMealClic
                       {index + 1}
                     </td>
                     <td className="px-3 py-2.5 text-xs font-semibold text-primary-700 align-top" style={{ border: '1px solid #9ca3af' }}>
-                      {displayRm}
+                      <div>{displayRm}</div>
+                      {row.noReg && (
+                        <div className="text-[10px] text-neutral-500 font-normal mt-0.5">
+                          Reg: {row.noReg}
+                        </div>
+                      )}
                     </td>
                     <td className="px-3 py-2.5 min-w-[200px] align-top" style={{ border: '1px solid #9ca3af' }}>
                       <div className="flex items-start gap-1.5 font-semibold text-neutral-900 text-xs sm:text-sm whitespace-normal break-words">

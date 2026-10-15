@@ -178,5 +178,24 @@ describe('Transformasi & Format Rekapitulasi Dapur Gizi (PRD 3.8)', () => {
       expect(budiOrder.hasAllergy).toBe(true); // Memiliki indikator 🔴
       expect(budiOrder.allergyNote).toBe('Seafood, Kacang');
     });
+
+    it('mempertahankan atribut noReg / noreg pada hasil groupOrdersForTable', () => {
+      const rawWithNoReg = [
+        {
+          orderCode: 'ORD-REG-01',
+          patientId: 40430,
+          noReg: '2610140210',
+          mealTime: 'PAGI',
+          quantity: 1,
+          paketName: 'Paket A',
+          type: 'INCLUDE',
+        },
+      ];
+
+      const res = groupOrdersForTable(rawWithNoReg);
+      expect(res).toHaveLength(1);
+      expect(res[0].noReg).toBe('2610140210');
+      expect(res[0].noreg).toBe('2610140210');
+    });
   });
 });

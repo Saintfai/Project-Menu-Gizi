@@ -72,6 +72,10 @@ function App() {
                 <Route path="/components" element={<ComponentsShowcase />} />
               )}
 
+              <Route path="/admin/login" element={<Navigate to="/menu/admin/login" replace />} />
+              <Route path="/admin/*" element={<Navigate to="/menu/admin/dashboard" replace />} />
+              <Route path="/admin" element={<Navigate to="/menu/admin/dashboard" replace />} />
+
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>

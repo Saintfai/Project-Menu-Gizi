@@ -99,6 +99,17 @@ export default function Onboarding() {
                 <span className="text-xs font-bold text-neutral-900">{patient.rmNumber}</span>
               </div>
 
+              {/* No. Registrasi */}
+              {patient.noReg && (
+                <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+                  <div className="flex items-center gap-2.5 text-neutral-500">
+                    <User size={16} strokeWidth={2} />
+                    <span className="text-xs font-semibold">No. Registrasi</span>
+                  </div>
+                  <span className="text-xs font-bold text-neutral-900">{patient.noReg}</span>
+                </div>
+              )}
+
               {/* Nama Pasien */}
               <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                 <div className="flex items-center gap-2.5 text-neutral-500">

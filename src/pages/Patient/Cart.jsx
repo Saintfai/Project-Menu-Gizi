@@ -4,6 +4,7 @@ import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag, Loader2, I
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import { usePatient } from '../../context/PatientContext';
 import { createOrders, getOrders } from '../../services/orderService';
+import { getPatientByRm } from '../../services/patientService';
 import PageTransition from '../../components/PageTransition';
 import { validateNote } from '../../utils/inputValidator';
 import { secureSessionStorage } from '../../utils/secureStorage';
@@ -20,8 +21,7 @@ const MEAL_SCHEDULE = {
 export default function Cart() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { patient } = usePatient();
-
+  const { patient, updatePatientInfo } = usePatient();
   const [note, setNote] = useState(() => {
     return secureSessionStorage.getItem('patient_cart_note') || '';
   });
@@ -273,11 +273,27 @@ export default function Cart() {
         return;
       }
 
-      // 3. Buat kode pesanan unik & format tanggal saji T+1
+      // 3. Lengkapi nomor registrasi (noReg) pasien jika belum ada dari sesi sebelumnya
+      let effectivePatient = { ...patient };
+      const hasReg = effectivePatient.noReg || effectivePatient.noreg || effectivePatient.no_reg || effectivePatient.no_regis;
+      const pid = effectivePatient.rmNumber || effectivePatient.id;
+      if (!hasReg && pid) {
+        try {
+          const fresh = await getPatientByRm(pid);
+          if (fresh?.patient) {
+            effectivePatient = { ...effectivePatient, ...fresh.patient };
+            if (updatePatientInfo) updatePatientInfo(fresh.patient);
+          }
+        } catch (e) {
+          console.warn('Could not re-hydrate patient noReg in Cart:', e.message);
+        }
+      }
+
+      // 4. Buat kode pesanan unik & format tanggal saji T+1
       const orderItemsToInsert = [];
       const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
       const randomStr = Math.floor(1000 + Math.random() * 9000);
-      const orderCode = `ORD-${dateStr}-${patient.rmNumber || patient.id}-${randomStr}`;
+      const orderCode = `ORD-${dateStr}-${effectivePatient.rmNumber || effectivePatient.id}-${randomStr}`;
 
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
@@ -286,12 +302,12 @@ export default function Cart() {
       const date = String(tomorrow.getDate()).padStart(2, '0');
       const servingDateFormatted = `${year}-${month}-${date} 12:00:00`;
 
-      // 4. Pastikan menu utama belum pernah dipesan hari ini untuk besok
+      // 5. Pastikan menu utama belum pernah dipesan hari ini untuk besok
       if (hasPasienItems || hasPendampingItems) {
         try {
           const existingOrders = await getOrders({
             servingDate: `${year}-${month}-${date}`,
-            patientId: patient.id,
+            patientId: effectivePatient.id,
             type: 'INCLUDE'
           });
 
@@ -318,15 +334,20 @@ export default function Cart() {
         }
       }
 
-      // 5. Susun payload ke format tabel orders
+      // 6. Susun payload ke format tabel orders
       const addItems = (type, consumer, mealTimeKey, itemsArr) => {
         itemsArr.forEach(entry => {
+          const patientReg = effectivePatient.noReg || effectivePatient.noreg || effectivePatient.no_regis || effectivePatient.no_reg || '';
           orderItemsToInsert.push({
             orderId: orderCode,
-            patientId: patient.id,
-            roomNumber: patient.roomName || '-',
-            classType: patient.originalClass || patient.roomClass || '-',
-            titipan: patient.titipan || '',
+            patientId: effectivePatient.id,
+            noReg: patientReg,
+            noreg: patientReg,
+            no_reg: patientReg,
+            no_regis: patientReg,
+            roomNumber: effectivePatient.roomName || '-',
+            classType: effectivePatient.originalClass || effectivePatient.roomClass || '-',
+            titipan: effectivePatient.titipan || '',
             menuName: entry.item.name || '-',
             paketName: entry.paketName || 'Paket A',
             mealTime: mealTimeKey,
@@ -334,9 +355,9 @@ export default function Cart() {
             quantity: entry.qty,
             type: type,
             consumer: consumer,
-            consumerName: patient.name || 'Pasien',
+            consumerName: effectivePatient.name || 'Pasien',
             notes: sanitizedNote || '',
-            bentukMakanan: entry.item.bentukMakanan || '-',
+            bentukMakanan: effectivePatient.bentukMakanan || entry.item.bentukMakanan || '-',
             description: entry.item.description || '-',
             karbohidrat: entry.item.karbohidrat || '-',
             protein: entry.item.protein || '-',
@@ -366,12 +387,12 @@ export default function Cart() {
       // Gunakan pendingRetryItems jika sebelumnya ada transaksi parsial yang gagal
       const itemsToSubmit = pendingRetryItems || orderItemsToInsert;
 
-      // 6. Kirim pesanan ke API sistem RS
+      // 7. Kirim pesanan ke API sistem RS
       await createOrders(itemsToSubmit, ({ current, total }) => {
         setSubmitProgress(`Mengirim item ${current} dari ${total}...`);
       });
 
-      // 7. Bersihkan storage dan buka halaman sukses
+      // 8. Bersihkan storage dan buka halaman sukses
       secureSessionStorage.removeItem('patient_cart_note');
       secureSessionStorage.removeItem('patient_cart');
       setPendingRetryItems(null);
@@ -390,7 +411,7 @@ export default function Cart() {
       navigate('/order-success', { state: { summary } });
     } catch (error) {
       console.error(error);
-      // 8. Tangani error / retry jika gagal parsial
+      // 9. Tangani error / retry jika gagal parsial
       if (error.failedItems && error.failedItems.length > 0) {
         setPendingRetryItems(error.failedItems);
         setErrorModalState({
