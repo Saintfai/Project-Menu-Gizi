@@ -1,7 +1,17 @@
+/**
+ * Pengujian Unit: orderTransformer
+ * Menguji transformasi baris pesanan mentah menjadi baris rekapitulasi tabel dapur gizi (PRD 3.8):
+ * - Format pemisah waktu makan: garis miring (/) untuk porsi, garis tegak (|) untuk Paket Ekstra
+ * - Tanda strip (-) untuk waktu makan yang tidak dipesan
+ * - Deteksi riwayat alergi medis nyata (indikator titik merah 🔴)
+ * - Pengelompokan pesanan flat berdasarkan transaksi pasien
+ */
+
 import { describe, it, expect } from 'vitest';
 import { formatMealColumn, hasRealAllergy, groupOrdersForTable } from '../orderTransformer';
 
 describe('Transformasi & Format Rekapitulasi Dapur Gizi (PRD 3.8)', () => {
+  // Uji formatting notasi string pada kolom waktu makan tabel rekap
   describe('formatMealColumn() - Notasi Pemisah Kolom Makan', () => {
     it('harus menghasilkan tanda strip (-) jika pasien tidak memesan pada waktu makan tersebut', () => {
       expect(formatMealColumn([])).toBe('-');
@@ -67,6 +77,7 @@ describe('Transformasi & Format Rekapitulasi Dapur Gizi (PRD 3.8)', () => {
     });
   });
 
+  // Uji pembedaan riwayat alergi nyata vs teks nihil ("Tidak Ada", "None", "-")
   describe('hasRealAllergy() - Deteksi Riwayat Alergi Nyata', () => {
     it('harus bernilai true untuk alergi medis spesifik', () => {
       expect(hasRealAllergy('Seafood, Kacang')).toBe(true);
@@ -91,6 +102,7 @@ describe('Transformasi & Format Rekapitulasi Dapur Gizi (PRD 3.8)', () => {
     });
   });
 
+  // Uji pengelompokan baris pesanan ke baris tabel rekapitulasi dapur
   describe('groupOrdersForTable() - Konsolidasi Flat Order Records', () => {
     it('harus mengembalikan array kosong jika tidak ada order', () => {
       expect(groupOrdersForTable([])).toEqual([]);

@@ -1,3 +1,9 @@
+/**
+ * Pengujian Unit: patientService
+ * Menguji pembatasan hak akses pasien (khusus status VIP/Suite), aturan kelas titipan,
+ * serta penolakan pasien kelas reguler (non-VIP) saat login mandiri.
+ */
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getPatientByRm, getPatientByNameAndDob, isVipPatient } from '../patientService';
 import * as apiClient from '../apiClient';
@@ -13,6 +19,7 @@ describe('patientService - VIP only access', () => {
     vi.clearAllMocks();
   });
 
+  // Uji logika helper isVipPatient untuk berbagai status kelas kamar
   describe('isVipPatient helper', () => {
     it('mengembalikan true untuk kelas VIP A, VIP B, VIP C, dan SUITE', () => {
       expect(isVipPatient({ kelas: 'VIP A' })).toBe(true);
@@ -34,6 +41,7 @@ describe('patientService - VIP only access', () => {
     });
   });
 
+  // Uji pembatasan akses VIP saat login menggunakan Nomor Rekam Medis (No. RM)
   describe('getPatientByRm VIP enforcement', () => {
     it('menolak pasien berstatus Kelas dan melemparkan error "Data pasien tidak ditemukan."', async () => {
       apiClient.apiGet.mockResolvedValueOnce([
@@ -83,6 +91,7 @@ describe('patientService - VIP only access', () => {
     });
   });
 
+  // Uji pembatasan akses VIP saat login menggunakan Nama dan Tanggal Lahir
   describe('getPatientByNameAndDob VIP enforcement', () => {
     it('menolak pasien Kelas saat dicari berdasarkan nama dan tanggal lahir', async () => {
       apiClient.apiGet.mockResolvedValueOnce([

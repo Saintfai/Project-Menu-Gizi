@@ -14,6 +14,7 @@ import Input from '../../components/ui/forms/Input';
 import { useAuth } from '../../context/AuthContext';
 import logoEdhos from '../../assets/logoedhos.png';
 
+// Halaman autentikasi portal staf dapur gizi dengan kata sandi tunggal
 export default function AdminLogin() {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -23,6 +24,7 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Verifikasi kata sandi admin dan buat sesi login (berlaku 8 jam)
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -117,7 +119,7 @@ export default function AdminLogin() {
               required
             />
 
-            {/* Submit Button */}
+            {/* Tombol masuk dashboard */}
             <button
               type="submit"
               disabled={isLoading}
@@ -134,7 +136,7 @@ export default function AdminLogin() {
             </button>
           </form>
 
-          {/* Restriction Note */}
+          {/* Catatan hak akses terbatas */}
           <div className="mt-6 pt-4 border-t border-neutral-100 flex items-start gap-2.5">
             <Info size={15} className="text-neutral-400 mt-0.5 flex-shrink-0" />
             <p className="text-xs text-neutral-500 leading-relaxed">
@@ -143,7 +145,7 @@ export default function AdminLogin() {
           </div>
         </motion.div>
 
-        {/* Footer */}
+        {/* Footer portal dapur gizi */}
         <div className="mt-8 text-center flex flex-col gap-1">
           <p className="text-xs font-medium text-neutral-600">© 2026 RS Edelweiss. All Rights Reserved.</p>
           <p className="text-xs text-neutral-500">Dashboard Manajemen &amp; Produksi Gizi</p>

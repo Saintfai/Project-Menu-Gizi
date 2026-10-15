@@ -27,6 +27,7 @@ import Modal from '../../components/ui/modals/Modal';
 import PageTransition from '../../components/PageTransition';
 import { validateMenuItemFields } from '../../utils/inputValidator';
 
+// Halaman manajemen 11 siklus menu dietetik rawat inap (kelola paket hidangan per sesi makan)
 export default function MenuCycle() {
   const activeCycle = getMenuCycleByDate();
   const [selectedCycle, setSelectedCycle] = useState(activeCycle);
@@ -55,7 +56,7 @@ export default function MenuCycle() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch items for selected cycle
+  // Ambil daftar menu hidangan berdasarkan ID siklus yang dipilih
   const loadCycleItems = useCallback(async (cycleId, showToast = false) => {
     try {
       if (showToast) setIsRefreshing(true);
@@ -80,12 +81,12 @@ export default function MenuCycle() {
     loadCycleItems(selectedCycle);
   }, [selectedCycle, loadCycleItems]);
 
-  // Group items by mealTime
+  // Pengelompokan hidangan per waktu makan
   const pagiItems = menuItems.filter((item) => item.mealTime === 'PAGI');
   const siangItems = menuItems.filter((item) => item.mealTime === 'SIANG');
   const soreItems = menuItems.filter((item) => item.mealTime === 'SORE');
 
-  
+  // Buka modal tambah menu baru untuk sesi makan tertentu (otomatis menamai Paket berikutnya)
   const handleOpenAdd = (mealTime) => {
     setCurrentMealTime(mealTime);
     
@@ -104,7 +105,7 @@ export default function MenuCycle() {
     setIsAddModalOpen(true);
   };
 
-  // Handle Open Edit Modal
+  // Buka modal edit menu dan isi form dengan data menu yang dipilih
   const handleOpenEdit = (item) => {
     setSelectedItem(item);
     setFormData({
@@ -120,7 +121,7 @@ export default function MenuCycle() {
     setIsEditModalOpen(true);
   };
 
-  // Handle Open Delete Modal
+  // Buka modal konfirmasi hapus menu (dikunci jika siklus sedang aktif)
   const handleOpenDelete = (item) => {
     if (isActiveCycle) {
       toast.error('Menu tidak dapat dihapus saat siklus sedang aktif.');
@@ -130,7 +131,7 @@ export default function MenuCycle() {
     setIsDeleteModalOpen(true);
   };
 
-  // Submit Add
+  // Simpan penambahan menu baru ke database siklus menu
   const handleSubmitAdd = async (e) => {
     e.preventDefault();
 
@@ -166,11 +167,11 @@ export default function MenuCycle() {
     }
   };
 
-  // Submit Edit
+  // Simpan perubahan data menu yang telah diedit
   const handleSubmitEdit = async (e) => {
     e.preventDefault();
 
-    // ─── SECURITY FIX: Validate & sanitize menu item fields ───
+    // Validasi dan sanitasi input form menu
     const { valid, sanitized, errors } = validateMenuItemFields(formData);
     if (!valid) {
       toast.error(errors.join(' '));
@@ -202,7 +203,7 @@ export default function MenuCycle() {
     }
   };
 
-  // Submit Delete
+  // Hapus menu terpilih dari database siklus menu
   const handleConfirmDelete = async () => {
     if (!selectedItem) return;
 
@@ -226,7 +227,7 @@ export default function MenuCycle() {
     }
   };
 
-  // Render a Single Meal Column
+  // Render kartu kolom sesi makan (Pagi, Siang, atau Sore) beserta daftar paketnya
   const renderMealColumn = (title, items, mealTime, icon) => {
     return (
       <div className="bg-white rounded-xl border border-neutral-300 shadow-xs flex flex-col h-full overflow-hidden transition-all duration-200">
@@ -370,7 +371,7 @@ export default function MenuCycle() {
   return (
     <PageTransition>
     <div className="space-y-6 w-full pb-10">
-      {/* Header Info */}
+      {/* Header judul dan indikator siklus aktif */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-200">
         <div>
           <h1 className="text-xl font-bold text-neutral-900 flex items-center gap-2">
@@ -382,7 +383,7 @@ export default function MenuCycle() {
           </p>
         </div>
 
-        {/* Active Badge & Refresh */}
+        {/* Indikator siklus aktif dan tombol refresh */}
         <div className="flex items-center gap-3 flex-wrap">
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200">
             <span className="w-1.5 h-1.5 rounded-full bg-primary-600 animate-pulse"></span>
@@ -402,9 +403,9 @@ export default function MenuCycle() {
         </div>
       </div>
 
-      {/* Cycle Switcher & Information Banner */}
+      {/* Dropdown pemilih siklus (Siklus 1 s.d. 11) dan banner panduan */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-3.5 bg-white border border-neutral-200 rounded-xl shadow-xs">
-        {/* Cycle Dropdown */}
+        {/* Dropdown pilihan siklus */}
         <div className="flex items-center gap-3 shrink-0">
           <label htmlFor="cycle-select" className="text-xs sm:text-sm font-bold text-neutral-800 whitespace-nowrap pl-1">
             Pilih Siklus Menu:
@@ -442,7 +443,7 @@ export default function MenuCycle() {
         </div>
       </div>
 
-      {/* Cycle Content Overview per Meal Time (3 Columns) */}
+      {/* 3 Kolom pembagian menu: Makan Pagi, Siang, dan Sore */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Makan Pagi (Sarapan) */}
         {renderMealColumn(

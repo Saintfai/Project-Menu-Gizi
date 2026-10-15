@@ -14,16 +14,19 @@ import { getOrders, checkPatientHasOrderedMain, getTomorrowServingDate } from '.
 import { getActiveCycleMenu } from '../../services/menuService';
 import { getCurrentWIBHour } from '../../utils/cutoffValidator';
 
+// Portal katalog menu: Menu Utama (Include) & Menu Ekstra (Berbayar)
 export default function MenuPortal() {
   const { patient } = usePatient();
   const navigate = useNavigate();
   const location = useLocation();
   
+  // Batas cut-off time (WIB): Utama (15:00), Ekstra Siang (10:00), Ekstra Sore (14:00)
   const currentHour = getCurrentWIBHour();
   const isMainMenuLockedTime = currentHour >= 15;
   const isExtraSiangLockedTime = currentHour >= 10;
   const isExtraSoreLockedTime = currentHour >= 14;
   
+  // Proteksi: alihkan ke login jika data pasien kosong
   useEffect(() => {
     if (!patient || !patient.id || !patient.rmNumber) {
       navigate('/login', { replace: true });
@@ -43,6 +46,7 @@ export default function MenuPortal() {
   });
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Ambil menu siklus aktif T+1 dan cek apakah pasien sudah pesan menu utama
   useEffect(() => {
     async function fetchMenus() {
       if (!patient?.id) return;
@@ -105,6 +109,7 @@ export default function MenuPortal() {
 
   const displayPatient = patient;
 
+  // Kuota porsi: VIP A ke atas dapat 2 porsi untuk siang & sore
   const roomClassLower = displayPatient.roomClass?.toLowerCase() || '';
   const isVip = roomClassLower.includes('vip a') || roomClassLower.includes('vip_a') || roomClassLower.includes('suite');
   
@@ -112,25 +117,22 @@ export default function MenuPortal() {
   const maxQtySiang = isVip ? 2 : 1;
   const maxQtySore = isVip ? 2 : 1;
 
+  // Atur jumlah porsi Menu Utama (buka modal pilihan jika kuota > 1)
   const handleQuantityChange = (item, val, sessionMaxQty) => {
     const currentQtyArr = quantities[item.id] || [];
     const currentQty = currentQtyArr.length;
 
     if (val > currentQty) {
-      
       if (sessionMaxQty > 1) {
-        
         setIncludeModalOpen(true);
         setSelectedCardId(item.id);
       } else {
-        
         setQuantities(prev => ({
           ...prev,
           [item.id]: [...(prev[item.id] || []), 'PASIEN']
         }));
       }
     } else if (val < currentQty) {
-      
       setQuantities(prev => {
         const arr = prev[item.id] || [];
         return {
@@ -141,18 +143,18 @@ export default function MenuPortal() {
     }
   };
 
+  // Simpan peruntukan porsi (Pasien / Pendamping) dari modal
   const handleIncludeModalSave = (consumerRole) => {
     const itemId = selectedCardId;
     setQuantities(prev => ({
       ...prev,
       [itemId]: [...(prev[itemId] || []), consumerRole]
     }));
-    
-    
     setIncludeModalOpen(false);
     setSelectedCardId(null);
   };
 
+  // Ubah porsi menu ekstra (prefix 'ekstra_')
   const handleEkstraQuantityChange = (item, val) => {
     const itemId = `ekstra_${item.id}`;
     const currentQty = quantities[itemId]?.length || 0;
@@ -173,12 +175,12 @@ export default function MenuPortal() {
     }
   };
 
-  
+  // Filter menu per waktu makan
   const menuPagi = menuItems.filter(item => item.mealTime?.toUpperCase() === 'PAGI');
   const menuSiang = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SIANG');
   const menuSore = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SORE');
 
-  
+  // Filter pencarian menu ekstra
   const filteredEkstraSiang = menuSiang.filter(item => 
     item.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
     item.description?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -189,7 +191,7 @@ export default function MenuPortal() {
     item.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  
+  // Render daftar Menu Utama (dengan sisa kuota sesi dinamis)
   const renderMenuGrid = (items, maxSessionQty) => {
     if (loading) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Memuat menu...</div>;
     if (error) return <div className="p-3 text-sm text-danger-500 italic bg-danger-50 rounded-lg border border-danger-100 mt-2">Gagal memuat menu.</div>;
@@ -227,7 +229,7 @@ export default function MenuPortal() {
     );
   };
 
-  
+  // Render daftar Menu Ekstra berbayar 
   const renderEkstraGrid = (items) => {
     if (loading) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Memuat menu ekstra...</div>;
     if (error) return <div className="p-3 text-sm text-danger-500 italic bg-danger-50 rounded-lg border border-danger-100 mt-2">Gagal memuat menu.</div>;
@@ -263,6 +265,7 @@ export default function MenuPortal() {
 
   const totalItems = Object.values(quantities).reduce((sum, arr) => sum + (arr ? arr.length : 0), 0);
 
+  // Validasi item & cut-off time sebelum lanjut ke halaman ringkasan (/cart)
   const handleProceedToCart = () => {
     if (totalItems === 0) {
       if (!hasOrderedMain) {
@@ -273,7 +276,6 @@ export default function MenuPortal() {
       return;
     }
 
-    
     let invalidLock = null;
     Object.entries(quantities).forEach(([key, consumers]) => {
       if (!consumers || consumers.length === 0) return;
@@ -394,7 +396,7 @@ export default function MenuPortal() {
           </div>
         )}
 
-        {/* Ekstra Section */}
+        {/* Bagian menu ekstra berbayar */}
         <div className="space-y-4 pt-4">
           <div className="flex items-center gap-2 mb-3.5">
             <ShoppingCart size={20} className="text-primary-500" />
@@ -520,7 +522,7 @@ export default function MenuPortal() {
         </div>
       )}
 
-      {/* Floating Cart Bar */}
+      {/* Bilah keranjang mengapung (Floating Cart) jika ada item dipilih */}
       {totalItems > 0 && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-4xl bg-primary-700 text-white rounded-2xl shadow-xl z-40 p-3.5 sm:px-6 sm:py-4 flex items-center justify-between animate-in slide-in-from-bottom-5">
           <div className="flex items-center gap-3">

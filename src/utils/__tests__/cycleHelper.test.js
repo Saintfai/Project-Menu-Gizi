@@ -1,7 +1,18 @@
+/**
+ * Pengujian Unit: cycleHelper
+ * Menguji logika pemetaan 11 siklus menu RS berdasarkan tanggal kalender:
+ * - Tanggal 1 - 10: Siklus 1 - 10
+ * - Tanggal 11 - 20: Berulang ke Siklus 1 - 10
+ * - Tanggal 21 - 30: Berulang ke Siklus 1 - 10
+ * - Tanggal 31: Khusus Siklus 11
+ * - Default tanggal penyajian adalah esok hari (T+1)
+ */
+
 import { describe, it, expect } from 'vitest';
 import { getMenuCycleByDate, getTomorrowServingDate } from '../cycleHelper';
 
 describe('Logika Siklus Menu (PRD 3.2)', () => {
+  // Uji penentuan nomor siklus menu dari tanggal kalender
   describe('getMenuCycleByDate()', () => {
     it('harus memetakan tanggal 1 s.d. 10 ke Siklus 1 s.d. 10', () => {
       expect(getMenuCycleByDate(new Date('2026-09-01'))).toBe(1);
@@ -41,6 +52,7 @@ describe('Logika Siklus Menu (PRD 3.2)', () => {
     });
   });
 
+  // Uji formatting tanggal penyajian esok hari (T+1) format YYYY-MM-DD
   describe('getTomorrowServingDate()', () => {
     it('harus menghasilkan tanggal esok hari (T+1) dengan format YYYY-MM-DD', () => {
       const tomorrowStr = getTomorrowServingDate();

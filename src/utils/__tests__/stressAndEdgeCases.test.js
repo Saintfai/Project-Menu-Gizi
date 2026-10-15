@@ -1,3 +1,10 @@
+/**
+ * Pengujian Lanjut & Beban Sistem: stressAndEdgeCases
+ * Menguji skenario batas waktu cut-off kritis (boundary detik menjelang cut-off),
+ * validasi keranjang campuran (mixed cart), simulasi volume pesanan besar (stress test),
+ * serta penanganan catatan khusus dengan karakter kompleks atau batas panjang maksimal.
+ */
+
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { getCurrentWIBHour, checkMainMealCutoff } from '../cutoffValidator';
 import { groupOrdersForTable } from '../orderTransformer';
@@ -12,9 +19,7 @@ describe('Skenario Uji Lanjut: Beban Banyak Pesanan & Batas Waktu Cut-Off (PRD 3
     vi.useRealTimers();
   });
 
-  // ---------------------------------------------------------------------------
-  // 1. PENGUJIAN BATAS WAKTU TEPAT DI DETIK-DETIK CUT-OFF (BOUNDARY TIME TESTING)
-  // ---------------------------------------------------------------------------
+  // Uji kondisi tepat pada detik menjelang dan setelah waktu cut-off
   describe('Boundary Condition di Detik Menjelang Cut-Off', () => {
     it('14:59:59 WIB vs 15:00:00 WIB untuk Paket Utama (Batas 15:00 WIB)', () => {
       // 07:59:59 UTC = 14:59:59 WIB (1 detik sebelum cut-off)
@@ -62,9 +67,7 @@ describe('Skenario Uji Lanjut: Beban Banyak Pesanan & Batas Waktu Cut-Off (PRD 3
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // 2. SIMULASI VALIDASI KERANJANG CAMPURAN (MIXED CART) BERDASARKAN JAM
-  // ---------------------------------------------------------------------------
+  // Uji validasi keranjang belanja yang berisi gabungan Paket Utama dan Paket Ekstra
   describe('Validasi Keranjang Campuran (Utama + Ekstra Siang + Ekstra Sore)', () => {
     // Helper fungsi menyerupai logika handleConfirm di Cart.jsx
     const validateCartCutoffs = (cartContent, currentHour) => {
@@ -133,9 +136,7 @@ describe('Skenario Uji Lanjut: Beban Banyak Pesanan & Batas Waktu Cut-Off (PRD 3
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // 3. STRESS TEST: BANYAK PESANAN SEKALIGUS (BULK ORDERS / BATCH PROCESSING)
-  // ---------------------------------------------------------------------------
+  // Uji performa pemrosesan rekap data dapur dengan simulasi 50 pasien dan ratusan menu
   describe('Beban Banyak Pesanan Sekaligus (Simulasi 50 Pasien & 150+ Menu)', () => {
     it('harus mengonsolidasikan 50 transaksi checkout tanpa data tertukar atau hilang', () => {
       const generatedRawOrders = [];
@@ -239,9 +240,7 @@ describe('Skenario Uji Lanjut: Beban Banyak Pesanan & Batas Waktu Cut-Off (PRD 3
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // 4. EDGE CASE CATATAN PESANAN: PANJANG MAKSIMAL, EMOJI, & KARAKTER KHUSUS
-  // ---------------------------------------------------------------------------
+  // Uji penanganan batas maksimal dan karakter khusus pada catatan pesanan
   describe('Edge Case: Catatan Pesanan Pasien yang Kompleks', () => {
     it('harus menangani catatan panjang hingga batas 300 karakter dengan aman', () => {
       const longNote = 'Tolong disajikan hangat, kuah dipisah, porsi nasi sedikit saja. '.repeat(10);

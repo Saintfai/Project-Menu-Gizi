@@ -23,33 +23,34 @@ import PageTransition from '../../components/PageTransition';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import PatientFooter from '../../components/ui/layout/PatientFooter';
 import Input from '../../components/ui/forms/Input';
-
-
 import { usePatient } from '../../context/PatientContext';
 import { formatDate, maskAddress, maskPhone, formatRoomClass } from '../../utils/formatters';
 
+// Halaman login pasien: verifikasi via No. RM atau Nama & Tanggal Lahir
 export default function PatientLogin() {
   const navigate = useNavigate();
   const location = useLocation();
   const { loginPatient, selectPatient } = usePatient();
 
-  const [activeTab, setActiveTab] = useState('rm');
+  const [activeTab, setActiveTab] = useState('rm'); // Tab aktif: 'rm' atau 'name'
   const [rmNumber, setRmNumber] = useState(location.state?.identifier || '');
   const [name, setName] = useState('');
   const [dob, setDob] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showNotFound, setShowNotFound] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [multiplePatients, setMultiplePatients] = useState(location.state?.multiplePatients || []);
+  const [multiplePatients, setMultiplePatients] = useState(location.state?.multiplePatients || []); // Jika ada pasien kembar
   const [showMultiple, setShowMultiple] = useState(location.state?.showMultiple || false);
   const [selectedPatientId, setSelectedPatientId] = useState(null);
 
+  // Ganti tab pencarian ('rm' atau 'name') dan bersihkan error
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setErrorMsg('');
     setShowNotFound(false);
   };
 
+  // Cari data pasien ke sistem API RS
   const handleSearch = async (e) => {
     e.preventDefault();
     setErrorMsg('');
@@ -107,6 +108,7 @@ export default function PatientLogin() {
     }
   };
 
+  // Reset form pencarian ke kondisi awal
   const handleRetry = () => {
     setShowNotFound(false);
     setShowMultiple(false);
@@ -117,15 +119,11 @@ export default function PatientLogin() {
     setDob('');
   };
 
-  const handleContactNurse = () => {
-    toast('Silakan hubungi perawat terdekat untuk bantuan.', { icon: '📞' });
-  };
-
   return (
     <PageTransition>
     <div className={`min-h-screen relative overflow-hidden bg-transparent flex flex-col font-sans text-neutral-800 ${showMultiple ? 'pt-[60px]' : ''}`}>
 
-      {/* Header for Multiple Selection */}
+      {/* Header pemilihan jika terdapat lebih dari satu data pasien yang tepat */}
       {showMultiple && (
         <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-neutral-100">
           <HeaderMobile 
@@ -139,12 +137,12 @@ export default function PatientLogin() {
         </div>
       )}
 
-      {/* Main Content */}
+      {/* Konten utama halaman */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-6 z-10 relative pb-12">
 
         <AnimatePresence mode="wait">
           {showMultiple ? (
-            /* ==================== MULTIPLE MATCHES STATE ==================== */
+            /* Tampilan daftar pilihan jika ditemukan beberapa data pasien yang tepat */
               <motion.div
               key="multiple-patients"
               initial={{ opacity: 0 }}
@@ -162,7 +160,7 @@ export default function PatientLogin() {
                 </h2>
                 <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary-700 bg-primary-50 px-3 py-1 rounded-full border border-primary-100">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary-600 animate-pulse"></span>
-                  Ditemukan {multiplePatients.length} data yang cocok
+                  Ditemukan {multiplePatients.length} data yang tepat
                 </span>
               </div>
 
@@ -181,7 +179,7 @@ export default function PatientLogin() {
                           : 'bg-white border-l-transparent border border-neutral-100 shadow-sm hover:bg-neutral-50/60 hover:shadow-md'
                       }`}
                     >
-                      {/* 2-column grid layout */}
+                      {/* Grid 2 kolom rincian identitas pasien */}
                       <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                         {/* No. RM */}
                         <div>
@@ -222,7 +220,7 @@ export default function PatientLogin() {
                           <p className="text-xs font-bold text-neutral-800 pl-[18px]">{maskPhone(p.phone)}</p>
                         </div>
 
-                        {/* Alamat - full width */}
+                        {/* Alamat pasien */}
                         <div className="col-span-2">
                           <div className="flex items-center gap-1.5 mb-1">
                             <MapPin size={13} strokeWidth={2} className={isSelected ? 'text-primary-600' : 'text-neutral-400'} />
@@ -231,7 +229,7 @@ export default function PatientLogin() {
                           <p className="text-xs font-bold text-neutral-800 pl-[18px] truncate" title={maskAddress(p.address)}>{maskAddress(p.address)}</p>
                         </div>
 
-                        {/* Ruangan - full width */}
+                        {/* Ruangan dan kelas kamar */}
                         <div className="col-span-2">
                           <div className="flex items-center gap-1.5 mb-1">
                             <Building size={13} strokeWidth={2} className={isSelected ? 'text-primary-600' : 'text-neutral-400'} />
@@ -241,7 +239,7 @@ export default function PatientLogin() {
                         </div>
                       </div>
 
-                      {/* Allergy Warning */}
+                      {/* Indikator peringatan alergi jika ada */}
                       {hasAllergies && (
                         <div className={`mt-3 rounded-lg p-2.5 flex items-center gap-2 border ${isSelected ? 'bg-danger-50 border-danger-200' : 'bg-danger-50/50 border-danger-100'}`}>
                           <AlertTriangle size={14} className="text-danger-500 flex-shrink-0" strokeWidth={2.5} />
@@ -249,7 +247,7 @@ export default function PatientLogin() {
                         </div>
                       )}
 
-                      {/* Info Note */}
+                      {/* Catatan informasi gizi */}
                       <div className={`mt-2.5 rounded-lg p-2.5 flex items-center gap-2 ${isSelected ? 'bg-primary-50/80' : 'bg-neutral-50/80'}`}>
                         <Info size={14} className={`flex-shrink-0 ${isSelected ? 'text-primary-600' : 'text-neutral-400'}`} strokeWidth={2.5} />
                         <p className={`text-xs font-medium ${isSelected ? 'text-primary-700' : 'text-neutral-600'}`}>
@@ -262,6 +260,7 @@ export default function PatientLogin() {
               </div>
 
               <div className="flex flex-col gap-2">
+                {/* Pilih pasien yang tepat dan lanjut ke onboarding */}
                 <button
                   disabled={!selectedPatientId}
                   onClick={() => {
@@ -309,23 +308,15 @@ export default function PatientLogin() {
               </h2>
 
               <p className="text-xs text-neutral-500 leading-relaxed mb-8 px-2">
-                Maaf, data dengan No. RM atau Nama yang Anda masukkan tidak terdaftar di sistem kami. Silakan periksa kembali input Anda atau hubungi perawat.
+                Maaf, data dengan No. RM atau Nama yang Anda masukkan tidak terdaftar di sistem kami. Silakan periksa kembali input Anda.
               </p>
 
               <button
                 onClick={handleRetry}
-                className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-primary-900/20 text-sm border-none outline-none cursor-pointer mb-3"
+                className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-primary-900/20 text-sm border-none outline-none cursor-pointer"
               >
                 <RotateCcw size={16} strokeWidth={2} />
                 <span>Coba Lagi</span>
-              </button>
-
-              <button
-                onClick={handleContactNurse}
-                className="w-full bg-white hover:bg-neutral-50 text-primary-600 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] border border-primary-600 text-sm outline-none cursor-pointer"
-              >
-                <Phone size={16} strokeWidth={2} />
-                <span>Hubungi Perawat</span>
               </button>
             </motion.div>
 
@@ -339,7 +330,7 @@ export default function PatientLogin() {
               transition={{ duration: 0.3, ease: "easeOut" }}
               className="w-full max-w-[360px] mx-auto flex flex-col bg-white rounded-2xl p-6 shadow-xl shadow-neutral-200/50 border border-neutral-100 relative z-20"
             >
-              {/* Card Header */}
+              {/* Header kartu form */}
               <div className="flex flex-col items-center mb-5">
                 <div className="w-12 h-12 bg-primary-50 rounded-2xl flex items-center justify-center mb-3.5 text-primary-700 shadow-xs">
                   <IdCard size={22} strokeWidth={1.75} />
@@ -352,7 +343,7 @@ export default function PatientLogin() {
                 </p>
               </div>
 
-              {/* Tab Selector */}
+              {/* Pemilih metode verifikasi (Tab RM / Nama) */}
               <div className="flex bg-neutral-100/90 rounded-xl p-1 mb-5 gap-1">
                 <button
                   type="button"
@@ -380,7 +371,7 @@ export default function PatientLogin() {
                 </button>
               </div>
 
-              {/* Form Input */}
+              {/* Form pencarian data pasien */}
               <form onSubmit={handleSearch} className="space-y-4">
 
                 <AnimatePresence mode="wait">
@@ -464,7 +455,7 @@ export default function PatientLogin() {
                 </button>
               </form>
 
-              {/* Security/Privacy note */}
+              {/* Catatan privasi dan keamanan data */}
               <div className="pt-4 border-t border-neutral-100 flex items-start gap-2.5 mt-6">
                 <Info size={15} className="text-neutral-400 mt-0.5 flex-shrink-0" />
                 <p className="text-xs text-neutral-500 leading-relaxed">
@@ -475,7 +466,7 @@ export default function PatientLogin() {
           )}
         </AnimatePresence>
 
-        {/* Footer info */}
+        {/* Informasi footer pasien */}
         <PatientFooter className="mt-8 relative z-0" />
       </div>
 

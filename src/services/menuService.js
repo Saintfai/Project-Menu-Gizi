@@ -2,8 +2,11 @@ import { apiGet, apiPostFormData, apiPut } from './apiClient';
 import { getMenuCycleByDate } from '../utils/cycleHelper';
 
 /**
- * Normalisasi objek menu dari API Edelweiss agar kompatibel
- * dengan properti camelCase lama dan snake_case baru.
+ * Normalisasi objek menu dari API RS Edelweiss ke format internal aplikasi.
+ * Mendukung kompatibilitas properti camelCase dan snake_case.
+ * 
+ * @param {object} item - Objek data menu mentah dari API RS
+ * @returns {object|null} Objek menu ternormalisasi atau null jika data kosong
  */
 function normalizeMenuItem(item) {
   if (!item) return null;
@@ -32,11 +35,11 @@ function normalizeMenuItem(item) {
 }
 
 /**
- * Mengambil menu siklus yang sedang aktif untuk jadwal penyajian besok (T+1) dari API Edelweiss.
+ * Mengambil menu siklus yang sedang aktif untuk jadwal penyajian besok (T+1) dari API RS Edelweiss.
  * Memastikan siklus menu yang dilihat pasien dan admin selalu SAMA PERSIS.
  * 
- * @param {number|string} [cycleId] - Nomor siklus (opsional, default: T+1 esok hari)
- * @returns {Promise<Array<object>>}
+ * @param {number|string} [cycleId] - Nomor siklus (opsional, jika kosong default mengikuti jadwal T+1)
+ * @returns {Promise<Array<object>>} Daftar hidangan menu pada siklus aktif
  */
 export async function getActiveCycleMenu(cycleId) {
   const targetCycle = cycleId || getMenuCycleByDate();
@@ -48,7 +51,10 @@ let menuItemsCacheTime = 0;
 const CACHE_TTL_MS = 60000; // 60 detik
 
 /**
- * Membersihkan cache menu lokal.
+ * Membersihkan cache menu in-memory lokal.
+ * Dipanggil otomatis saat admin menambah atau mengubah hidangan menu.
+ * 
+ * @returns {void}
  */
 export function clearMenuCache() {
   menuItemsCache = null;
@@ -56,11 +62,11 @@ export function clearMenuCache() {
 }
 
 /**
- * Mengambil seluruh menu (116 menu / seluruh 11 siklus) dari API Edelweiss.
- * Dilengkapi in-memory caching untuk mencegah latensi tinggi berulang.
+ * Mengambil seluruh hidangan menu (seluruh 11 siklus) dari API RS Edelweiss.
+ * Dilengkapi cache in-memory (TTL 60 detik) untuk mencegah pemanggilan berulang yang lambat.
  * 
- * @param {boolean} [forceRefresh=false]
- * @returns {Promise<Array<object>>}
+ * @param {boolean} [forceRefresh=false] - Jika true, abaikan cache dan ambil ulang dari server
+ * @returns {Promise<Array<object>>} Daftar seluruh hidangan menu
  */
 export async function getAllMenuItems(forceRefresh = false) {
   const now = Date.now();
@@ -79,11 +85,11 @@ export async function getAllMenuItems(forceRefresh = false) {
 }
 
 /**
- * Mengambil menu berdasarkan ID Siklus (1 - 11).
+ * Mengambil daftar hidangan menu berdasarkan nomor siklus tertentu (1 s.d 11).
  * 
- * @param {number|string} cycleId 
- * @param {boolean} [forceRefresh=false]
- * @returns {Promise<Array<object>>}
+ * @param {number|string} cycleId - Nomor siklus menu (1 - 11)
+ * @param {boolean} [forceRefresh=false] - Jika true, paksa fetch ulang data dari server
+ * @returns {Promise<Array<object>>} Daftar menu pada siklus tersebut
  */
 export async function getMenuItemsByCycle(cycleId, forceRefresh = false) {
   const allItems = await getAllMenuItems(forceRefresh);
@@ -92,9 +98,9 @@ export async function getMenuItemsByCycle(cycleId, forceRefresh = false) {
 }
 
 /**
- * Mengambil daftar siklus menu (1 s.d 11).
+ * Mengambil daftar 11 siklus menu tetap di rumah sakit.
  * 
- * @returns {Promise<Array<{ id: number, name: string }>>}
+ * @returns {Promise<Array<{ id: number, name: string }>>} Daftar 11 siklus menu
  */
 export async function getMenuCycles() {
   return Array.from({ length: 11 }, (_, i) => ({
@@ -104,11 +110,22 @@ export async function getMenuCycles() {
 }
 
 /**
- * Mengubah data item menu gizi via API Edelweiss (PUT /webhook/edit-menu-gizi).
+ * Mengubah rincian hidangan menu gizi via API RS Edelweiss (PUT /webhook/edit-menu-gizi).
  * 
  * @param {number|string} id - Menu ID (mid)
- * @param {object} updates - Nilai yang diubah
- * @returns {Promise<any>}
+ * @param {object} [updates={}] - Data perubahan komponen makanan
+ * @param {string} [updates.name] - Nama menu hidangan
+ * @param {number|string} [updates.cycleId] - Nomor siklus (1 - 11)
+ * @param {'PAGI'|'SIANG'|'SORE'} [updates.mealTime] - Waktu makan
+ * @param {string} [updates.paketName] - Nama paket (Paket A / Paket B)
+ * @param {string} [updates.description] - Deskripsi menu
+ * @param {string} [updates.karbohidrat] - Komponen karbohidrat
+ * @param {string} [updates.protein] - Komponen protein utama
+ * @param {string} [updates.nabati] - Komponen protein nabati
+ * @param {string} [updates.proteinTambahan] - Komponen protein tambahan
+ * @param {string} [updates.sayur] - Komponen sayuran
+ * @param {string} [updates.bentukMakanan] - Bentuk makanan (Biasa / Lunak / Cair)
+ * @returns {Promise<any>} Hasil respons pembaruan dari server
  */
 export async function updateMenuItem(id, updates = {}) {
   const params = {
@@ -132,11 +149,22 @@ export async function updateMenuItem(id, updates = {}) {
 }
 
 /**
- * Menambahkan item menu baru ke siklus via API Edelweiss (POST /webhook/add-menu-gizi).
+ * Menambahkan hidangan menu baru ke dalam siklus via API RS Edelweiss (POST /webhook/add-menu-gizi).
  * Menggunakan format multipart/form-data.
  * 
- * @param {object} item - Data item menu yang akan ditambahkan
- * @returns {Promise<any>}
+ * @param {object} [item={}] - Data hidangan baru yang akan ditambahkan
+ * @param {string} item.name - Nama hidangan
+ * @param {number|string} item.cycleId - Nomor siklus menu (1 - 11)
+ * @param {'PAGI'|'SIANG'|'SORE'} item.mealTime - Waktu penyajian makanan
+ * @param {string} item.paketName - Nama paket (contoh: 'Paket A')
+ * @param {string} [item.description] - Deskripsi makanan
+ * @param {string} [item.karbohidrat] - Komponen karbohidrat
+ * @param {string} [item.protein] - Komponen protein utama
+ * @param {string} [item.nabati] - Komponen nabati
+ * @param {string} [item.proteinTambahan] - Komponen protein tambahan
+ * @param {string} [item.sayur] - Komponen sayur
+ * @param {string} [item.bentukMakanan] - Bentuk makanan (Biasa / Lunak / Cair)
+ * @returns {Promise<any>} Hasil respons penambahan dari server
  */
 export async function createMenuItem(item = {}) {
   const formData = new FormData();
@@ -164,8 +192,10 @@ export async function createMenuItem(item = {}) {
 }
 
 /**
- * Menghapus item menu.
- * Catatan: Struktur 11 siklus bersifat tetap (fixed) di sistem RS.
+ * Menghapus hidangan menu.
+ * Catatan: Struktur 11 siklus menu bersifat tetap di rumah sakit, disarankan mengedit konten yang ada.
+ * 
+ * @throws {Error} Selalu melempar error karena penghapusan tidak didukung oleh sistem RS
  */
 export async function deleteMenuItem() {
   throw new Error('Penghapusan item menu tidak didukung oleh sistem RS. Silakan ubah konten menu yang ada.');

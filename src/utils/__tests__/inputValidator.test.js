@@ -1,3 +1,9 @@
+/**
+ * Pengujian Unit: inputValidator
+ * Menguji sanitasi karakter berbahaya (pencegahan XSS / injeksi HTML),
+ * validasi catatan khusus pasien, format Nomor RM, dan kelayakan form menu admin.
+ */
+
 import { describe, it, expect } from 'vitest';
 import {
   sanitizeText,
@@ -7,6 +13,7 @@ import {
 } from '../inputValidator';
 
 describe('Validasi & Sanitasi Input (Keamanan Data)', () => {
+  // Uji pembersihan karakter berbahaya dan tag HTML (XSS prevention)
   describe('sanitizeText() - Pembersihan Karakter Berbahaya & XSS', () => {
     it('harus membuang tag HTML secara menyeluruh', () => {
       expect(sanitizeText('<b>Menu Sehat</b>')).toBe('Menu Sehat');
@@ -33,6 +40,7 @@ describe('Validasi & Sanitasi Input (Keamanan Data)', () => {
     });
   });
 
+  // Uji validasi input catatan pesanan khusus pasien
   describe('validateNote() - Catatan Khusus Pesanan Pasien', () => {
     it('harus valid dan kosong jika catatan tidak diisi', () => {
       expect(validateNote('')).toEqual({ valid: true, sanitized: '' });
@@ -54,6 +62,7 @@ describe('Validasi & Sanitasi Input (Keamanan Data)', () => {
     });
   });
 
+  // Uji validasi berbagai variasi format Nomor Rekam Medis (RM)
   describe('isValidRMFormat() - Format Nomor Rekam Medis (RM)', () => {
     it('harus menerima format Nomor RM yang valid', () => {
       expect(isValidRMFormat('RM-12345')).toBe(true);
@@ -72,6 +81,7 @@ describe('Validasi & Sanitasi Input (Keamanan Data)', () => {
     });
   });
 
+  // Uji kelengkapan field menu gizi saat admin menambah/mengubah menu
   describe('validateMenuItemFields() - Validasi Master Menu Admin', () => {
     it('harus valid jika nama menu memenuhi syarat (minimal 2 karakter)', () => {
       const result = validateMenuItemFields({

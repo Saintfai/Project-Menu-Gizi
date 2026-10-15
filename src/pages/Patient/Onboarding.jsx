@@ -17,11 +17,13 @@ import PatientFooter from '../../components/ui/layout/PatientFooter';
 import { usePatient } from '../../context/PatientContext';
 import { formatDate, maskAddress, maskPhone, formatRoomClass } from '../../utils/formatters';
 
+// Halaman verifikasi data identitas pasien sebelum memilih menu
 export default function Onboarding() {
   const navigate = useNavigate();
   const location = useLocation();
   const { patient } = usePatient();
 
+  // Kembali ke login jika belum ada data pasien di context
   useEffect(() => {
     if (!patient) {
       navigate('/login', { replace: true });
@@ -30,13 +32,14 @@ export default function Onboarding() {
 
   if (!patient) return null;
 
+  // Cek riwayat alergi makanan untuk menampilkan peringatan visual jika ada
   const hasAllergies = Boolean(patient.allergies && patient.allergies.toLowerCase() !== 'tidak ada');
   const warningText = hasAllergies ? patient.allergies : 'Tidak ada catatan riwayat alergi.';
 
   return (
     <PageTransition>
       <div className="min-h-screen relative bg-transparent flex flex-col font-sans text-neutral-800 pt-[60px]">
-        {/* Fixed Header */}
+        {/* Header tetap di bagian atas */}
         <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-xs border-b border-neutral-100">
           <HeaderMobile 
             title={
@@ -48,16 +51,17 @@ export default function Onboarding() {
           />
         </div>
 
-        {/* Content Container */}
+        {/* Kontainer isi halaman verifikasi */}
         <div className="flex flex-col px-4 sm:px-6 py-6 z-10 relative pb-8 w-full max-w-[400px] mx-auto">
           
-          {/* Title & Back Navigation */}
+          {/* Judul dan navigasi kembali */}
           <div className="flex items-start gap-2 mb-6 mt-1">
+            {/* Kembali ke login */}
             <button 
               type="button"
               onClick={() => {
                 if (location.state?.showMultiple) {
-                  navigate('/login', { state: location.state });
+                   navigate('/login', { state: location.state });
                 } else {
                   navigate('/login');
                 }
@@ -77,7 +81,7 @@ export default function Onboarding() {
             </div>
           </div>
 
-          {/* Patient Card */}
+          {/* Kartu rincian data pasien */}
           <motion.div 
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -189,7 +193,7 @@ export default function Onboarding() {
             </div>
           </motion.div>
 
-          {/* CTA Button */}
+          {/* Lanjut ke portal pemilihan menu */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -205,7 +209,7 @@ export default function Onboarding() {
             </button>
           </motion.div>
           
-          {/* Footer */}
+          {/* Footer informasi pasien */}
           <PatientFooter />
 
         </div>
