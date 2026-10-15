@@ -176,4 +176,98 @@ describe('orderService - getOrders normalization', () => {
     expect(res[0].allergies).toBe('Seafood, Telur');
     expect(res[0].patient?.allergies).toBe('Seafood, Telur');
   });
+
+  it('menormalisasi dan memfilter atribut noreg / noReg dari respons API', async () => {
+    apiClient.apiGet.mockResolvedValueOnce([
+      {
+        id: 70,
+        patient_id: 40430,
+        noreg: '2610140210',
+        order_id: 'ORD-70',
+        meal_time: 'pagi',
+      },
+      {
+        id: 71,
+        patient_id: 82219,
+        noreg: '2610130465',
+        order_id: 'ORD-71',
+        meal_time: 'pagi',
+      },
+    ]);
+
+    const res = await getOrders({ noReg: '2610140210' });
+    expect(res).toHaveLength(1);
+    expect(res[0].id).toBe(70);
+    expect(res[0].noReg).toBe('2610140210');
+    expect(res[0].noreg).toBe('2610140210');
+  });
+
+  it('createOrders menyertakan noreg, no_reg, dan no_regis dalam FormData dan menyimpan ke local orders', async () => {
+    let capturedFormData = null;
+    apiClient.apiPostFormData.mockImplementation(async (endpoint, formData) => {
+      capturedFormData = formData;
+      return { success: true };
+    });
+
+    const { createOrders, getStoredLocalOrders, clearStoredLocalOrders } = await import('../orderService');
+    clearStoredLocalOrders();
+
+    await createOrders([
+      {
+        orderId: 'ORD-TEST-001',
+        patientId: '40430',
+        noReg: '2610140210',
+        mealTime: 'PAGI',
+        menuName: 'Nasi Centil',
+        quantity: 1,
+      },
+    ]);
+
+    expect(capturedFormData).not.toBeNull();
+    expect(capturedFormData.get('noreg')).toBe('2610140210');
+    expect(capturedFormData.get('no_reg')).toBe('2610140210');
+    expect(capturedFormData.get('no_regis')).toBe('2610140210');
+
+    const stored = getStoredLocalOrders();
+    expect(stored).toHaveLength(1);
+    expect(stored[0].orderCode).toBe('ORD-TEST-001');
+    expect(stored[0].noReg).toBe('2610140210');
+  });
+
+  it('getOrders menggabungkan data lokal yang belum ada di server', async () => {
+    const { saveStoredLocalOrders, clearStoredLocalOrders } = await import('../orderService');
+    clearStoredLocalOrders();
+
+    saveStoredLocalOrders([
+      {
+        id: 'local-test-1',
+        orderCode: 'ORD-LOCAL-999',
+        patientId: '40430',
+        noReg: '2610140210',
+        patientName: 'MUHAMMAD AULIAN BASIRA',
+        mealTime: 'PAGI',
+        menuName: 'Nasi Centil',
+        servingDate: '2026-10-16 12:00:00',
+        quantity: 1,
+        type: 'INCLUDE',
+      },
+    ]);
+
+    apiClient.apiGet.mockResolvedValueOnce([
+      {
+        id: 1,
+        order_id: 'ORD-SERVER-001',
+        patient_id: 82219,
+        meal_time: 'pagi',
+        type: 'include',
+      },
+    ]);
+
+    const result = await getOrders();
+    expect(result.some(o => o.orderCode === 'ORD-LOCAL-999')).toBe(true);
+    expect(result.some(o => o.orderCode === 'ORD-SERVER-001')).toBe(true);
+    expect(result.find(o => o.orderCode === 'ORD-LOCAL-999').noReg).toBe('2610140210');
+
+    clearStoredLocalOrders();
+  });
 });

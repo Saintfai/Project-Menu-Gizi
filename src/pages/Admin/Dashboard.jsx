@@ -195,6 +195,7 @@ export default function Dashboard() {
       const matchesSearch =
         !query ||
         (row.rmNumber && row.rmNumber.toLowerCase().includes(query)) ||
+        (row.noReg && row.noReg.toLowerCase().includes(query)) ||
         (row.patientName && row.patientName.toLowerCase().includes(query)) ||
         (row.pasienRM && row.pasienRM.toLowerCase().includes(query)) ||
         (row.kamar && row.kamar.toLowerCase().includes(query)) ||

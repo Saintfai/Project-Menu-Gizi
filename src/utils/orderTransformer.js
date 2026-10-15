@@ -90,11 +90,14 @@ export function groupOrdersForTable(rawOrders = []) {
     if (!grouped[key]) {
       const allergyRaw = order.patient?.allergies ?? order.allergies ?? order.allergyNote ?? null;
       const isAllergic = typeof order.hasAllergy === 'boolean' ? order.hasAllergy : hasRealAllergy(allergyRaw);
+      const noReg = order.noReg || order.noreg || order.no_regis || order.no_reg || order.patient?.noReg || order.patient?.noreg || null;
 
       grouped[key] = {
         id: key,
         orderCode: order.orderCode || key,
         patientId: order.patientId,
+        noReg: noReg,
+        noreg: noReg,
         patientName: order.patient?.name || order.patientName || order.pasienRM || 'Pasien',
         rmNumber: order.patient?.rmNumber || order.rmNumber || 'RM-000',
         pasienRM: `${order.patient?.name || order.patientName || 'Pasien'} (${order.patient?.rmNumber || order.rmNumber || 'RM-000'})`,
@@ -132,12 +135,24 @@ export function groupOrdersForTable(rawOrders = []) {
     const makanSore = formatMealColumn(group.itemsSore);
 
     const allItems = [...group.itemsPagi, ...group.itemsSiang, ...group.itemsSore];
-    const bentukSet = new Set(
-      allItems
-        .map(i => i.bentukMakanan)
-        .filter(b => b && b.toLowerCase() !== 'biasa')
-    );
-    const bentukMakananText = bentukSet.size > 0 ? Array.from(bentukSet).join(', ') : '-';
+
+    // Prioritaskan bentukMakanan dari data pasien (API get-patient),
+    // fallback ke bentukMakanan item menu jika data pasien tidak tersedia
+    const patientBentuk = allItems.find(i => i.patientBentukMakanan)?.patientBentukMakanan
+      || allItems.find(i => i.patient?.bentukMakanan)?.patient?.bentukMakanan
+      || null;
+
+    let bentukMakananText;
+    if (patientBentuk) {
+      bentukMakananText = patientBentuk;
+    } else {
+      const bentukSet = new Set(
+        allItems
+          .map(i => i.bentukMakanan)
+          .filter(b => b && b.toLowerCase() !== 'biasa')
+      );
+      bentukMakananText = bentukSet.size > 0 ? Array.from(bentukSet).join(', ') : '-';
+    }
     const combinedNotesList = allItems
       .map(i => i.notes || i.catatan)
       .filter(Boolean);
@@ -149,6 +164,8 @@ export function groupOrdersForTable(rawOrders = []) {
     return {
       id: group.id,
       orderCode: group.orderCode,
+      noReg: group.noReg,
+      noreg: group.noreg,
       pasienRM: group.pasienRM,
       patientName: group.patientName,
       rmNumber: group.rmNumber,

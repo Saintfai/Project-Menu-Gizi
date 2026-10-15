@@ -56,6 +56,12 @@ export default function OrderSuccess() {
             <span className="text-sm text-neutral-600">Nomor Rekam Medis</span>
             <span className="text-base font-bold text-primary-700">{patient?.rmNumber}</span>
           </div>
+          {(patient?.noReg || patient?.noreg || patient?.no_regis || patient?.no_reg) && (
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-sm text-neutral-600">Nomor Registrasi</span>
+              <span className="text-sm font-bold text-neutral-900">{patient?.noReg || patient?.noreg || patient?.no_regis || patient?.no_reg}</span>
+            </div>
+          )}
           
           <hr className="border-t border-neutral-100 my-4" />
           

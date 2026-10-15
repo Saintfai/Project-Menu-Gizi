@@ -49,9 +49,15 @@ export function normalizePatient(raw) {
     ? String(raw.alergi).trim()
     : 'Tidak Ada';
 
+  const noReg = raw.no_regis || raw.no_reg || raw.noreg || raw.no_registrasi || raw.noReg || null;
+
   return {
     id: raw.no_rm,
     rmNumber: String(raw.no_rm || ''),
+    noReg: noReg ? String(noReg).trim() : null,
+    noreg: noReg ? String(noReg).trim() : null,
+    no_reg: noReg ? String(noReg).trim() : null,
+    no_regis: noReg ? String(noReg).trim() : null,
     name: raw.nama_pasien || '-',
     dob: raw.tanggal_lahir || null,
     phone: raw.number_telpon || '-',
@@ -61,6 +67,7 @@ export function normalizePatient(raw) {
     titipan: raw.titipan || null,
     roomClass: effectiveClass,
     roomName: raw.kamar || '-',
+    bentukMakanan: raw.bentuk_makan || null,
     isVerified: true,
   };
 }
@@ -239,15 +246,23 @@ export async function enrichOrdersWithPatientAllergies(orders = []) {
 
     if (info) {
       const allergyText = info.allergies || 'Tidak Ada';
+      const patientBentukMakanan = info.patient?.bentukMakanan || null;
+      const patientNoReg = info.patient?.noReg || order.noReg || order.noreg || null;
       return {
         ...order,
         allergies: allergyText,
         allergyNote: allergyText,
+        patientBentukMakanan,
+        noReg: patientNoReg,
+        noreg: patientNoReg,
         patient: {
           ...(order.patient || {}),
           name: info.patient?.name || order.patientName || 'Pasien',
           rmNumber: info.patient?.rmNumber || order.rmNumber || cleanId,
+          noReg: patientNoReg,
+          noreg: patientNoReg,
           allergies: allergyText,
+          bentukMakanan: patientBentukMakanan,
         },
       };
     }

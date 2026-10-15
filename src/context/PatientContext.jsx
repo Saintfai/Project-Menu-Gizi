@@ -12,6 +12,25 @@ export function PatientProvider({ children }) {
     const savedPatient = secureSessionStorage.getItem('active_patient_session', true);
     if (savedPatient) {
       setPatient(savedPatient);
+
+      // Auto-rehydrate noReg jika sesi yang tersimpan sebelumnya belum memiliki noReg
+      const hasReg = savedPatient.noReg || savedPatient.noreg || savedPatient.no_reg || savedPatient.no_regis;
+      const rmId = savedPatient.rmNumber || savedPatient.id;
+      if (!hasReg && rmId) {
+        getPatientByRm(rmId)
+          .then((res) => {
+            if (res?.patient) {
+              setPatient((prev) => {
+                const merged = { ...prev, ...res.patient };
+                secureSessionStorage.setItem('active_patient_session', merged);
+                return merged;
+              });
+            }
+          })
+          .catch((err) => {
+            console.warn('[PatientContext] Auto re-hydrate noReg warning:', err.message);
+          });
+      }
     }
     setLoading(false);
   }, []);
