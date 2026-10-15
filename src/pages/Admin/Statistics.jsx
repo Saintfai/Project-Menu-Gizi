@@ -20,6 +20,7 @@ const MONTHS = [
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
 ];
 
+// Halaman laporan analitik dan statistik gizi (tren menu terfavorit, terendah, dan rekapitulasi bulanan)
 export default function Statistics() {
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
@@ -28,11 +29,12 @@ export default function Statistics() {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Pagination & Search state
+  // Status pencarian dan pagination tabel evaluasi
   const [tableSearch, setTableSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  // Ambil seluruh data riwayat pesanan dari sistem RS untuk kalkulasi statistik
   const loadOrders = useCallback(async (showToast = false) => {
     try {
       if (showToast) setIsRefreshing(true);
@@ -57,7 +59,7 @@ export default function Statistics() {
     loadOrders();
   }, [loadOrders]);
 
-  
+  // Filter pesanan berdasarkan bulan dan tahun penyajian yang dipilih
   const filteredOrders = useMemo(() => {
     return rawOrders.filter((order) => {
       const dateVal = order.servingDate || order.createdAt;
@@ -67,7 +69,7 @@ export default function Statistics() {
     });
   }, [rawOrders, selectedMonth, selectedYear]);
 
-  
+  // Hitung agregasi statistik: total porsi, persentase, 5 menu terfavorit, dan 5 menu terendah
   const stats = useMemo(() => {
     let total = 0;
     const map = {};
@@ -88,11 +90,11 @@ export default function Statistics() {
       percentage: total > 0 ? ((item.count / total) * 100).toFixed(1) : '0',
     }));
 
-    
+    // Urutan 5 menu paling banyak dipesan (Top 5)
     const desc = [...list].sort((a, b) => b.count - a.count);
     const top5 = desc.slice(0, 5);
 
-    
+    // Urutan 5 menu paling sedikit dipesan (Bottom 5)
     const asc = [...list].sort((a, b) => a.count - b.count);
     const bottom5 = asc.slice(0, 5);
 
@@ -109,11 +111,12 @@ export default function Statistics() {
 
   const maxTopCount = stats.top5[0]?.count || 1;
 
-  // Reset pagination when filter/search/month/year changes
+  // Reset pagination ke halaman 1 saat filter bulan/tahun/pencarian berubah
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedMonth, selectedYear, tableSearch, pageSize]);
 
+  // Filter daftar menu berdasarkan kata kunci pencarian pada tabel
   const filteredMenuList = useMemo(() => {
     if (!tableSearch.trim()) return stats.allList;
     const q = tableSearch.toLowerCase().trim();
@@ -125,6 +128,7 @@ export default function Statistics() {
     return Math.max(1, Math.ceil(filteredMenuList.length / Number(pageSize)));
   }, [filteredMenuList.length, pageSize]);
 
+  // Data menu yang tampil pada halaman aktif
   const paginatedList = useMemo(() => {
     if (pageSize === 'ALL') return filteredMenuList;
     const size = Number(pageSize);
@@ -135,10 +139,12 @@ export default function Statistics() {
   const startRecord = filteredMenuList.length === 0 ? 0 : (pageSize === 'ALL' ? 1 : (currentPage - 1) * Number(pageSize) + 1);
   const endRecord = pageSize === 'ALL' ? filteredMenuList.length : Math.min(currentPage * Number(pageSize), filteredMenuList.length);
 
+  // Cetak dokumen resmi rekapitulasi gizi (print layout)
   const handlePrint = () => {
     window.print();
   };
 
+  // Format tanggal cetak ke format formal bahasa Indonesia
   const getPrintDateFormatted = () => {
     const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     const now = new Date();

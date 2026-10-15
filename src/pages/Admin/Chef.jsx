@@ -12,6 +12,7 @@ const toDateInputString = (d) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 };
 
+// Halaman rekapitulasi produksi dapur untuk koki (agregasi porsi per lauk & catatan diet pasien)
 export default function Chef() {
   const [rawOrders, setRawOrders] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
@@ -20,6 +21,7 @@ export default function Chef() {
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [selectedMealTime, setSelectedMealTime] = useState('Semua');
 
+  // Ambil seluruh data pesanan untuk jadwal penyajian besok dari sistem RS
   const fetchChefData = useCallback(async () => {
     try {
       setLoading(true);
@@ -34,6 +36,7 @@ export default function Chef() {
     }
   }, []);
 
+  // Objek tanggal penyajian esok hari (T+1)
   const tomorrowObj = useMemo(() => {
     const d = new Date(currentDate);
     d.setDate(d.getDate() + 1);
@@ -42,6 +45,7 @@ export default function Chef() {
 
   const tomorrowStr = useMemo(() => toDateInputString(tomorrowObj), [tomorrowObj]);
 
+  // Nomor siklus menu berjalan (1 s.d. 11)
   const cycleNumber = useMemo(() => {
     const day = tomorrowObj.getDate();
     let num = day % 10;
@@ -50,7 +54,7 @@ export default function Chef() {
     return num;
   }, [tomorrowObj]);
 
-  // Fetch menus when cycleNumber is determined
+  // Ambil komponen master menu berdasarkan siklus menu aktif
   useEffect(() => {
     const fetchMenus = async () => {
       try {
@@ -76,6 +80,7 @@ export default function Chef() {
     };
   }, [fetchChefData]);
 
+  // Filter pesanan khusus untuk jadwal produksi esok hari (T+1)
   const filteredDailyOrders = useMemo(() => {
     return rawOrders.filter((order) => {
       const dateVal = order.servingDate || order.createdAt;
@@ -87,7 +92,7 @@ export default function Chef() {
     });
   }, [rawOrders, tomorrowStr]);
 
-  // Process data for Chef (Unified Total)
+  // Agregasi jumlah porsi per bahan/komponen lauk dan catatan khusus diet pasien
   const chefStats = useMemo(() => {
     const overallStats = {
       Karbohidrat: {}, 
@@ -205,7 +210,7 @@ export default function Chef() {
     return overallStats;
   }, [filteredDailyOrders, menuItems, selectedMealTime]);
 
-  // Prepare data for the unified 5-column table
+  // Urutkan rincian per bahan dari porsi terbanyak ke terkecil
   const sortEntries = (entries) => {
     return [...entries].sort((a, b) => b[1] - a[1]);
   };
@@ -224,6 +229,7 @@ export default function Chef() {
     tambahanEntries.length
   );
 
+  // Susun baris tabel 5 kolom bahan baku secara seragam
   const tableRows = Array.from({ length: maxRows }).map((_, i) => ({
     karbo: karboEntries[i] || null,
     hewani: hewaniEntries[i] || null,
@@ -232,6 +238,7 @@ export default function Chef() {
     tambahan: tambahanEntries[i] || null,
   }));
 
+  // Kelompokkan catatan khusus pasien per kamar dan nama pasien
   const groupedNotes = useMemo(() => {
     const groups = {};
     (chefStats?.notes || []).forEach(n => {
@@ -264,6 +271,7 @@ export default function Chef() {
 
   const hasAnyData = maxRows > 0;
 
+  // Format tanggal penyajian ke teks formal bahasa Indonesia
   const formatServingDateDisplay = (d) => {
     const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -273,7 +281,7 @@ export default function Chef() {
   return (
     <PageTransition>
       <div className="space-y-6 w-full pb-10">
-        {/* Header */}
+        {/* Header judul rekap produksi, siklus menu, dan tanggal penyajian */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-200">
           <div>
             <h1 className="text-xl font-bold text-neutral-900 flex items-center gap-2">

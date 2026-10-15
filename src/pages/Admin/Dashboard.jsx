@@ -20,11 +20,13 @@ import { getOrders } from '../../services/orderService';
 import PageTransition from '../../components/PageTransition';
 
 
+// Konversi objek tanggal ke format string YYYY-MM-DD
 const toDateInputString = (d) => {
   const pad = (n) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 };
 
+// Halaman utama dashboard dapur gizi: rekapitulasi porsi & pemantauan pesanan pasien
 export default function Dashboard() {
   const [rawOrders, setRawOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +40,7 @@ export default function Dashboard() {
 
   const [selectedComponentMeal, setSelectedComponentMeal] = useState(null);
 
+  // Ambil data seluruh pesanan rawat inap dari API sistem RS
   const fetchOrderData = useCallback(async () => {
     try {
       setLoading(true);
@@ -72,6 +75,7 @@ export default function Dashboard() {
 
   const [currentDate, setCurrentDate] = useState(() => new Date());
 
+  // Pantau pergantian tanggal untuk menyinkronkan data hari berikutnya secara otomatis
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date();
@@ -87,6 +91,7 @@ export default function Dashboard() {
     return () => clearInterval(timer);
   }, [fetchOrderData]);
 
+  // Tanggal penyajian esok hari (T+1)
   const tomorrowObj = useMemo(() => {
     const d = new Date(currentDate);
     d.setDate(d.getDate() + 1);
@@ -95,7 +100,7 @@ export default function Dashboard() {
 
   const tomorrowStr = useMemo(() => toDateInputString(tomorrowObj), [tomorrowObj]);
 
-  
+  // Nomor siklus menu berjalan (1 s.d. 11) berdasarkan tanggal esok hari (T+1)
   const cycleNumber = useMemo(() => {
     const day = tomorrowObj.getDate();
     let num = day % 10;
@@ -104,7 +109,7 @@ export default function Dashboard() {
     return num;
   }, [tomorrowObj]);
 
-  
+  // Filter pesanan khusus untuk jadwal penyajian besok (T+1)
   const filteredDailyOrders = useMemo(() => {
     return rawOrders.filter((order) => {
       const dateVal = order.servingDate || order.createdAt;
@@ -188,6 +193,7 @@ export default function Dashboard() {
   }, [filteredDailyOrders]);
 
   
+  // Filter data tabel berdasarkan pencarian kata kunci dan filter kategori
   const filteredData = useMemo(() => {
     return tableData.filter((row) => {
       
@@ -214,25 +220,30 @@ export default function Dashboard() {
     });
   }, [tableData, searchQuery, selectedFilter]);
 
+  // Buka modal rincian catatan pesanan pasien
   const handleOpenNote = (rowData) => {
     setSelectedNoteData(rowData);
     setIsNoteModalOpen(true);
   };
 
+  // Tutup modal rincian catatan pesanan
   const handleCloseNote = () => {
     setIsNoteModalOpen(false);
     setSelectedNoteData(null);
   };
 
+  // Buka modal edit komponen makanan per sesi makan
   const handleMealClick = useCallback((row, mealTime, items) => {
     setSelectedComponentMeal({ row, mealTime, items });
   }, []);
 
+  // Tutup modal edit komponen dan muat ulang data pesanan
   const handleCloseComponentModal = useCallback(() => {
     setSelectedComponentMeal(null);
-    fetchOrderData(); // refresh in case notes were updated
+    fetchOrderData();
   }, [fetchOrderData]);
 
+  // Format tanggal penyajian ke teks formal bahasa Indonesia
   const formatServingDateDisplay = (d) => {
     const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -242,7 +253,7 @@ export default function Dashboard() {
   return (
     <PageTransition>
     <div className="space-y-6 w-full pb-10">
-      {/* Header Info */}
+      {/* Header info siklus menu, total pasien aktif, dan tanggal saji T+1 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-200">
         <div>
           <h1 className="text-xl font-bold text-neutral-900 flex items-center gap-2">
@@ -279,7 +290,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Error Banner */}
+      {/* Banner pesan error jika gagal mengambil data */}
       {error && (
         <div className="bg-danger-50 border border-danger-200 p-3 rounded-lg flex items-center gap-2 text-sm text-danger-700">
           <AlertCircle className="w-5 h-5 text-danger-500 flex-shrink-0" />
@@ -287,7 +298,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* 4 Cards Summary */}
+      {/* 4 Kartu ringkasan porsi (Pagi, Siang, Sore, Ekstra) */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
         {/* Card Makan Pagi */}
         <RekapCard
@@ -328,8 +339,7 @@ export default function Dashboard() {
         />
       </section>
 
-      {/* Search & Filter Controls */}
-      {/* Search & Filter Controls & Table */}
+      {/* Bagian kontrol pencarian, filter, dan tabel rekapitulasi */}
       <section className="space-y-3 pt-2 w-full">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
@@ -342,7 +352,7 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
-            {/* Search Input */}
+            {/* Input pencarian pasien / No. RM / kamar */}
             <div className="relative w-full sm:w-64">
               <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
@@ -354,7 +364,7 @@ export default function Dashboard() {
               />
             </div>
 
-            {/* Filter Dropdown */}
+            {/* Dropdown filter kategori */}
             <div className="relative w-full sm:w-36">
               <select
                 value={selectedFilter}
