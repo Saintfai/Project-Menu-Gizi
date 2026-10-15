@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { formatDate, maskAddress, maskPhone, formatRoomClass } from '../formatters';
+import { formatDate, maskAddress, maskPhone, formatRoomClass, normalizeRM, formatRM } from '../formatters';
 
 describe('Formatters & Masking Data Privasi Pasien (PII)', () => {
   // Uji formatting tanggal ke standar format Indonesia (DD/MM/YYYY)
@@ -75,6 +75,58 @@ describe('Formatters & Masking Data Privasi Pasien (PII)', () => {
     it('harus mengembalikan string kosong jika null atau undefined', () => {
       expect(formatRoomClass(null)).toBe('');
       expect(formatRoomClass(undefined)).toBe('');
+    });
+  });
+
+  // Uji normalisasi nomor RM (menerima format asli rumah sakit dan angka biasa)
+  describe('normalizeRM() - Normalisasi Nomor RM', () => {
+    it('harus membersihkan format asli RM dengan tanda strip (-)', () => {
+      expect(normalizeRM('00-05-10')).toBe('000510');
+      expect(normalizeRM('14-81-94')).toBe('148194');
+      expect(normalizeRM('08-22-19')).toBe('082219');
+    });
+
+    it('harus membersihkan format dengan pemisah titik (.) dan spasi', () => {
+      expect(normalizeRM('00.05.10')).toBe('000510');
+      expect(normalizeRM('00 05 10')).toBe('000510');
+    });
+
+    it('harus membersihkan prefix RM-', () => {
+      expect(normalizeRM('RM-00-05-10')).toBe('000510');
+      expect(normalizeRM('RM-12345')).toBe('12345');
+      expect(normalizeRM('RM 12345')).toBe('12345');
+    });
+
+    it('harus tetap menerima inputan angka biasa', () => {
+      expect(normalizeRM('510')).toBe('510');
+      expect(normalizeRM('12345')).toBe('12345');
+      expect(normalizeRM(219)).toBe('219');
+    });
+
+    it('harus mengembalikan string kosong jika input null, undefined, atau kosong', () => {
+      expect(normalizeRM(null)).toBe('');
+      expect(normalizeRM(undefined)).toBe('');
+      expect(normalizeRM('')).toBe('');
+    });
+  });
+
+  // Uji formatting tampilan nomor RM ke format standar XX-XX-XX
+  describe('formatRM() - Standarisasi Format Tampilan Nomor RM', () => {
+    it('harus memformat angka biasa ke format XX-XX-XX', () => {
+      expect(formatRM('510')).toBe('00-05-10');
+      expect(formatRM(219)).toBe('00-02-19');
+      expect(formatRM('82219')).toBe('08-22-19');
+      expect(formatRM('148194')).toBe('14-81-94');
+    });
+
+    it('harus mempertahankan format asli jika sudah sesuai', () => {
+      expect(formatRM('00-05-10')).toBe('00-05-10');
+    });
+
+    it('harus mengembalikan tanda strip (-) jika nilai kosong', () => {
+      expect(formatRM(null)).toBe('-');
+      expect(formatRM(undefined)).toBe('-');
+      expect(formatRM('')).toBe('-');
     });
   });
 });

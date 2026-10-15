@@ -89,6 +89,57 @@ describe('patientService - VIP only access', () => {
       expect(res.type).toBe('single');
       expect(res.patient.name).toBe('MUHAMMAD AULIAN BASIRA');
     });
+
+    it('menerima format Nomor RM asli rumah sakit seperti 00-05-10 dan membersihkannya saat query API', async () => {
+      apiClient.apiGet.mockResolvedValueOnce([
+        {
+          no_rm: 510,
+          nama_pasien: 'PASIEN RM FORMAT ASLI',
+          kelas: 'VIP A',
+          titipan: null,
+          kamar: 'VIP 1',
+        },
+      ]);
+
+      const res = await getPatientByRm('00-05-10');
+      expect(apiClient.apiGet).toHaveBeenCalledWith('/webhook/get-patient', { pid: '000510' });
+      expect(res.type).toBe('single');
+      expect(res.patient.name).toBe('PASIEN RM FORMAT ASLI');
+    });
+
+    it('menerima format RM dengan prefix RM- dan tanda strip', async () => {
+      apiClient.apiGet.mockResolvedValueOnce([
+        {
+          no_rm: 148194,
+          nama_pasien: 'HASNA ANINDYA',
+          kelas: 'VIP B',
+          titipan: null,
+          kamar: 'VIP 2',
+        },
+      ]);
+
+      const res = await getPatientByRm('RM-14-81-94');
+      expect(apiClient.apiGet).toHaveBeenCalledWith('/webhook/get-patient', { pid: '148194' });
+      expect(res.type).toBe('single');
+      expect(res.patient.name).toBe('HASNA ANINDYA');
+    });
+
+    it('menerima inputan angka biasa (seperti 510)', async () => {
+      apiClient.apiGet.mockResolvedValueOnce([
+        {
+          no_rm: 510,
+          nama_pasien: 'PASIEN ANGKA BIASA',
+          kelas: 'VIP A',
+          titipan: null,
+          kamar: 'VIP 1',
+        },
+      ]);
+
+      const res = await getPatientByRm('510');
+      expect(apiClient.apiGet).toHaveBeenCalledWith('/webhook/get-patient', { pid: '510' });
+      expect(res.type).toBe('single');
+      expect(res.patient.name).toBe('PASIEN ANGKA BIASA');
+    });
   });
 
   // Uji pembatasan akses VIP saat login menggunakan Nama dan Tanggal Lahir

@@ -91,3 +91,42 @@ export const formatRoomClass = (cls) => {
   if (!cls) return '';
   return cls.replace(/_/g, ' ');
 };
+
+/**
+ * Normalisasi input Nomor Rekam Medis (No. RM) agar dapat menerima format asli berpemisah
+ * (contoh: "00-05-10", "14-81-94", "00.05.10") maupun format angka biasa (contoh: "510", "12345", "000510", "RM-12345").
+ * 
+ * Menghilangkan prefix "RM", spasi, tanda strip (-), dan titik (.).
+ * 
+ * @param {string | number | null | undefined} rm - Input Nomor RM
+ * @returns {string} String nomor RM bersih (hanya digit)
+ */
+export const normalizeRM = (rm) => {
+  if (rm === null || rm === undefined) return '';
+  return String(rm)
+    .replace(/^RM\s*-?\s*/i, '')
+    .replace(/[-.\s]/g, '')
+    .trim();
+};
+
+/**
+ * Memformat Nomor RM ke format standar tampilan rumah sakit (XX-XX-XX).
+ * Contoh: "510" atau "000510" -> "00-05-10", "148194" -> "14-81-94".
+ * 
+ * @param {string | number | null | undefined} rm - Nomor RM mentah
+ * @returns {string} Nomor RM terformat atau '-' jika kosong
+ */
+export const formatRM = (rm) => {
+  if (!rm) return '-';
+  const clean = normalizeRM(rm);
+  if (!clean || !/^\d+$/.test(clean)) return String(rm);
+  if (clean.length <= 6) {
+    const padded = clean.padStart(6, '0');
+    return `${padded.slice(0, 2)}-${padded.slice(2, 4)}-${padded.slice(4, 6)}`;
+  }
+  if (clean.length <= 8) {
+    const padded = clean.padStart(8, '0');
+    return `${padded.slice(0, 2)}-${padded.slice(2, 4)}-${padded.slice(4, 6)}-${padded.slice(6, 8)}`;
+  }
+  return clean;
+};

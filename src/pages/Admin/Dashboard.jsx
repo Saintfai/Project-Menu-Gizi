@@ -198,9 +198,13 @@ export default function Dashboard() {
     return tableData.filter((row) => {
       
       const query = searchQuery.toLowerCase().trim();
+      const cleanQuery = query.replace(/^rm\s*-?\s*/i, '').replace(/[-.\s]/g, '');
+      const cleanRowRm = (row.rmNumber || '').replace(/^rm\s*-?\s*/i, '').replace(/[-.\s]/g, '');
+
       const matchesSearch =
         !query ||
         (row.rmNumber && row.rmNumber.toLowerCase().includes(query)) ||
+        (cleanQuery && cleanRowRm && (cleanRowRm.includes(cleanQuery) || cleanQuery.includes(cleanRowRm))) ||
         (row.noReg && row.noReg.toLowerCase().includes(query)) ||
         (row.patientName && row.patientName.toLowerCase().includes(query)) ||
         (row.pasienRM && row.pasienRM.toLowerCase().includes(query)) ||

@@ -1,4 +1,5 @@
 import { apiGet } from './apiClient';
+import { normalizeRM } from '../utils/formatters';
 
 /**
  * Format tanggal lahir ke format yang diharapkan oleh API RS Edelweiss (DD-MM-YYYY).
@@ -91,22 +92,62 @@ export function isVipPatient(raw) {
 
 /**
  * Mencari data pasien berdasarkan Nomor Rekam Medis (No. RM).
+ * Mendukung format asli rumah sakit (contoh: "00-05-10", "14-81-94", "00.05.10", "RM-00-05-10")
+ * maupun format angka biasa (contoh: "510", "12345", "000510", "RM-12345").
  * Endpoint: /webhook/get-patient?pid={noRm}
  * 
- * @param {string|number} rmNumber - Nomor RM pasien (contoh: "12345" atau "RM-12345")
+ * @param {string|number} rmNumber - Nomor RM pasien
  * @param {object} [options={ vipOnly: true }] - Pengaturan filter pencarian
  * @param {boolean} [options.vipOnly=true] - Jika true, hanya loloskan pasien berstatus VIP / Suite
  * @returns {Promise<{ type: 'single'|'multiple', patient?: object, patients?: Array<object> }>} Objek hasil pencarian pasien
  */
 export async function getPatientByRm(rmNumber, options = { vipOnly: true }) {
-  const cleanId = String(rmNumber).replace(/^RM-?/i, '').trim();
-  if (!cleanId) {
+  const cleanId = normalizeRM(rmNumber);
+  if (!cleanId || !/^\d+$/.test(cleanId)) {
     throw new Error('Nomor RM tidak valid.');
   }
 
-  const result = await apiGet('/webhook/get-patient', { pid: cleanId });
+  // 1. Coba cari dengan cleanId (contoh: "000510" atau "510")
+  let result = await apiGet('/webhook/get-patient', { pid: cleanId });
+  let list = Array.isArray(result) ? result : (result && typeof result === 'object' ? [result] : []);
 
-  const list = Array.isArray(result) ? result : (result && typeof result === 'object' ? [result] : []);
+  // 2. Jika tidak ditemukan dan cleanId memiliki leading zeros (contoh: "000510"),
+  // coba cari kembali dengan parseInt ("510") untuk memastikan kecocokan dengan database RS
+  const intStr = String(parseInt(cleanId, 10));
+  if (
+    (!list.length || (list[0]?.message && list[0]?.message.toLowerCase().includes('tidak ditemukan'))) &&
+    intStr !== cleanId &&
+    !isNaN(intStr)
+  ) {
+    try {
+      const retryResult = await apiGet('/webhook/get-patient', { pid: intStr });
+      const retryList = Array.isArray(retryResult) ? retryResult : (retryResult && typeof retryResult === 'object' ? [retryResult] : []);
+      if (retryList.length && (!retryList[0]?.message || !retryList[0]?.message.toLowerCase().includes('tidak ditemukan'))) {
+        result = retryResult;
+        list = retryList;
+      }
+    } catch {
+      // Abaikan error retry jika terjadi
+    }
+  }
+
+  // 3. Sebaliknya jika cleanId pendek (misal: "510") dan tidak ditemukan, coba padStart 6 digit ("000510")
+  if (
+    (!list.length || (list[0]?.message && list[0]?.message.toLowerCase().includes('tidak ditemukan'))) &&
+    cleanId.length < 6
+  ) {
+    try {
+      const paddedStr = cleanId.padStart(6, '0');
+      const retryResult = await apiGet('/webhook/get-patient', { pid: paddedStr });
+      const retryList = Array.isArray(retryResult) ? retryResult : (retryResult && typeof retryResult === 'object' ? [retryResult] : []);
+      if (retryList.length && (!retryList[0]?.message || !retryList[0]?.message.toLowerCase().includes('tidak ditemukan'))) {
+        result = retryResult;
+        list = retryList;
+      }
+    } catch {
+      // Abaikan error retry jika terjadi
+    }
+  }
 
   if (list.length === 0) {
     throw new Error('Data pasien tidak ditemukan.');
@@ -220,7 +261,8 @@ export async function getPatientsAllergiesMap(patientIds = []) {
   const uniqueIds = [...new Set(
     patientIds
       .filter(id => id !== undefined && id !== null && String(id).trim() !== '')
-      .map(id => String(id).replace(/^RM-?/i, '').trim())
+      .map(id => normalizeRM(id))
+      .filter(Boolean)
   )];
 
   const resultMap = new Map();
@@ -280,7 +322,7 @@ export async function enrichOrdersWithPatientAllergies(orders = []) {
 
   return orders.map(order => {
     const rawPid = order.patientId || order.patient_id || '';
-    const cleanId = String(rawPid).replace(/^RM-?/i, '').trim();
+    const cleanId = normalizeRM(rawPid);
     const info = allergiesMap.get(cleanId);
 
     if (info) {

@@ -278,7 +278,7 @@ export async function checkPatientHasOrderedMain(patientId, servingDate, noReg =
 
   const normalizePid = (val) => {
     if (val === undefined || val === null) return '';
-    const s = String(val).trim().replace(/^RM-?/i, '');
+    const s = String(val).trim().replace(/^RM\s*-?\s*/i, '').replace(/[-.\s]/g, '');
     const num = parseInt(s, 10);
     return !isNaN(num) ? String(num) : s.toLowerCase();
   };

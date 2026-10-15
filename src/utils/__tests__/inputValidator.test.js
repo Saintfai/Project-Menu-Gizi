@@ -65,11 +65,23 @@ describe('Validasi & Sanitasi Input (Keamanan Data)', () => {
   // Uji validasi berbagai variasi format Nomor Rekam Medis (RM)
   describe('isValidRMFormat() - Format Nomor Rekam Medis (RM)', () => {
     it('harus menerima format Nomor RM yang valid', () => {
+      // Format biasa & prefix RM
       expect(isValidRMFormat('RM-12345')).toBe(true);
       expect(isValidRMFormat('rm-11111')).toBe(true);
       expect(isValidRMFormat('RM12345')).toBe(true);
       expect(isValidRMFormat('12345')).toBe(true);
       expect(isValidRMFormat('RM - 12345')).toBe(true);
+      expect(isValidRMFormat('510')).toBe(true);
+      expect(isValidRMFormat('000510')).toBe(true);
+
+      // Format asli rumah sakit (dengan strip, titik, atau spasi)
+      expect(isValidRMFormat('00-05-10')).toBe(true);
+      expect(isValidRMFormat('14-81-94')).toBe(true);
+      expect(isValidRMFormat('08-22-19')).toBe(true);
+      expect(isValidRMFormat('00.05.10')).toBe(true);
+      expect(isValidRMFormat('00 05 10')).toBe(true);
+      expect(isValidRMFormat('RM-00-05-10')).toBe(true);
+      expect(isValidRMFormat('RM 00-05-10')).toBe(true);
     });
 
     it('harus menolak format Nomor RM yang tidak valid', () => {
@@ -78,6 +90,9 @@ describe('Validasi & Sanitasi Input (Keamanan Data)', () => {
       expect(isValidRMFormat('ABCDE')).toBe(false);
       expect(isValidRMFormat('RM-')).toBe(false);
       expect(isValidRMFormat('RM-ABC123')).toBe(false);
+      expect(isValidRMFormat('00--05--10')).toBe(false);
+      expect(isValidRMFormat('-00-05-10')).toBe(false);
+      expect(isValidRMFormat('00-05-10-')).toBe(false);
     });
   });
 

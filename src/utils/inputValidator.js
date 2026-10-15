@@ -85,12 +85,30 @@ export function validateMenuItemFields(fields) {
 
 /**
  * Validate RM number format.
- * Accepts: "12345", "RM-12345", "RM12345", "rm-12345"
+ * Menerima format asli rumah sakit (contoh: "00-05-10", "14-81-94", "00.05.10", "RM-00-05-10")
+ * maupun format angka biasa (contoh: "12345", "510", "000510", "RM-12345", "RM12345").
+ * 
  * @param {string} rm - RM number input
  * @returns {boolean}
  */
 export function isValidRMFormat(rm) {
   if (!rm || typeof rm !== 'string') return false;
-  const cleaned = rm.replace(/\s+/g, '');
-  return /^(RM-?)?\d{1,10}$/i.test(cleaned);
+  const trimmed = rm.trim();
+  if (!trimmed) return false;
+
+  // Hapus prefix RM (opsional, contoh: "RM-", "RM ", "rm-")
+  const strippedPrefix = trimmed.replace(/^RM\s*-?\s*/i, '');
+  if (!strippedPrefix) return false;
+
+  // Tidak boleh ada separator beruntun (-- atau ..)
+  if (/[-.]{2,}/.test(strippedPrefix)) return false;
+  // Tidak boleh diawali atau diakhiri separator
+  if (/^[-.]|[-.]$/.test(strippedPrefix)) return false;
+
+  // Karakter yang diizinkan hanya digit, tanda strip (-), titik (.), dan spasi
+  if (!/^[\d\-.\s]+$/.test(strippedPrefix)) return false;
+
+  // Pastikan jumlah digit murni antara 1 hingga 12 digit
+  const digits = strippedPrefix.replace(/[-.\s]/g, '');
+  return digits.length >= 1 && digits.length <= 12;
 }

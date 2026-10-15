@@ -25,6 +25,7 @@ import PatientFooter from '../../components/ui/layout/PatientFooter';
 import Input from '../../components/ui/forms/Input';
 import { usePatient } from '../../context/PatientContext';
 import { formatDate, maskAddress, maskPhone, formatRoomClass } from '../../utils/formatters';
+import { isValidRMFormat } from '../../utils/inputValidator';
 
 // Halaman login pasien: verifikasi via No. RM atau Nama & Tanggal Lahir
 export default function PatientLogin() {
@@ -59,11 +60,16 @@ export default function PatientLogin() {
     let dobValue = null;
 
     if (activeTab === 'rm') {
-      if (!rmNumber.trim()) {
+      const trimmedRm = rmNumber.trim();
+      if (!trimmedRm) {
         setErrorMsg('Masukkan Nomor RM pasien.');
         return;
       }
-      identifier = rmNumber.trim();
+      if (!isValidRMFormat(trimmedRm)) {
+        setErrorMsg('Format Nomor RM tidak valid. Gunakan format asli seperti 00-05-10 atau angka biasa.');
+        return;
+      }
+      identifier = trimmedRm;
     } else {
       const trimmedName = name.trim();
       if (!trimmedName) {
@@ -386,10 +392,11 @@ export default function PatientLogin() {
                       <Input
                         label="Nomor Rekam Medis"
                         type="text"
-                        placeholder="Contoh: 12345"
+                        placeholder="Contoh: 00-05-10 atau 12345"
                         value={rmNumber}
                         onChange={(e) => setRmNumber(e.target.value)}
                         leftIcon={<Hash size={16} strokeWidth={2} />}
+                        hint="Bisa memasukkan format asli (00-05-10) atau angka biasa"
                         autoFocus
                       />
                     </motion.div>
