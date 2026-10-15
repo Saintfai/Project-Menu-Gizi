@@ -9,7 +9,9 @@ const PASSWORD = import.meta.env.VITE_API_PASSWORD || 'KamiParaPejuang123!';
 
 /**
  * Menghasilkan token header Basic Authentication.
- * Mendukung karakter UTF-8 secara aman.
+ * Mendukung karakter UTF-8 secara aman untuk kredensial username dan password.
+ * 
+ * @returns {string} String header authorization (contoh: 'Basic dXNlcjpwYXNz')
  */
 function getBasicAuthHeader() {
   const credentials = `${USERNAME}:${PASSWORD}`;
@@ -26,14 +28,16 @@ function getBasicAuthHeader() {
 const DEFAULT_TIMEOUT_MS = 15000;
 
 /**
- * Wrapper HTTP fetch umum untuk API Edelweiss.
- * Mendukung timeout dan retry otomatis untuk kegagalan sementara.
+ * Wrapper HTTP fetch umum untuk komunikasi ke API RS Edelweiss.
+ * Mendukung proteksi batas waktu (timeout) dan percobaan ulang (retry) otomatis jika jaringan bermasalah.
  * 
- * @param {string} endpoint - Path endpoint (misal: '/webhook/get-patient')
- * @param {object} [options={}] - Opsi Fetch API
- * @param {number} [options.timeoutMs=15000] - Batas waktu request dalam ms
+ * @param {string} endpoint - Path endpoint API (contoh: '/webhook/get-patient')
+ * @param {object} [options={}] - Opsi Fetch API tambahan
+ * @param {string} [options.method='GET'] - Metode HTTP (GET, POST, PUT, DELETE)
+ * @param {HeadersInit} [options.headers] - Custom header tambahan
+ * @param {number} [options.timeoutMs=15000] - Batas waktu maksimal request dalam milidetik
  * @param {number} [options.retries] - Jumlah percobaan ulang jika terjadi network timeout/error
- * @returns {Promise<any>}
+ * @returns {Promise<any>} Data hasil respons dari server (JSON atau text)
  */
 export async function apiFetch(endpoint, options = {}) {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
@@ -113,10 +117,11 @@ export async function apiFetch(endpoint, options = {}) {
 }
 
 /**
- * Melakukan GET request ke API Edelweiss.
+ * Melakukan permintaan HTTP GET ke endpoint API RS Edelweiss.
  * 
- * @param {string} endpoint 
- * @param {Record<string, string|number>} [params]
+ * @param {string} endpoint - Path endpoint API
+ * @param {Record<string, string|number>} [params={}] - Objek parameter query URL
+ * @returns {Promise<any>} Data hasil respons dari server
  */
 export async function apiGet(endpoint, params = {}) {
   let queryString = '';
@@ -139,11 +144,12 @@ export async function apiGet(endpoint, params = {}) {
 }
 
 /**
- * Melakukan POST request dengan format Multipart/form-data.
- * Catatan: Fetch secara otomatis mengatur boundary untuk FormData jika header Content-Type TIDAK diisi manual.
+ * Melakukan permintaan HTTP POST dengan format Multipart/form-data.
+ * Fetch API secara otomatis mengatur boundary untuk FormData tanpa perlu header Content-Type manual.
  * 
- * @param {string} endpoint 
- * @param {FormData} formData 
+ * @param {string} endpoint - Path endpoint API
+ * @param {FormData} formData - Objek data form yang akan dikirim
+ * @returns {Promise<any>} Data hasil respons dari server
  */
 export async function apiPostFormData(endpoint, formData) {
   return apiFetch(endpoint, {
@@ -153,10 +159,11 @@ export async function apiPostFormData(endpoint, formData) {
 }
 
 /**
- * Melakukan PUT request dengan URL query parameters.
+ * Melakukan permintaan HTTP PUT dengan query parameters ke endpoint API RS Edelweiss.
  * 
- * @param {string} endpoint 
- * @param {Record<string, string|number>} [params]
+ * @param {string} endpoint - Path endpoint API
+ * @param {Record<string, string|number>} [params={}] - Objek parameter query URL
+ * @returns {Promise<any>} Data hasil respons dari server
  */
 export async function apiPut(endpoint, params = {}) {
   let queryString = '';

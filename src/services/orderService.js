@@ -2,7 +2,11 @@ import { apiGet, apiPostFormData, apiPut } from './apiClient';
 import { enrichOrdersWithPatientAllergies } from './patientService';
 
 /**
- * Normalisasi satu baris data pesanan dari API Edelweiss ke format internal.
+ * Standarisasi satu baris data pesanan dari API RS Edelweiss ke format internal aplikasi.
+ * Menangani mapping kolom snake_case dan camelCase serta status tipe pesanan.
+ * 
+ * @param {object} raw - Data mentah pesanan dari API RS
+ * @returns {object|null} Objek pesanan ternormalisasi atau null jika data kosong
  */
 function normalizeOrder(raw) {
   if (!raw) return null;
@@ -59,6 +63,11 @@ function normalizeOrder(raw) {
 const OVERRIDES_STORAGE_KEY = 'hospital_order_overrides';
 const LOCAL_ORDERS_STORAGE_KEY = 'hospital_local_orders';
 
+/**
+ * Mengambil data override lokal (catatan khusus & kondimen yang diubah admin) dari localStorage.
+ * 
+ * @returns {Record<string, object>} Objek peta orderId ke data override
+ */
 export function getStoredOverrides() {
   try {
     const raw = typeof window !== 'undefined' ? localStorage.getItem(OVERRIDES_STORAGE_KEY) : null;
@@ -68,6 +77,12 @@ export function getStoredOverrides() {
   }
 }
 
+/**
+ * Menyimpan data override lokal (catatan khusus & kondimen) ke localStorage.
+ * 
+ * @param {Record<string, object>} overrides - Objek peta orderId ke data override
+ * @returns {void}
+ */
 export function saveStoredOverrides(overrides) {
   try {
     if (typeof window !== 'undefined') {
@@ -86,6 +101,12 @@ function getStorage() {
   return null;
 }
 
+/**
+ * Mengambil daftar pesanan yang tersimpan di penyimpanan lokal (local orders fallback).
+ * Digunakan agar pesanan yang baru di-checkout langsung muncul tanpa menunggu jeda server.
+ * 
+ * @returns {Array<object>} Daftar pesanan lokal
+ */
 export function getStoredLocalOrders() {
   try {
     const storage = getStorage();
@@ -99,6 +120,12 @@ export function getStoredLocalOrders() {
   }
 }
 
+/**
+ * Menyimpan daftar pesanan lokal ke penyimpanan browser (localStorage dan in-memory).
+ * 
+ * @param {Array<object>} orders - Daftar pesanan yang akan disimpan
+ * @returns {void}
+ */
 export function saveStoredLocalOrders(orders) {
   try {
     const storage = getStorage();
@@ -112,6 +139,11 @@ export function saveStoredLocalOrders(orders) {
   }
 }
 
+/**
+ * Menghapus seluruh data pesanan lokal yang tersimpan di storage browser.
+ * 
+ * @returns {void}
+ */
 export function clearStoredLocalOrders() {
   try {
     const storage = getStorage();
@@ -125,18 +157,27 @@ export function clearStoredLocalOrders() {
   }
 }
 
+/**
+ * Memeriksa apakah kelas kamar termasuk kategori VIP A ke atas (VIP A, VVIP, Suite).
+ * 
+ * @param {string} classType - Nama kelas kamar pasien
+ * @returns {boolean} True jika kelas termasuk VIP A ke atas
+ */
 function isVipAKelas(classType) {
   const c = (classType || '').toUpperCase();
   return c.includes('VIP A') || c.includes('VVIP') || c.includes('SUITE');
 }
 
 /**
- * Fallback untuk data riwayat lama di mana kolom `type` masih null:
+ * Inferensi otomatis untuk data riwayat lama di mana kolom `type` masih null:
  * 1. Jika data sudah memiliki type resmi dari API (data baru), fungsi ini tidak mengubah apapun (hasExplicitType = true).
  * 2. Untuk data lama yang type-nya null:
  *    - Pada kelas non-VIP A (VIP B, VIP C, Kelas 1, 2, 3), kuota Paket Utama Siang & Sore hanya untuk pasien (tidak ada jatah pendamping).
  *      Maka pesanan pendamping di Siang/Sore pada kelas ini otomatis adalah Paket Ekstra (EXCLUDE).
  *    - Pada kelas VIP A ke atas, baris pendamping kedua dan seterusnya pada waktu makan yang sama adalah Paket Ekstra (EXCLUDE).
+ * 
+ * @param {Array<object>} orders - Daftar pesanan
+ * @returns {Array<object>} Daftar pesanan dengan field type yang sudah disesuaikan
  */
 function inferMissingTypes(orders) {
   const seenPendamping = new Set();
@@ -163,16 +204,18 @@ function inferMissingTypes(orders) {
 }
 
 /**
- * Mengambil daftar pesanan dari Sistem Eksisting RS Edelweiss (/webhook/all-order-item).
+ * Mengambil daftar pesanan dari Sistem RS Edelweiss (/webhook/all-order-item).
  * Menggabungkan data server dengan pesanan lokal (local orders) agar pesanan baru
- * langsung tampil di Dashboard Dapur dan Menu Portal.
+ * langsung tampil secara real-time di Dashboard Dapur dan Menu Portal.
  * 
- * @param {object} [options={}] - Filter opsional
- * @param {string} [options.servingDate] - Filter tanggal penyajian (ISO string atau YYYY-MM-DD)
- * @param {string|number} [options.patientId] - Filter ID Pasien (No. RM)
- * @param {'INCLUDE' | 'EXCLUDE'} [options.type] - Filter tipe pesanan
- * @param {string} [options.orderCode] - Filter kode transaksi pesanan
- * @returns {Promise<Array<object>>}
+ * @param {object} [options={}] - Filter opsional untuk menyaring pesanan
+ * @param {string} [options.servingDate] - Filter tanggal penyajian (format YYYY-MM-DD atau ISO string)
+ * @param {string|number} [options.patientId] - Filter No. RM / ID Pasien
+ * @param {'INCLUDE' | 'EXCLUDE'} [options.type] - Filter tipe pesanan (INCLUDE = Paket Utama, EXCLUDE = Paket Ekstra)
+ * @param {string} [options.orderCode] - Filter kode unik transaksi pesanan
+ * @param {string} [options.noreg] - Filter nomor registrasi pasien
+ * @param {boolean} [options.withPatientAllergies] - Jika true, lakukan enrichment riwayat alergi pasien
+ * @returns {Promise<Array<object>>} Daftar pesanan yang telah difilter dan dinormalisasi
  */
 export async function getOrders(options = {}) {
   let data = [];
@@ -208,7 +251,7 @@ export async function getOrders(options = {}) {
     return item;
   }).filter(Boolean);
 
-  // Gabungkan pesanan lokal yang belum ada di response server (deduplikasi berdasarkan orderCode + mealTime + consumer)
+  // Gabungkan pesanan lokal yang belum tercatat di server (deduplikasi)
   if (localOrders.length > 0) {
     const serverOrderCodes = new Set(orders.map(o => o.orderCode).filter(Boolean));
     const serverMealKeys = new Set(
@@ -242,7 +285,7 @@ export async function getOrders(options = {}) {
 
   orders = inferMissingTypes(orders);
 
-  // Filter servingDate jika diminta (dengan parsing tanggal lokal & UTC yang tahan banting)
+  // Filter berdasarkan tanggal penyajian
   if (options.servingDate) {
     const targetDateStr = String(options.servingDate).slice(0, 10);
     orders = orders.filter(item => {
@@ -263,7 +306,7 @@ export async function getOrders(options = {}) {
     });
   }
 
-  // Filter patientId jika diminta (menormalisasi prefix RM-, spasi, dan leading zeroes)
+  // Filter berdasarkan ID pasien (No. RM)
   if (options.patientId !== undefined && options.patientId !== null) {
     const normalizePid = (val) => {
       if (val === undefined || val === null) return '';
@@ -293,7 +336,7 @@ export async function getOrders(options = {}) {
     orders = orders.filter(item => String(item.noReg || item.noreg || '').trim().toLowerCase() === targetReg);
   }
 
-  // Jika diminta memperkaya data dengan riwayat alergi pasien (2nd GET ke /webhook/get-patient)
+  // Lengkapi data pesanan dengan riwayat alergi pasien
   if (options.withPatientAllergies) {
     orders = await enrichOrdersWithPatientAllergies(orders);
   }
@@ -302,11 +345,12 @@ export async function getOrders(options = {}) {
 }
 
 /**
- * Mengirimkan satu item pesanan ke API Edelweiss via POST Multipart/form-data.
- * Mendukung percobaan ulang (retry) otomatis jika terjadi kegagalan jaringan sementara.
+ * Mengirimkan satu item pesanan ke API RS Edelweiss via POST Multipart/form-data.
+ * Mendukung percobaan ulang (retry) otomatis jika terjadi kendala koneksi sementara.
  * 
- * @param {object} item - Item pesanan
- * @param {number} [maxRetries=3] - Maksimal percobaan ulang
+ * @param {object} item - Objek satu item pesanan yang akan dikirim
+ * @param {number} [maxRetries=3] - Maksimal jumlah percobaan pengiriman ulang
+ * @returns {Promise<any>} Hasil respons pengiriman dari server
  */
 async function postSingleOrderItem(item, maxRetries = 3) {
   const formData = new FormData();
@@ -360,12 +404,13 @@ async function postSingleOrderItem(item, maxRetries = 3) {
 }
 
 /**
- * Mengirimkan sejumlah item pesanan ke API Edelweiss.
- * Setiap item dikirim sebagai 1 permintaan POST independen dengan order_id yang sama.
+ * Mengirimkan sejumlah item pesanan dari keranjang belanja pasien ke API RS Edelweiss.
+ * Setiap item dikirim sebagai satu permintaan POST independen dengan order_id yang sama.
+ * Sukses atau gagal otomatis dicatat ke fallback local storage.
  * 
- * @param {Array<object>} orderItems - Daftar item pesanan yang akan di-submit
- * @param {function} [onProgress] - Callback untuk melaporkan kemajuan (progress: { current, total, item })
- * @returns {Promise<{ success: boolean, total: number, succeeded: Array<object> }>}
+ * @param {Array<object>} orderItems - Kumpulan item pesanan yang akan di-checkout
+ * @param {function} [onProgress] - Callback pemantauan progres checkout ({ current, total, item })
+ * @returns {Promise<{ success: boolean, total: number, succeeded: Array<object> }>} Ringkasan status checkout
  */
 export async function createOrders(orderItems, onProgress) {
   if (!Array.isArray(orderItems) || orderItems.length === 0) {
@@ -392,9 +437,7 @@ export async function createOrders(orderItems, onProgress) {
     }
   }
 
-  // Simpan item yang berhasil dikirim ke penyimpanan lokal (local orders)
-  // agar langsung muncul di Dashboard Rekap Dapur dan Menu Portal (hasOrderedMain)
-  // meskipun background write di server rumah sakit mengalami jeda/delay
+  // Simpan pesanan sukses ke storage lokal agar langsung tampil di UI
   if (succeeded.length > 0) {
     const existingLocal = getStoredLocalOrders();
     const newLocalEntries = succeeded.map((item, idx) => {
@@ -467,11 +510,17 @@ export async function createOrders(orderItems, onProgress) {
 }
 
 /**
- * Memperbarui catatan dan komponen gizi pesanan pada sistem RS Edelweiss & local storage.
+ * Memperbarui catatan khusus dan komponen gizi pesanan pada sistem RS Edelweiss & local storage.
  * 
- * @param {string|number} id - Order ID
- * @param {string} notes - Catatan baru
- * @param {object} [updatedFields={}] - Field komponen gizi { karbohidrat, protein, sayur, nabati, proteinTambahan }
+ * @param {string|number} id - Order ID (ID baris pesanan)
+ * @param {string} notes - Catatan khusus baru
+ * @param {object} [updatedFields={}] - Pembaruan field komponen gizi
+ * @param {string} [updatedFields.karbohidrat] - Komponen karbohidrat
+ * @param {string} [updatedFields.protein] - Komponen protein utama
+ * @param {string} [updatedFields.sayur] - Komponen sayuran
+ * @param {string} [updatedFields.nabati] - Komponen protein nabati
+ * @param {string} [updatedFields.proteinTambahan] - Komponen protein tambahan
+ * @returns {Promise<{ success: boolean }>} Status keberhasilan pembaruan
  */
 export async function updateOrderNotes(id, notes, updatedFields = {}) {
   // 1. Simpan ke local persistent cache agar instan dan tidak hilang saat re-fetch
@@ -502,7 +551,9 @@ export async function updateOrderNotes(id, notes, updatedFields = {}) {
 }
 
 /**
- * Fallback auto generate (jika tetap dipanggil di background).
+ * Fungsi fallback auto-generate pesanan untuk kelas reguler (diabaikan pada integrasi RS langsung).
+ * 
+ * @returns {Promise<{ success: boolean, generatedOrdersCount: number, message: string }>}
  */
 export async function autoGenerateOrdersForKelas() {
   return { success: false, generatedOrdersCount: 0, message: 'Diabaikan di sistem eksisting' };
@@ -515,4 +566,3 @@ export default {
   autoGenerateOrdersForKelas,
   enrichOrdersWithPatientAllergies,
 };
-

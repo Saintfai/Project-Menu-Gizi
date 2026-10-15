@@ -1,11 +1,11 @@
 import { apiGet } from './apiClient';
 
 /**
- * Format tanggal lahir ke format yang diharapkan oleh API Edelweiss (DD-MM-YYYY).
- * Menerima format YYYY-MM-DD (dari HTML5 date picker), Date object, atau DD-MM-YYYY.
+ * Format tanggal lahir ke format yang diharapkan oleh API RS Edelweiss (DD-MM-YYYY).
+ * Menerima string format YYYY-MM-DD (dari input type="date"), Date object, atau format DD-MM-YYYY.
  * 
- * @param {string|Date} dob 
- * @returns {string}
+ * @param {string|Date} dob - Nilai tanggal lahir yang akan diformat
+ * @returns {string} Tanggal lahir dengan format DD-MM-YYYY (contoh: "15-08-1990")
  */
 export function formatDobForApi(dob) {
   if (!dob) return '';
@@ -31,16 +31,16 @@ export function formatDobForApi(dob) {
 }
 
 /**
- * Normalisasi objek pasien dari API Edelweiss ke format data internal aplikasi.
+ * Standarisasi objek data pasien dari API RS ke format internal aplikasi.
+ * Menangani aturan kelas titipan (jika ada titipan, kuota porsi mengikuti kelas titipan).
  * 
- * @param {object} raw 
- * @returns {object|null}
+ * @param {object} raw - Data mentah pasien dari response API RS
+ * @returns {object|null} Objek pasien yang sudah dinormalisasi atau null jika data kosong
  */
 export function normalizePatient(raw) {
   if (!raw) return null;
 
-  // Aturan Titipan:
-  // Jika ada titipan, gunakan kelas titipan untuk kuota porsi. Jika tidak, gunakan kelas asli.
+  // Gunakan kelas titipan jika tersedia, jika tidak gunakan kelas asli
   const effectiveClass = raw.titipan && String(raw.titipan).trim() !== ''
     ? String(raw.titipan).trim()
     : String(raw.kelas || 'Kelas').trim();
@@ -74,7 +74,7 @@ export function normalizePatient(raw) {
 
 /**
  * Memeriksa apakah pasien berhak mengakses pemesanan mandiri (hanya pasien VIP / Suite).
- * Pasien non-VIP (Kelas 1, 2, 3) pesanannya diatur otomatis oleh sistem dapur gizi.
+ * Pasien non-VIP (Kelas 1, 2, 3) pesanannya diatur otomatis oleh operasional dapur gizi.
  * 
  * @param {object} raw - Data mentah pasien dari API RS
  * @returns {boolean} True jika pasien berstatus VIP / Suite
@@ -90,12 +90,13 @@ export function isVipPatient(raw) {
 }
 
 /**
- * Mengambil data pasien berdasarkan Nomor RM.
+ * Mencari data pasien berdasarkan Nomor Rekam Medis (No. RM).
  * Endpoint: /webhook/get-patient?pid={noRm}
  * 
- * @param {string|number} rmNumber 
- * @param {object} [options={ vipOnly: true }] - Opsi filter (default: hanya izinkan pasien VIP)
- * @returns {Promise<{ type: 'single'|'multiple', patient?: object, patients?: Array<object> }>}
+ * @param {string|number} rmNumber - Nomor RM pasien (contoh: "12345" atau "RM-12345")
+ * @param {object} [options={ vipOnly: true }] - Pengaturan filter pencarian
+ * @param {boolean} [options.vipOnly=true] - Jika true, hanya loloskan pasien berstatus VIP / Suite
+ * @returns {Promise<{ type: 'single'|'multiple', patient?: object, patients?: Array<object> }>} Objek hasil pencarian pasien
  */
 export async function getPatientByRm(rmNumber, options = { vipOnly: true }) {
   const cleanId = String(rmNumber).replace(/^RM-?/i, '').trim();
@@ -120,8 +121,7 @@ export async function getPatientByRm(rmNumber, options = { vipOnly: true }) {
     throw new Error('Data pasien tidak ditemukan.');
   }
 
-  // Aturan Rumah Sakit: Hanya pasien berstatus VIP / Suite yang diperbolehkan memesan mandiri.
-  // Pasien Kelas (non-VIP) otomatis ditolak dengan respons "Data pasien tidak ditemukan."
+  // Filter khusus pasien VIP / Suite untuk pemesanan mandiri
   if (options?.vipOnly) {
     validPatients = validPatients.filter(isVipPatient);
   }
@@ -144,13 +144,14 @@ export async function getPatientByRm(rmNumber, options = { vipOnly: true }) {
 }
 
 /**
- * Mengambil data pasien berdasarkan Nama dan Tanggal Lahir.
+ * Mencari data pasien berdasarkan Nama Pasien dan Tanggal Lahir.
  * Endpoint: /webhook/get-patient-date-birth?nama={nama}&tanggal_lahir={DD-MM-YYYY}
  * 
- * @param {string} name 
- * @param {string|Date} dob 
- * @param {object} [options={ vipOnly: true }] - Opsi filter (default: hanya izinkan pasien VIP)
- * @returns {Promise<{ type: 'single'|'multiple', patient?: object, patients?: Array<object> }>}
+ * @param {string} name - Nama lengkap pasien
+ * @param {string|Date} dob - Tanggal lahir pasien (format DD-MM-YYYY, YYYY-MM-DD, atau objek Date)
+ * @param {object} [options={ vipOnly: true }] - Pengaturan filter pencarian
+ * @param {boolean} [options.vipOnly=true] - Jika true, hanya loloskan pasien berstatus VIP / Suite
+ * @returns {Promise<{ type: 'single'|'multiple', patient?: object, patients?: Array<object> }>} Objek hasil pencarian pasien
  */
 export async function getPatientByNameAndDob(name, dob, options = { vipOnly: true }) {
   const cleanName = String(name || '').trim();
@@ -183,8 +184,7 @@ export async function getPatientByNameAndDob(name, dob, options = { vipOnly: tru
     throw new Error('Data pasien tidak ditemukan.');
   }
 
-  // Aturan Rumah Sakit: Hanya pasien berstatus VIP / Suite yang diperbolehkan memesan mandiri.
-  // Pasien Kelas (non-VIP) otomatis ditolak dengan respons "Data pasien tidak ditemukan."
+  // Filter khusus pasien VIP / Suite untuk pemesanan mandiri
   if (options?.vipOnly) {
     validPatients = validPatients.filter(isVipPatient);
   }
@@ -210,11 +210,11 @@ export async function getPatientByNameAndDob(name, dob, options = { vipOnly: tru
 const patientInfoCache = new Map();
 
 /**
- * Mengambil data alergi untuk sekumpulan ID pasien (No. RM / patient_id).
- * Menggunakan cache in-memory dan fetching paralel via Promise.allSettled agar tahan banting.
+ * Mengambil riwayat alergi untuk sekumpulan ID pasien (No. RM / patient_id) secara paralel.
+ * Menggunakan cache in-memory dan Promise.allSettled agar toleran terhadap kegagalan jaringan.
  * 
- * @param {Array<string|number>} patientIds 
- * @returns {Promise<Map<string, { allergies: string, patient: object|null }>>}
+ * @param {Array<string|number>} patientIds - Kumpulan Nomor RM / ID Pasien
+ * @returns {Promise<Map<string, { allergies: string, patient: object|null }>>} Map ID pasien ke data alergi
  */
 export async function getPatientsAllergiesMap(patientIds = []) {
   const uniqueIds = [...new Set(
@@ -267,8 +267,8 @@ export async function getPatientsAllergiesMap(patientIds = []) {
 /**
  * Memperkaya daftar order dengan data alergi pasien dari API /webhook/get-patient (2nd GET).
  * 
- * @param {Array<object>} orders
- * @returns {Promise<Array<object>>}
+ * @param {Array<object>} orders - Daftar pesanan yang akan dilengkapi data alerginya
+ * @returns {Promise<Array<object>>} Daftar pesanan yang telah dilengkapi info alergi dan bentuk makanan
  */
 export async function enrichOrdersWithPatientAllergies(orders = []) {
   if (!Array.isArray(orders) || orders.length === 0) return orders;
