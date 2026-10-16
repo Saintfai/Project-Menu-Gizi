@@ -309,9 +309,9 @@ export default function MenuPortal() {
       <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-neutral-100">
         <HeaderMobile 
           title={
-            <div className="flex flex-col">
-              <span>Menu Gizi</span>
-              <span className="text-[10px] text-neutral-500 font-normal">Kesehatan Anda, Prioritas Kami</span>
+            <div className="flex flex-col gap-1">
+              <span className="font-bold text-neutral-900 leading-tight">Menu Gizi</span>
+              <span className="text-[11px] text-neutral-500 font-normal leading-tight">Kesehatan Anda, Prioritas Kami</span>
             </div>
           }
         />

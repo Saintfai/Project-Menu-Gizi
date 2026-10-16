@@ -13,7 +13,7 @@ export const HeaderMobile = ({ title = 'Menu Gizi', className = '', onLogout }) 
         <div className="flex-shrink-0 flex items-center justify-center mr-3">
           <img src={logoEdhos} alt="Logo Menu Gizi" className="w-8 h-8 object-contain" />
         </div>
-        <h1 className="text-lg font-bold text-neutral-900 leading-none mt-0.5 flex-1 select-none">
+        <h1 className="text-lg font-bold text-neutral-900 leading-normal flex-1 select-none">
           {title}
         </h1>
       </div>
