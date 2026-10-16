@@ -14,6 +14,7 @@ import PageTransition from '../../components/PageTransition';
 import { getOrders, checkPatientHasOrderedMain, getTomorrowServingDate } from '../../services/orderService';
 import { getActiveCycleMenu } from '../../services/menuService';
 import { getCurrentWIBHour } from '../../utils/cutoffValidator';
+import { secureSessionStorage } from '../../utils/secureStorage';
 
 // Portal katalog menu: Menu Utama (Include) & Menu Ekstra (Berbayar)
 export default function MenuPortal() {
@@ -43,9 +44,18 @@ export default function MenuPortal() {
   const [hasOrderedMain, setHasOrderedMain] = useState(false);
   
   const [quantities, setQuantities] = useState(() => {
-    return location.state?.restoredQuantities || {};
+    if (location.state?.restoredQuantities && Object.keys(location.state.restoredQuantities).length > 0) {
+      return location.state.restoredQuantities;
+    }
+    const saved = secureSessionStorage.getItem('patient_cart_quantities', true);
+    return saved || {};
   });
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Sinkronkan pilihan menu ke session storage agar tidak hilang saat navigasi atau reload
+  useEffect(() => {
+    secureSessionStorage.setItem('patient_cart_quantities', quantities);
+  }, [quantities]);
 
   // Ambil menu siklus aktif T+1 dan cek apakah pasien sudah pesan menu utama
   useEffect(() => {
@@ -59,11 +69,11 @@ export default function MenuPortal() {
         
         if (data) {
           setQuantities(prev => {
-            const currentIds = new Set(data.map(d => d.id));
+            const currentIds = new Set(data.map(d => String(d.id)));
             const newQuantities = {};
             for (const [key, val] of Object.entries(prev)) {
               const baseKey = key.startsWith('ekstra_') ? key.replace('ekstra_', '') : key;
-              if (currentIds.has(baseKey)) {
+              if (currentIds.has(String(baseKey))) {
                 newQuantities[key] = val;
               }
             }
@@ -283,7 +293,7 @@ export default function MenuPortal() {
       
       if (key.startsWith('ekstra_')) {
         const baseKey = key.replace('ekstra_', '');
-        const item = menuItems.find(m => m.id === baseKey);
+        const item = menuItems.find(m => String(m.id) === String(baseKey));
         if (item) {
           const mealTime = item.mealTime?.toUpperCase();
           if (mealTime === 'SIANG' && isExtraSiangLockedTime) invalidLock = 'Ekstra Siang (maks 10:00 WIB)';

@@ -1,3 +1,9 @@
+/**
+ * Service Layanan Integrasi Data Pasien & Kamar Rawat Inap
+ * Berinteraksi dengan endpoint API RS Edelweiss untuk validasi identitas pasien (No. RM / Nama + Tgl Lahir),
+ * pengambilan data rawat inap aktif, dan sinkronisasi riwayat alergi pasien.
+ */
+
 import { apiGet } from './apiClient';
 import { normalizeRM } from '../utils/formatters';
 

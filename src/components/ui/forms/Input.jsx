@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import PropTypes from 'prop-types';
 
+// Komponen input teks standar form dengan dukungan ikon kiri/kanan, label, dan pesan error
 export const Input = forwardRef(({ 
   className = '', 
   type = 'text', 
@@ -51,6 +52,7 @@ export const Input = forwardRef(({
 
 Input.displayName = 'Input';
 
+// Komponen textarea multiline untuk input deskripsi atau catatan khusus
 export const Textarea = forwardRef(({ 
   className = '', 
   label, 

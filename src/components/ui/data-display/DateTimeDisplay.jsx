@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+// Komponen penampil tanggal dan waktu terformat untuk header antarmuka
 export const DateTimeDisplay = ({ date, time, className = '' }) => {
   return (
     <div className={`pl-3 border-l-2 border-neutral-200 ${className}`}>

@@ -1,3 +1,9 @@
+/**
+ * Service Layanan Siklus Menu & Komponen Makanan
+ * Berinteraksi dengan endpoint API RS Edelweiss untuk pengambilan, pembaruan,
+ * dan sinkronisasi siklus menu gizi harian (Siklus 1 - 11).
+ */
+
 import { apiGet, apiPostFormData, apiPut } from './apiClient';
 import { getMenuCycleByDate } from '../utils/cycleHelper';
 

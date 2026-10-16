@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import Button from '../buttons/Button';
 import { Input } from '../forms/Input';
 
+// Kartu form awal pencarian data pasien pada tahap onboarding
 export const OnboardingCard = ({ className = '', onSearchClick }) => {
   return (
     <div className={`relative overflow-hidden bg-neutral-0/95 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-neutral-100 p-6 sm:p-8 max-w-sm w-full mx-auto ${className}`}>

@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+// Komponen tab navigasi horizontal dengan indikator garis bawah aktif
 export const Tabs = ({ tabs = [], activeTab, onTabChange, className = '' }) => {
   return (
     <div className={`flex gap-6 ${className}`}>

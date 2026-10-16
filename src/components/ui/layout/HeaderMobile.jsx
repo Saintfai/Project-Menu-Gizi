@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import logoEdhos from '../../../assets/logoedhos.png';
 
+// Komponen header navigasi mobile untuk antarmuka alur pasien
 export const HeaderMobile = ({ title = 'Menu Gizi', className = '', onLogout }) => {
   return (
     <header className={`flex items-center px-4 py-3 bg-neutral-0 border-b border-neutral-100 ${className}`}>

@@ -1,4 +1,11 @@
 /**
+ * Utilitas Transformasi & Agregasi Data Pesanan Dapur Gizi
+ * Mengonsolidasikan data pesanan transaksi mentah menjadi 1 baris per pasien/orderCode
+ * dengan notasi standar Dapur Gizi ('/' porsi pendamping, '|' paket ekstra, '-' nihil),
+ * serta deteksi riwayat alergi dan bentuk makanan.
+ */
+
+/**
  * Memformat daftar item pesanan pada satu waktu makan menjadi format teks standar Dapur Gizi.
  * 
  * Aturan Notasi Pemisah (PRD 3.8):

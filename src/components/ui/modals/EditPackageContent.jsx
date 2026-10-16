@@ -2,6 +2,7 @@ import React from 'react';
 import Button from '../buttons/Button';
 import { Input } from '../forms/Input';
 
+// Konten formulir dialog untuk mengedit rincian paket menu dan daftar hidangan
 export const EditPackageContent = () => {
   return (
     <div className="flex flex-col bg-neutral-0 rounded-xl shadow-md border border-neutral-200">

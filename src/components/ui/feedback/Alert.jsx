@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+// Komponen banner peringatan informasi/pesan error (danger, warning, success, info)
 export const Alert = ({ title, children, variant = 'danger', icon, className = '' }) => {
   const variantStyles = {
     danger: 'bg-danger-50 text-danger-700 border-danger-100',

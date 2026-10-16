@@ -1,3 +1,9 @@
+/**
+ * Service Layanan Pemesanan & Rekapitulasi Gizi
+ * Berinteraksi dengan endpoint API RS Edelweiss untuk pencatatan pesanan pasien,
+ * sinkronisasi status pengantaran, rekapitulasi dapur gizi, dan kalkulasi ringkasan porsi.
+ */
+
 import { apiGet, apiPostFormData, apiPut } from './apiClient';
 import { enrichOrdersWithPatientAllergies } from './patientService';
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+// Komponen bilah pencarian bulat dengan ikon lup untuk pencarian menu atau data pasien
 export const SearchBar = ({ className = '', placeholder = 'Cari menu makanan...', ...props }) => {
   return (
     <div className={`relative w-full ${className}`}>

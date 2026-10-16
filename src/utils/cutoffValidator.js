@@ -1,4 +1,10 @@
 /**
+ * Utilitas Validasi Batas Waktu Pemesanan (Cut-Off Time)
+ * Mengatur pengecekan waktu batas pemesanan Paket Utama (15:00 WIB)
+ * dan batas waktu Paket Ekstra berbasis zona waktu Waktu Indonesia Barat (WIB).
+ */
+
+/**
  * Memeriksa status batas waktu (Cut-Off Time) pemesanan Paket Utama.
  * Berdasarkan PRD 3.2, pemesanan Paket Utama esok hari (T+1) ditutup tepat pukul 15:00 WIB.
  * Mengonversi waktu lokal perangkat ke Waktu Indonesia Barat (WIB / UTC+7).

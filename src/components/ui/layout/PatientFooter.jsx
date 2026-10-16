@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+// Komponen footer informasi hak cipta untuk seluruh halaman pasien
 export const PatientFooter = ({ className = '' }) => {
   return (
     <footer className={`mt-6 pt-4 text-center flex flex-col gap-1 select-none ${className}`}>

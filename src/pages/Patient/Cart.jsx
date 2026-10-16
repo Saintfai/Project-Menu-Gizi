@@ -6,6 +6,7 @@ import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import { usePatient } from '../../context/PatientContext';
 import { createOrders, getOrders, checkPatientHasOrderedMain, getTomorrowServingDate } from '../../services/orderService';
 import { getPatientByRm } from '../../services/patientService';
+import { getActiveCycleMenu } from '../../services/menuService';
 import PageTransition from '../../components/PageTransition';
 import { validateNote } from '../../utils/inputValidator';
 import { secureSessionStorage } from '../../utils/secureStorage';
@@ -68,12 +69,35 @@ export default function Cart() {
     secureSessionStorage.setItem('patient_cart_note', note);
   }, [note]);
 
-  const { quantities = {}, menuItems = [] } = location.state || {};
+  // Ambil pilihan menu dari state navigasi atau pulihkan dari session storage terenkripsi
+  const [quantities] = useState(() => {
+    const locQuantities = location.state?.quantities;
+    if (locQuantities && Object.keys(locQuantities).length > 0) {
+      secureSessionStorage.setItem('patient_cart_quantities', locQuantities);
+      return locQuantities;
+    }
+    return secureSessionStorage.getItem('patient_cart_quantities', true) || {};
+  });
 
-  // Map menuItems berdasarkan ID untuk pencarian cepat
+  const [menuItems, setMenuItems] = useState(location.state?.menuItems || []);
+
+  // Muat ulang menu siklus aktif jika menuItems belum terisi (misal saat halaman di-refresh)
+  React.useEffect(() => {
+    if (menuItems.length === 0) {
+      getActiveCycleMenu().then(data => {
+        if (data && data.length > 0) {
+          setMenuItems(data);
+        }
+      }).catch(err => {
+        console.warn('Gagal memuat ulang menuItems di Cart:', err);
+      });
+    }
+  }, [menuItems.length]);
+
+  // Map menuItems berdasarkan ID untuk pencarian cepat (kompatibel ID string & number)
   const menuMap = useMemo(() => {
     const map = {};
-    menuItems.forEach(item => { map[item.id] = item; });
+    menuItems.forEach(item => { map[String(item.id)] = item; });
     return map;
   }, [menuItems]);
 
@@ -88,7 +112,7 @@ export default function Cart() {
 
       const isEkstra = key.startsWith('ekstra_');
       const itemId = isEkstra ? key.replace('ekstra_', '') : key;
-      const item = menuMap[itemId];
+      const item = menuMap[String(itemId)];
       if (!item) return;
 
       const mealTime = item.mealTime?.toUpperCase();
@@ -447,6 +471,7 @@ export default function Cart() {
       // 9. Bersihkan data sementara dan buka halaman sukses
       secureSessionStorage.removeItem('patient_cart_note');
       secureSessionStorage.removeItem('patient_cart');
+      secureSessionStorage.removeItem('patient_cart_quantities');
       setPendingRetryItems(null);
 
       // Hitung ringkasan porsi untuk halaman sukses

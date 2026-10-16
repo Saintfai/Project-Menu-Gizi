@@ -80,6 +80,7 @@ export function PatientProvider({ children }) {
     secureSessionStorage.removeItem('active_patient_session');
     secureSessionStorage.removeItem('patient_cart');
     secureSessionStorage.removeItem('patient_cart_note');
+    secureSessionStorage.removeItem('patient_cart_quantities');
   };
 
   return (

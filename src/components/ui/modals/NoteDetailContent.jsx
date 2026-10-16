@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+// Konten tampilan detail catatan khusus pesanan dan riwayat alergi pasien untuk modal
 export const NoteDetailContent = ({ data }) => {
   if (!data) return null;
 

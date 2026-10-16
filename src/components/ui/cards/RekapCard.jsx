@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+// Kartu ringkasan rekapitulasi data porsi per sesi makan dan menu ekstra di dashboard admin
 export const RekapCard = ({ 
   title, 
   icon, 

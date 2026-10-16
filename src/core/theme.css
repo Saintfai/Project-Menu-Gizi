@@ -1,3 +1,9 @@
+/**
+ * Core Design Tokens & Theme CSS
+ * Variabel CSS kustom untuk token warna (Primary, Secondary, Accent, Neutral, Semantic),
+ * tipografi, elevasi (shadow), serta utility class sistem gizi rumah sakit.
+ */
+
 :root {
   /* ==========================================================
      COLOR PALETTE

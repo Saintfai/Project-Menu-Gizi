@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+// Komponen kontainer kartu modular (Card, CardHeader, CardBody, CardFooter)
 export const Card = ({ children, className = '', ...props }) => {
   return (
     <div 

@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 
+// Komponen lencana status pesanan (menunggu, proses, selesai, success, danger, warning, neutral)
 const Badge = ({
   children,
   variant = 'neutral',

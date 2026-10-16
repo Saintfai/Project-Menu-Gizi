@@ -1,11 +1,12 @@
 /* ============================================================
- * MENU GIZI RS EDELWEISS — Global Base Styles
+ * MENU GIZI RS EDELWEISS — Global Stylesheet
  * ============================================================
- * Import design tokens terlebih dahulu, lalu definisikan
- * base/reset styles untuk seluruh aplikasi.
+ * Mengimpor token tema utama (./core/theme.css), direktif Tailwind CSS,
+ * normalisasi/reset elemen HTML, standarisasi tipografi antarmuka,
+ * styling scrollbar, utility transisi mikro, dan format cetak laporan gizi.
  * ============================================================ */
 
-/* Import design tokens */
+/* Import token desain tema */
 @import './core/theme.css';
 
 /* Tailwind Directives */

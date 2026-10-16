@@ -1,4 +1,10 @@
 /**
+ * Utilitas Format Data Tampilan & Privasi Medis
+ * Mengatur standarisasi format tanggal (DD/MM/YYYY), penyelarasan nama kelas kamar,
+ * normalisasi & visualisasi Nomor RM, serta masking data privasi pasien (alamat & nomor telepon).
+ */
+
+/**
  * Memformat string tanggal (YYYY-MM-DD atau ISO string) ke format tampilan Indonesia DD/MM/YYYY.
  * 
  * @param {string | Date | null | undefined} dateString - String tanggal input

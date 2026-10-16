@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 
+// Komponen dialog modal dasar dengan backdrop blur, portal document.body, dan dukungan tombol Escape
 export const Modal = ({ isOpen, onClose, title, children, className = '' }) => {
   useEffect(() => {
     // Kunci scroll pada body saat modal terbuka

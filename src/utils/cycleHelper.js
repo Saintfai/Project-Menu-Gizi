@@ -1,4 +1,10 @@
 /**
+ * Utilitas Penentuan Siklus Menu Gizi (11 Siklus)
+ * Menghitung rotasi siklus menu berdasarkan tanggal penyajian kalender (T+1 esok hari)
+ * sesuai ketentuan operasional Dapur Gizi Rumah Sakit.
+ */
+
+/**
  * Menghitung nomor siklus menu (1 s.d. 11) berdasarkan tanggal kalender.
  * 
  * Aturan Logika Siklus Menu (PRD 3.2):

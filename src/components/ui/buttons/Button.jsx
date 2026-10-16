@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Loader2 } from 'lucide-react';
 
+// Komponen tombol serbaguna dengan varian gaya (primary, danger, outline, ghost, soft), ukuran, dan status loading
 const Button = ({
   children,
   variant = 'primary',

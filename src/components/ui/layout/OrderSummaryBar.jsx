@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+// Bilah ringkasan pesanan mengambang untuk melihat jumlah item terpilih dan navigasi ke keranjang
 export const OrderSummaryBar = ({ 
   itemCount = 0, 
   onNextClick, 

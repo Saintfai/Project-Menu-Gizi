@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 
-
-
+// Konfigurasi animasi transisi halus antar halaman (fade in / fade out)
 const pageVariants = {
   initial: {
     opacity: 0,
@@ -22,6 +21,7 @@ const pageVariants = {
   },
 };
 
+// Komponen pembungkus transisi animasi pergantian halaman
 export default function PageTransition({ children, className = '' }) {
   return (
     <motion.div

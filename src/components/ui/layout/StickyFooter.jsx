@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Button from '../buttons/Button';
 
+// Komponen footer aksi tetap di bagian bawah layar untuk konfirmasi pesanan
 export const StickyFooter = ({ 
   currentStep = 1, 
   totalSteps = 6, 

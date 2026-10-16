@@ -1,6 +1,13 @@
 
 
 
+/**
+ * Utilitas Penyimpanan Sesi Terenkripsi (Secure Session Storage)
+ * Mengamankan data sensitif pasien (No. RM, nama, kamar, riwayat alergi) pada browser sessionStorage
+ * menggunakan enkripsi XOR berbasis salt aplikasi dan signature peramban (User-Agent).
+ */
+
+// Menghasilkan kunci sesi unik berbasis salt statis dan user-agent perangkat
 const getSessionKey = () => {
   const salt = 'HospitalDietary_v1.8_SecureSalt_2026';
   const ua = typeof navigator !== 'undefined' ? navigator.userAgent : 'default_agent';
@@ -15,7 +22,12 @@ const getSessionKey = () => {
 
 const SESSION_KEY = getSessionKey();
 
-
+/**
+ * Enkripsi string teks biasa menjadi Base64 ciphertext menggunakan XOR cipher
+ * 
+ * @param {string} text - Teks asli yang akan dienkripsi
+ * @returns {string} Ciphertext terenkripsi dalam format Base64
+ */
 function encrypt(text) {
   if (!text) return '';
   try {
@@ -37,9 +49,10 @@ function encrypt(text) {
 }
 
 /**
- * Decrypt ciphertext payload
- * @param {string} encoded - Base64 encoded ciphertext
- * @returns {string} - Decrypted plaintext string
+ * Dekripsi payload Base64 ciphertext kembali ke string teks asli
+ * 
+ * @param {string} encoded - Ciphertext terenkripsi Base64
+ * @returns {string|null} Teks hasil dekripsi atau null jika gagal
  */
 function decrypt(encoded) {
   if (!encoded) return null;
@@ -52,16 +65,17 @@ function decrypt(encoded) {
     }
     return new TextDecoder().decode(cipherBytes);
   } catch {
-    // If decoding fails (e.g. legacy plaintext data), return raw or null
+    // Jika decoding gagal (misal data legacy tidak terenkripsi), fallback return null
     return null;
   }
 }
 
 export const secureSessionStorage = {
   /**
-   * Set encrypted item in sessionStorage
-   * @param {string} key 
-   * @param {any} value - String or object to store
+   * Menyimpan data terenkripsi ke dalam sessionStorage browser
+   * 
+   * @param {string} key - Kunci penyimpanan
+   * @param {any} value - Nilai (string atau objek) yang akan dienkripsi dan disimpan
    */
   setItem(key, value) {
     try {
@@ -73,7 +87,13 @@ export const secureSessionStorage = {
     }
   },
 
-  
+  /**
+   * Mengambil dan mendekripsi data dari sessionStorage browser
+   * 
+   * @param {string} key - Kunci penyimpanan
+   * @param {boolean} [isObject=false] - True jika nilai diharapkan di-parse ke objek JSON
+   * @returns {any} Nilai hasil dekripsi atau null jika tidak ditemukan / gagal
+   */
   getItem(key, isObject = false) {
     try {
       const raw = sessionStorage.getItem(key);
@@ -81,7 +101,7 @@ export const secureSessionStorage = {
 
       const decrypted = decrypt(raw);
       if (!decrypted) {
-        
+        // Fallback untuk data legacy yang tersimpan tanpa enkripsi
         try {
           return isObject ? JSON.parse(raw) : raw;
         } catch {
@@ -99,7 +119,11 @@ export const secureSessionStorage = {
     }
   },
 
-  
+  /**
+   * Menghapus item tertentu dari sessionStorage berdasarkan key
+   * 
+   * @param {string} key - Kunci penyimpanan yang akan dihapus
+   */
   removeItem(key) {
     try {
       sessionStorage.removeItem(key);
@@ -108,7 +132,9 @@ export const secureSessionStorage = {
     }
   },
 
-  
+  /**
+   * Menghapus seluruh data sesi dari sessionStorage
+   */
   clear() {
     try {
       sessionStorage.clear();

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Komponen akordeon collapsible dengan animasi buka-tutup (digunakan untuk pembagian waktu makan)
 export const Accordion = ({ 
   title, 
   icon, 

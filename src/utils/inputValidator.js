@@ -1,20 +1,35 @@
 
 
 
+/**
+ * Utilitas Validasi & Sanitasi Input Formulir
+ * Mengamankan masukan pengguna dari injeksi skrip berbahaya (XSS),
+ * memvalidasi catatan pesanan pasien, field manajemen hidangan gizi, serta format Nomor RM.
+ */
+
+/**
+ * Sanitasi string input untuk mencegah serangan XSS dan karakter berbahaya.
+ * Menghapus tag HTML, event handler inline, skema javascript:, dan membatasi panjang teks.
+ * 
+ * @param {string} input - Teks input mentah
+ * @param {number} [maxLength=500] - Batas panjang maksimal karakter
+ * @returns {string} String yang telah dibersihkan
+ */
 export function sanitizeText(input, maxLength = 500) {
   if (typeof input !== 'string') return '';
   return input
-    .replace(/<[^>]*>/g, '')        // Strip HTML tags
-    .replace(/[<>"'`]/g, '')        // Remove potentially dangerous characters
-    .replace(/javascript:/gi, '')   // Remove javascript: URIs
-    .replace(/on\w+\s*=/gi, '')     // Remove inline event handlers (onclick=, etc.)
+    .replace(/<[^>]*>/g, '')        // Hapus tag HTML
+    .replace(/[<>"'`]/g, '')        // Hapus karakter yang berpotensi membahayakan
+    .replace(/javascript:/gi, '')   // Hapus URI javascript:
+    .replace(/on\w+\s*=/gi, '')     // Hapus inline event handlers (onclick=, dsb.)
     .trim()
     .slice(0, maxLength);
 }
 
 /**
- * Validate patient order note (catatan khusus pesanan).
- * @param {string} note - The note text to validate
+ * Validasi catatan khusus pesanan pasien (maksimal 300 karakter).
+ * 
+ * @param {string} note - Teks catatan yang akan divalidasi
  * @returns {{ valid: boolean, sanitized: string, error?: string }}
  */
 export function validateNote(note) {
@@ -36,37 +51,38 @@ export function validateNote(note) {
 }
 
 /**
- * Validate menu item fields (nama menu, description, paketName, dan 5 kolom gizi).
- * Used by admin when creating or editing menu items.
- * @param {object} fields - { name, description, paketName, karbohidrat, protein, nabati, proteinTambahan, sayur }
+ * Validasi field formulir hidangan menu (nama menu, deskripsi, nama paket, dan 6 komponen gizi).
+ * Digunakan oleh tim gizi saat menambah atau mengedit hidangan pada siklus menu.
+ * 
+ * @param {object} fields - Objek masukan menu { name, description, paketName, karbohidrat, protein, nabati, proteinTambahan, sayur, bentukMakanan }
  * @returns {{ valid: boolean, sanitized: object, errors: string[] }}
  */
 export function validateMenuItemFields(fields) {
   const errors = [];
   const sanitized = {};
 
-  // Name is required, minimum 2 characters
+  // Nama hidangan wajib diisi, minimal 2 karakter
   if (!fields.name || fields.name.trim().length < 2) {
     errors.push('Nama menu minimal 2 karakter.');
   } else {
     sanitized.name = sanitizeText(fields.name, 100);
   }
 
-  // Description is optional
+  // Deskripsi hidangan bersifat opsional
   if (fields.description) {
     sanitized.description = sanitizeText(fields.description, 300);
   } else {
-    sanitized.description = fields.description; // keep null/undefined/empty as-is
+    sanitized.description = fields.description;
   }
 
-  // Paket name is optional but if provided, sanitize it
+  // Nama paket bersifat opsional, jika diisi tetap disanitasi
   if (fields.paketName) {
     sanitized.paketName = sanitizeText(fields.paketName, 50);
   } else {
     sanitized.paketName = fields.paketName;
   }
 
-  // ── 5 Kolom Gizi (semua opsional) ────────────────────────────────────
+  // ── 6 Kolom Komponen Gizi (opsional) ────────────────────────────────────
   const nutrisiFields = ['karbohidrat', 'protein', 'nabati', 'proteinTambahan', 'sayur', 'bentukMakanan'];
   for (const field of nutrisiFields) {
     if (fields[field] && fields[field].trim() !== '') {
@@ -84,12 +100,12 @@ export function validateMenuItemFields(fields) {
 }
 
 /**
- * Validate RM number format.
+ * Validasi keabsahan format Nomor Rekam Medis (No. RM).
  * Menerima format asli rumah sakit (contoh: "00-05-10", "14-81-94", "00.05.10", "RM-00-05-10")
  * maupun format angka biasa (contoh: "12345", "510", "000510", "RM-12345", "RM12345").
  * 
- * @param {string} rm - RM number input
- * @returns {boolean}
+ * @param {string} rm - Masukan Nomor RM
+ * @returns {boolean} True jika format Nomor RM valid
  */
 export function isValidRMFormat(rm) {
   if (!rm || typeof rm !== 'string') return false;
