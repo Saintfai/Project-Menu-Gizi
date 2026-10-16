@@ -16,6 +16,7 @@ import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import PatientFooter from '../../components/ui/layout/PatientFooter';
 import { usePatient } from '../../context/PatientContext';
 import { formatDate, maskAddress, maskPhone, formatRoomClass } from '../../utils/formatters';
+import { hasRealAllergy } from '../../utils/orderTransformer';
 
 // Halaman verifikasi data identitas pasien sebelum memilih menu
 export default function Onboarding() {
@@ -33,7 +34,7 @@ export default function Onboarding() {
   if (!patient) return null;
 
   // Cek riwayat alergi makanan untuk menampilkan peringatan visual jika ada
-  const hasAllergies = Boolean(patient.allergies && patient.allergies.toLowerCase() !== 'tidak ada');
+  const hasAllergies = hasRealAllergy(patient.allergies);
   const warningText = hasAllergies ? patient.allergies : 'Tidak ada catatan riwayat alergi.';
 
   return (
@@ -91,51 +92,53 @@ export default function Onboarding() {
             <div className="space-y-4 mb-6">
               
               {/* No. RM */}
-              <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
-                <div className="flex items-center gap-2.5 text-neutral-500">
+              <div className="flex items-center border-b border-neutral-100 pb-3 gap-6 sm:gap-8">
+                <div className="flex items-center gap-2.5 text-neutral-500 w-[120px] sm:w-[130px] shrink-0 whitespace-nowrap">
                   <User size={16} strokeWidth={2} />
                   <span className="text-xs font-semibold">No. RM</span>
                 </div>
-                <span className="text-xs font-bold text-neutral-900">{patient.rmNumber}</span>
+                <span className="text-xs font-bold text-neutral-900 text-left break-words flex-1">{patient.rmNumber}</span>
               </div>
 
               {/* No. Registrasi */}
               {patient.noReg && (
-                <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
-                  <div className="flex items-center gap-2.5 text-neutral-500">
+                <div className="flex items-center border-b border-neutral-100 pb-3 gap-6 sm:gap-8">
+                  <div className="flex items-center gap-2.5 text-neutral-500 w-[120px] sm:w-[130px] shrink-0 whitespace-nowrap">
                     <User size={16} strokeWidth={2} />
                     <span className="text-xs font-semibold">No. Registrasi</span>
                   </div>
-                  <span className="text-xs font-bold text-neutral-900">{patient.noReg}</span>
+                  <span className="text-xs font-bold text-neutral-900 text-left break-words flex-1">{patient.noReg}</span>
                 </div>
               )}
 
               {/* Nama Pasien */}
-              <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
-                <div className="flex items-center gap-2.5 text-neutral-500">
+              <div className="flex items-center border-b border-neutral-100 pb-3 gap-6 sm:gap-8">
+                <div className="flex items-center gap-2.5 text-neutral-500 w-[120px] sm:w-[130px] shrink-0 whitespace-nowrap">
                   <User size={16} strokeWidth={2} />
                   <span className="text-xs font-semibold">Nama Pasien</span>
                 </div>
-                <span className="text-xs font-bold text-neutral-900">{patient.name}</span>
+                <span className="text-xs font-bold text-neutral-900 text-left break-words leading-relaxed flex-1">
+                  {patient.name}
+                </span>
               </div>
 
               {/* Tanggal Lahir */}
-              <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
-                <div className="flex items-center gap-2.5 text-neutral-500">
+              <div className="flex items-center border-b border-neutral-100 pb-3 gap-6 sm:gap-8">
+                <div className="flex items-center gap-2.5 text-neutral-500 w-[120px] sm:w-[130px] shrink-0 whitespace-nowrap">
                   <Calendar size={16} strokeWidth={2} />
                   <span className="text-xs font-semibold">Tanggal Lahir</span>
                 </div>
-                <span className="text-xs font-bold text-neutral-900">{formatDate(patient.dob)}</span>
+                <span className="text-xs font-bold text-neutral-900 text-left break-words flex-1">{formatDate(patient.dob)}</span>
               </div>
 
               {/* Alamat */}
-              <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
-                <div className="flex items-center gap-2.5 text-neutral-500 flex-shrink-0">
+              <div className="flex items-center border-b border-neutral-100 pb-3 gap-6 sm:gap-8">
+                <div className="flex items-center gap-2.5 text-neutral-500 w-[120px] sm:w-[130px] shrink-0 whitespace-nowrap">
                   <MapPin size={16} strokeWidth={2} />
                   <span className="text-xs font-semibold">Alamat</span>
                 </div>
                 <span 
-                  className="text-xs font-bold text-neutral-900 text-right pl-3 truncate max-w-[200px]" 
+                  className="text-xs font-bold text-neutral-900 text-left break-words flex-1" 
                   title={maskAddress(patient.address)}
                 >
                   {maskAddress(patient.address)}
@@ -143,21 +146,21 @@ export default function Onboarding() {
               </div>
 
               {/* Telepon */}
-              <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
-                <div className="flex items-center gap-2.5 text-neutral-500">
+              <div className="flex items-center border-b border-neutral-100 pb-3 gap-6 sm:gap-8">
+                <div className="flex items-center gap-2.5 text-neutral-500 w-[120px] sm:w-[130px] shrink-0 whitespace-nowrap">
                   <Phone size={16} strokeWidth={2} />
                   <span className="text-xs font-semibold">Telepon</span>
                 </div>
-                <span className="text-xs font-bold text-neutral-900">{maskPhone(patient.phone)}</span>
+                <span className="text-xs font-bold text-neutral-900 text-left break-words flex-1">{maskPhone(patient.phone)}</span>
               </div>
 
               {/* Ruangan */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5 text-neutral-500">
+              <div className="flex items-center gap-6 sm:gap-8">
+                <div className="flex items-center gap-2.5 text-neutral-500 w-[120px] sm:w-[130px] shrink-0 whitespace-nowrap">
                   <Building size={16} strokeWidth={2} />
                   <span className="text-xs font-semibold">Ruangan</span>
                 </div>
-                <span className="text-xs font-bold text-neutral-900 text-right">
+                <span className="text-xs font-bold text-neutral-900 text-left break-words flex-1">
                   {patient.roomName} - {formatRoomClass(patient.roomClass)}
                   {patient.titipan && (
                     <span className="block text-[11px] font-semibold text-primary-600 mt-0.5">
