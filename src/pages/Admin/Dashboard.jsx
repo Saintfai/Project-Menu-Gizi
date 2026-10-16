@@ -225,7 +225,15 @@ export default function Dashboard() {
       
       if (selectedFilter === 'ALLERGY') return row.hasAllergy;
       if (selectedFilter === 'NOTE') return row.hasCatatan;
-      if (selectedFilter === 'VIP') return row.kamar.toLowerCase().includes('vip');
+      if (selectedFilter === 'VIP') {
+        const kamar = (row.kamar || '').toLowerCase();
+        return kamar.includes('vip') || kamar.includes('suite');
+      }
+      if (selectedFilter === 'KELAS') {
+        const kamar = (row.kamar || '').toLowerCase();
+        const isVip = kamar.includes('vip') || kamar.includes('suite');
+        return !isVip && (kamar.includes('kelas') || (kamar !== '-' && kamar !== ''));
+      }
 
       return true;
     });
@@ -386,7 +394,8 @@ export default function Dashboard() {
                 <option value="ALL">Semua</option>
                 <option value="ALLERGY">Ada Alergi</option>
                 <option value="NOTE">Ada Catatan</option>
-                <option value="VIP">Kelas VIP</option>
+                <option value="VIP">VIP</option>
+                <option value="KELAS">Kelas</option>
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
