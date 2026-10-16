@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getPatientByRm, getPatientByNameAndDob, isVipPatient } from '../patientService';
+import { getPatientByRm, getPatientByNameAndDob, isVipPatient, getPatientsAllergiesMap, clearPatientCache } from '../patientService';
 import * as apiClient from '../apiClient';
 
 vi.mock('../apiClient', () => ({
@@ -174,4 +174,43 @@ describe('patientService - VIP only access', () => {
       expect(res.patient.name).toBe('PASIEN VIP');
     });
   });
+
+  describe('patient allergies caching and clearPatientCache', () => {
+    it('menggunakan cache untuk RM yang sama dan tidak memanggil API berulang kali', async () => {
+      clearPatientCache();
+
+      apiClient.apiGet.mockResolvedValueOnce([
+        {
+          no_rm: 77777,
+          nama_pasien: 'PASIEN CACHE TEST',
+          kelas: 'VIP A',
+          alergi: 'Udang',
+        },
+      ]);
+
+      const map1 = await getPatientsAllergiesMap(['77777']);
+      expect(map1.get('77777')?.allergies).toBe('Udang');
+      expect(apiClient.apiGet).toHaveBeenCalledTimes(1);
+
+      // Pemanggilan kedua harus langsung dari cache, tanpa memanggil apiGet lagi
+      const map2 = await getPatientsAllergiesMap(['77777']);
+      expect(map2.get('77777')?.allergies).toBe('Udang');
+      expect(apiClient.apiGet).toHaveBeenCalledTimes(1);
+
+      // Setelah cache dibersihkan, harus fetch ulang
+      clearPatientCache();
+      apiClient.apiGet.mockResolvedValueOnce([
+        {
+          no_rm: 77777,
+          nama_pasien: 'PASIEN CACHE TEST',
+          kelas: 'VIP A',
+          alergi: 'Udang, Telur',
+        },
+      ]);
+      const map3 = await getPatientsAllergiesMap(['77777']);
+      expect(map3.get('77777')?.allergies).toBe('Udang, Telur');
+      expect(apiClient.apiGet).toHaveBeenCalledTimes(2);
+    });
+  });
 });
+

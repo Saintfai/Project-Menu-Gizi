@@ -16,7 +16,7 @@ import { OrdersTable } from '../../components/ui/tables/OrdersTable';
 import NoteDetailModal from '../../components/ui/modals/NoteDetailModal';
 import ComponentEditModal from '../../components/ui/modals/ComponentEditModal';
 import { groupOrdersForTable } from '../../utils/orderTransformer';
-import { getOrders } from '../../services/orderService';
+import { getOrders, enrichOrdersWithPatientAllergies, clearPatientCache } from '../../services/orderService';
 import PageTransition from '../../components/PageTransition';
 
 
@@ -42,61 +42,7 @@ export default function Dashboard() {
 
   const [selectedComponentMeal, setSelectedComponentMeal] = useState(null);
 
-  // Reset pagination saat pencarian atau filter kategori berubah
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedFilter, pageSize]);
-
-  // Ambil data seluruh pesanan rawat inap dari API sistem RS
-  const fetchOrderData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const data = await getOrders({ withPatientAllergies: true });
-      setRawOrders(data || []);
-
-      // Hitung total pasien aktif berdasarkan ID pasien unik dari pesanan
-      const uniquePatients = new Set((data || []).map(o => o.patientId).filter(Boolean));
-      setTotalActivePatients(uniquePatients.size || 0);
-    } catch (err) {
-      console.error('Failed to fetch orders:', err);
-      setError(err.message || 'Gagal mengambil data pesanan dari sistem rumah sakit');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchOrderData();
-
-    // Polling setiap 30 detik untuk sinkronisasi pesanan dari sistem RS
-    const interval = setInterval(() => {
-      fetchOrderData();
-    }, 30000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [fetchOrderData]);
-
   const [currentDate, setCurrentDate] = useState(() => new Date());
-
-  // Pantau pergantian tanggal untuk menyinkronkan data hari berikutnya secara otomatis
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const now = new Date();
-      setCurrentDate((prev) => {
-        if (prev.toDateString() !== now.toDateString()) {
-          fetchOrderData();
-          return now;
-        }
-        return prev;
-      });
-    }, 30000);
-
-    return () => clearInterval(timer);
-  }, [fetchOrderData]);
 
   // Tanggal penyajian esok hari (T+1)
   const tomorrowObj = useMemo(() => {
@@ -115,6 +61,93 @@ export default function Dashboard() {
     if (day === 31) num = 11;
     return num;
   }, [tomorrowObj]);
+
+  // Reset pagination saat pencarian atau filter kategori berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedFilter, pageSize]);
+
+  // Ambil data pesanan rawat inap untuk T+1 dari API sistem RS secara bertahap (progressive loading)
+  const fetchOrderData = useCallback(async (options = {}) => {
+    const isSilent = Boolean(options.isSilent);
+    const isForce = Boolean(options.force);
+
+    if (isForce) {
+      clearPatientCache();
+    }
+
+    try {
+      if (!isSilent) {
+        setLoading(true);
+      }
+      setError(null);
+
+      // Langkah 1 (Cepat): Ambil pesanan T+1 saja tanpa menunggu data alergi agar UI muncul instan (< 1 detik)
+      const data = await getOrders({ 
+        servingDate: tomorrowStr, 
+        withPatientAllergies: false 
+      });
+      setRawOrders(data || []);
+
+      // Hitung total pasien aktif berdasarkan ID pasien unik dari pesanan esok hari
+      const uniquePatients = new Set((data || []).map(o => o.patientId).filter(Boolean));
+      setTotalActivePatients(uniquePatients.size || 0);
+
+      // Langsung matikan loading agar tabel dan 4 kartu rekapitulasi langsung tampil
+      if (!isSilent) {
+        setLoading(false);
+      }
+
+      // Langkah 2 (Background): Perkaya data pesanan dengan riwayat alergi pasien di latar belakang
+      if (data && data.length > 0) {
+        enrichOrdersWithPatientAllergies(data)
+          .then((enriched) => {
+            if (Array.isArray(enriched)) {
+              setRawOrders(enriched);
+            }
+          })
+          .catch((enrichErr) => {
+            console.warn('Gagal memuat riwayat alergi pasien di latar belakang:', enrichErr);
+          });
+      }
+    } catch (err) {
+      console.error('Failed to fetch orders:', err);
+      setError(err.message || 'Gagal mengambil data pesanan dari sistem rumah sakit');
+    } finally {
+      if (!isSilent) {
+        setLoading(false);
+      }
+    }
+  }, [tomorrowStr]);
+
+  useEffect(() => {
+    fetchOrderData();
+
+    // Polling setiap 30 detik untuk sinkronisasi pesanan dari sistem RS (silent background)
+    const interval = setInterval(() => {
+      fetchOrderData({ isSilent: true });
+    }, 30000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [fetchOrderData]);
+
+  // Pantau pergantian tanggal untuk menyinkronkan data hari berikutnya secara otomatis
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      setCurrentDate((prev) => {
+        if (prev.toDateString() !== now.toDateString()) {
+          fetchOrderData({ isSilent: false });
+          return now;
+        }
+        return prev;
+      });
+    }, 30000);
+
+    return () => clearInterval(timer);
+  }, [fetchOrderData]);
 
   // Filter pesanan khusus untuk jadwal penyajian besok (T+1)
   const filteredDailyOrders = useMemo(() => {
@@ -259,7 +292,7 @@ export default function Dashboard() {
   // Tutup modal edit komponen dan muat ulang data pesanan
   const handleCloseComponentModal = useCallback(() => {
     setSelectedComponentMeal(null);
-    fetchOrderData();
+    fetchOrderData({ force: true });
   }, [fetchOrderData]);
 
   // Format tanggal penyajian ke teks formal bahasa Indonesia
@@ -299,7 +332,7 @@ export default function Dashboard() {
           </div>
           <button
             type="button"
-            onClick={fetchOrderData}
+            onClick={() => fetchOrderData({ force: true })}
             disabled={loading}
             className="flex items-center gap-1.5 text-xs font-semibold text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-800 px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 cursor-pointer border-none outline-none ring-0 shadow-none"
             title="Muat ulang data pesanan dari database"

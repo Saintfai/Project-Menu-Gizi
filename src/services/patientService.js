@@ -253,8 +253,59 @@ export async function getPatientByNameAndDob(name, dob, options = { vipOnly: tru
   };
 }
 
-// In-memory cache untuk data alergi pasien agar tidak membebani network
+// Cache data alergi pasien (in-memory + sessionStorage) agar tidak membebani network
+const SESSION_CACHE_KEY = 'hospital_patient_allergies_cache';
 const patientInfoCache = new Map();
+
+// Muat cache dari sessionStorage jika ada
+function loadSessionCache() {
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      const raw = window.sessionStorage.getItem(SESSION_CACHE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          Object.entries(parsed).forEach(([k, v]) => {
+            patientInfoCache.set(k, v);
+          });
+        }
+      }
+    }
+  } catch {
+    // Abaikan jika storage dinonaktifkan atau error
+  }
+}
+
+function saveSessionCache() {
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      const obj = {};
+      patientInfoCache.forEach((v, k) => {
+        obj[k] = v;
+      });
+      window.sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(obj));
+    }
+  } catch {
+    // Abaikan jika storage penuh atau error
+  }
+}
+
+// Inisialisasi cache saat modul pertama kali dimuat
+loadSessionCache();
+
+/**
+ * Membersihkan cache data pasien (digunakan saat admin melakukan refresh manual)
+ */
+export function clearPatientCache() {
+  patientInfoCache.clear();
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      window.sessionStorage.removeItem(SESSION_CACHE_KEY);
+    }
+  } catch {
+    // Abaikan
+  }
+}
 
 /**
  * Mengambil riwayat alergi untuk sekumpulan ID pasien (No. RM / patient_id) secara paralel.
@@ -308,6 +359,8 @@ export async function getPatientsAllergiesMap(patientIds = []) {
       }
     })
   );
+
+  saveSessionCache();
 
   return resultMap;
 }
@@ -366,4 +419,5 @@ export default {
   normalizePatient,
   isVipPatient,
   formatDobForApi,
+  clearPatientCache,
 };
