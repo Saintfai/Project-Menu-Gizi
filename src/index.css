@@ -152,6 +152,8 @@ img, svg {
 button {
   cursor: pointer;
   font-family: var(--font-sans);
+  border: none;
+  outline: none;
 }
 
 

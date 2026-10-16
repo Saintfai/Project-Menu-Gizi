@@ -394,7 +394,7 @@ export default function MenuCycle() {
             type="button"
             onClick={() => loadCycleItems(selectedCycle, true)}
             disabled={isRefreshing || isLoading}
-            className="flex items-center gap-1.5 text-xs font-semibold text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-800 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+            className="flex items-center gap-1.5 text-xs font-semibold text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-800 px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 cursor-pointer border-none outline-none ring-0 shadow-none"
             title="Refresh Data Siklus"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
