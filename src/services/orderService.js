@@ -5,7 +5,9 @@
  */
 
 import { apiGet, apiPostFormData, apiPut } from './apiClient';
-import { enrichOrdersWithPatientAllergies } from './patientService';
+import { enrichOrdersWithPatientAllergies, clearPatientCache } from './patientService';
+
+export { enrichOrdersWithPatientAllergies, clearPatientCache };
 
 /**
  * Standarisasi satu baris data pesanan dari API RS Edelweiss ke format internal aplikasi.
