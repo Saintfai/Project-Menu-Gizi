@@ -8,6 +8,7 @@ import { updateOrderNotes } from '../../../services/orderService';
 const cycleItemsCache = new Map(); 
 const cycleItemsPending = new Map(); 
 
+// Muat data hidangan siklus menu dengan mekanisme caching lokal
 const loadCycleItems = (cycleNumber) => {
   if (cycleItemsCache.has(cycleNumber)) return Promise.resolve(cycleItemsCache.get(cycleNumber));
   if (cycleItemsPending.has(cycleNumber)) return cycleItemsPending.get(cycleNumber);
@@ -25,8 +26,10 @@ const loadCycleItems = (cycleNumber) => {
   return p;
 };
 
+// Bersihkan nilai strip atau null menjadi string kosong
 const clean = (v) => (v === '-' ? '' : v || '');
 
+// Ekstrak komponen lauk hidangan dan sesuaikan dengan catatan perubahan sebelumnya
 const computeInitialState = (cycleItems, selectedMeal) => {
   const mealTime = (selectedMeal.mealTime || '').toUpperCase();
   const targetOrder = selectedMeal.items?.[0] || {};
@@ -74,6 +77,7 @@ const computeInitialState = (cycleItems, selectedMeal) => {
   return { filtered, orig, values };
 };
 
+// Modal ubah komponen lauk gizi pasien secara langsung dari tabel dashboard admin
 export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycleNumber }) {
   const [loading, setLoading] = useState(false);
   const [menus, setMenus] = useState([]);
@@ -164,6 +168,7 @@ export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycl
 
   if (!isOpen || !selectedMeal) return null;
 
+  // Dapatkan opsi pilihan bahan pengganti yang unik dari master siklus menu berjalan
   const uniqueOptions = (field) => {
     const opts = menus.map(m => m[field]).filter(val => val && val.trim() !== '' && val !== '-');
     const origVal = originalMenu?.[field];
@@ -173,6 +178,7 @@ export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycl
     return [...new Set(opts)];
   };
 
+  // Simpan perubahan komponen lauk ke catatan pesanan di database
   const handleSave = async () => {
     if (!selectedMeal.items || selectedMeal.items.length === 0) {
         onClose();

@@ -4,11 +4,13 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import logoEdhos from '../../../assets/logoedhos.png';
 import { useAuth } from '../../../context/AuthContext';
 
+// Komponen navigasi atas tetap untuk seluruh portal admin dapur gizi
 export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
+  // Timer pembaruan jam dan tanggal realtime setiap detik
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentDateTime(new Date());
@@ -17,11 +19,13 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
     return () => clearInterval(timer);
   }, []);
 
+  // Logout dari sesi admin dan arahkan kembali ke halaman login
   const handleLogoClick = () => {
     logout();
     navigate('/menu/admin/login', { replace: true });
   };
 
+  // Format hari dan tanggal formal dalam zona waktu Indonesia
   const formattedDate = currentDateTime
     .toLocaleDateString('id-ID', {
       weekday: 'long',
@@ -31,6 +35,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
     })
     .toUpperCase();
 
+  // Format jam dan menit realtime WIB
   const formattedTime = `${String(currentDateTime.getHours()).padStart(2, '0')}:${String(
     currentDateTime.getMinutes()
   ).padStart(2, '0')} WIB`;

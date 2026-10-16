@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { FileText, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 
+// Komponen tabel rekapitulasi pesanan pasien terintegrasi (mendukung pagination, rincian paket, alergi, dan modal catatan)
 export const OrdersTable = ({ 
   data = [], 
   onNoteClick, 
@@ -19,6 +20,7 @@ export const OrdersTable = ({
   const isControlledPageSize = controlledPageSize !== undefined;
   const pageSize = isControlledPageSize ? controlledPageSize : internalPageSize;
 
+  // Tangani perubahan batas jumlah baris per halaman
   const handlePageSizeChange = (newSize) => {
     if (onPageSizeChange) {
       onPageSizeChange(newSize);
@@ -32,6 +34,7 @@ export const OrdersTable = ({
   const isControlledCurrentPage = controlledCurrentPage !== undefined;
   const currentPage = isControlledCurrentPage ? controlledCurrentPage : internalCurrentPage;
 
+  // Tangani navigasi pindah halaman tabel
   const handlePageChange = (newPage) => {
     const pageNum = typeof newPage === 'function' ? newPage(currentPage) : newPage;
     if (onPageChange) {
@@ -47,7 +50,7 @@ export const OrdersTable = ({
   const numericPageSize = isAll ? Math.max(1, totalItems) : Number(pageSize) || 10;
   const totalPages = isAll || totalItems === 0 ? 1 : Math.ceil(totalItems / numericPageSize);
 
-  // Auto-clamp currentPage if it exceeds totalPages
+  // Sesuaikan nomor halaman jika melebihi total halaman yang tersedia
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
       handlePageChange(totalPages);
@@ -65,6 +68,7 @@ export const OrdersTable = ({
   const startRecord = totalItems === 0 ? 0 : startIndex + 1;
   const endRecord = endIndex;
 
+  // Hitung deret nomor halaman pagination dengan penyingkat ellipsis (...)
   const getPageNumbers = () => {
     if (totalPages <= 5) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -80,6 +84,7 @@ export const OrdersTable = ({
     return pages;
   };
 
+  // Render sel kolom waktu makan dengan notasi pemisah '/' (porsi) dan '|' (Paket Utama vs Ekstra)
   const renderMealCell = (items, mealTime, row) => {
     if (!items || items.length === 0) {
       return <span className="text-neutral-400 font-normal">-</span>;

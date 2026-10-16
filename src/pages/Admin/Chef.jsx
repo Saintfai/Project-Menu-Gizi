@@ -7,6 +7,7 @@ import { getOrders } from '../../services/orderService';
 import { getMenuItemsByCycle } from '../../services/menuService';
 import PageTransition from '../../components/PageTransition';
 
+// Konversi objek tanggal ke format string YYYY-MM-DD
 const toDateInputString = (d) => {
   const pad = (n) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -117,7 +118,7 @@ export default function Chef() {
       const orderMenu = (order.menuName || '').trim().toLowerCase();
       const paket = (order.paketName || order.menuName || '').trim();
       
-      // Find matching menu to get components
+      // Cari hidangan master menu yang cocok untuk mengekstrak komponen bahan baku
       const matchedMenu = menuItems.find(m => {
         const mMeal = (m.mealTime || '').toUpperCase();
         if (mMeal !== orderMeal) return false;
@@ -131,6 +132,7 @@ export default function Chef() {
         );
       });
 
+      // Ambil nilai komponen bahan dari data pesanan atau master menu siklus
       const getInitialComponent = (matchedVal, orderVal) => {
         if (orderVal && typeof orderVal === 'string' && orderVal.trim() !== '' && orderVal.trim() !== '-') {
           return orderVal.trim();
@@ -152,6 +154,7 @@ export default function Chef() {
 
       const existingNotes = order.notes || '';
       if (existingNotes) {
+        // Sesuaikan komponen lauk berdasarkan modifikasi catatan pesanan ([Tanpa ...] atau [Ganti ...])
         const parseNote = (label, currentVal) => {
           if (existingNotes.includes(`[Tanpa ${label}]`)) return '';
           const match = existingNotes.match(new RegExp(`\\[Ganti ${label}: (.*?)\\]`));
@@ -169,6 +172,7 @@ export default function Chef() {
         tambahan = parseNote('Protein Tambahan', tambahan);
       }
 
+      // Tambahkan jumlah porsi ke kategori bahan terkait
       const addStat = (category, value) => {
         if (!value || typeof value !== 'string') return;
         const trimmed = value.trim();
@@ -195,7 +199,7 @@ export default function Chef() {
         addStat('Karbohidrat', fallbackName);
       }
 
-      // Add notes (hanya catatan khusus pesanan, tidak menampilkan alergi)
+      // Rekap catatan khusus pesanan per pasien (alergi dipisahkan)
       if (order.notes && typeof order.notes === 'string' && order.notes.trim() !== '' && order.notes.trim() !== '-') {
         overallStats.notes.push({
           patientName: order.patientName || order.patient?.name,

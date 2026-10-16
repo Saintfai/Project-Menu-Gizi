@@ -4,6 +4,7 @@ import Modal from './Modal';
 import Button from '../buttons/Button';
 import NoteDetailContent from './NoteDetailContent';
 
+// Modal dialog untuk menampilkan rincian catatan khusus pesanan dan riwayat alergi pasien
 export const NoteDetailModal = ({ isOpen, onClose, data }) => {
   if (!data) return null;
 
