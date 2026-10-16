@@ -31,7 +31,12 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     try {
-      const configuredPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'edhosbdg123';
+      const configuredPassword = import.meta.env.VITE_ADMIN_PASSWORD;
+
+      if (!configuredPassword) {
+        setError('Kata sandi belum dikonfigurasikan.');
+        return;
+      }
 
       if (!password || password !== configuredPassword) {
         setError('Kata sandi yang Anda masukkan salah. Silakan coba lagi.');
