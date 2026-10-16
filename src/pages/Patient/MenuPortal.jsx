@@ -470,6 +470,7 @@ export default function MenuPortal() {
 
       </div>
 
+      {/* Hitung peran konsumen (Pasien/Pendamping) yang sudah dipilih pada sesi makan yang sama */}
       {(() => {
         let takenRoles = [];
         if (selectedCardId && includeModalOpen) {

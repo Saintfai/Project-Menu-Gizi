@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { Utensils } from 'lucide-react';
 import Stepper from '../navigation/Stepper';
 
+// Kartu menu makanan untuk paket utama dan ekstra dengan pengatur kuota porsi
 export const MenuCard = ({ 
   type = 'paket', 
   image, 

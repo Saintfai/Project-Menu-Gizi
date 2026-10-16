@@ -54,6 +54,7 @@ export function PatientProvider({ children }) {
     return result;
   };
 
+  // Simpan data pasien yang dipilih (jika pencarian menghasilkan lebih dari 1 pasien)
   const selectPatient = (selectedPatient) => {
     const patientData = {
       ...selectedPatient,
@@ -64,6 +65,7 @@ export function PatientProvider({ children }) {
     return patientData;
   };
 
+  // Perbarui informasi data pasien di context dan session storage
   const updatePatientInfo = (updatedFields) => {
     setPatient((prev) => {
       const next = { ...prev, ...updatedFields };
@@ -72,6 +74,7 @@ export function PatientProvider({ children }) {
     });
   };
 
+  // Hapus sesi aktif pasien dan data keranjang saat keluar
   const logoutPatient = () => {
     setPatient(null);
     secureSessionStorage.removeItem('active_patient_session');

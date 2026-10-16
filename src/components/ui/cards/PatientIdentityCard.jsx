@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Card from './Card';
 
+// Kartu ringkasan identitas pasien (Nama, No. RM, dan Kamar)
 export const PatientIdentityCard = ({ 
   name, 
   rmNumber, 

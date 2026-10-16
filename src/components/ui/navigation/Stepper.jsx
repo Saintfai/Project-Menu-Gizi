@@ -2,12 +2,15 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Minus, Plus } from 'lucide-react';
 
+// Komponen pengatur jumlah porsi (+ / -) dengan batas minimal dan maksimal
 export const Stepper = ({ value = 0, min = 0, max = 99, onChange, className = '' }) => {
+  // Kurangi jumlah porsi jika masih di atas batas minimal
   const handleDecrement = (e) => {
     e.stopPropagation();
     if (value > min) onChange(value - 1);
   };
 
+  // Tambah jumlah porsi jika belum melebihi batas maksimal
   const handleIncrement = (e) => {
     e.stopPropagation();
     if (value < max) onChange(value + 1);

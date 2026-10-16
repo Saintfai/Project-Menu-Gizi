@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import { Utensils, Send } from 'lucide-react';
 
+// Modal pemilihan penerima porsi (Pasien atau Pendamping) untuk menu include
 export const IncludeModal = ({ isOpen, onClose, itemData, onSave, takenRoles = [] }) => {
   const [selected, setSelected] = useState('PASIEN');
 

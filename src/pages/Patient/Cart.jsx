@@ -350,7 +350,7 @@ export default function Cart() {
         }
       }
 
-      // 6. Pastikan menu utama belum pernah dipesan hari ini untuk besok (Validasi langsung ke Database Server)
+      // 6. Pastikan menu utama belum pernah dipesan hari ini untuk besok (cek pesanan ganda di server)
       if (hasPasienItems || hasPendampingItems) {
         try {
           const hasAlreadyOrdered = await checkPatientHasOrderedMain(
@@ -382,7 +382,7 @@ export default function Cart() {
         }
       }
 
-      // 6. Susun payload ke format tabel orders
+      // 7. Susun data pesanan ke format tabel orders
       const addItems = (type, consumer, mealTimeKey, itemsArr) => {
         itemsArr.forEach(entry => {
           const patientReg = effectivePatient.noReg || effectivePatient.noreg || effectivePatient.no_regis || effectivePatient.no_reg || '';
@@ -435,7 +435,7 @@ export default function Cart() {
       // Gunakan pendingRetryItems jika sebelumnya ada transaksi parsial yang gagal
       const itemsToSubmit = pendingRetryItems || orderItemsToInsert;
 
-      // 7. Kirim pesanan ke API sistem RS
+      // 8. Kirim pesanan ke database server
       await createOrders(itemsToSubmit, ({ current, total, phase }) => {
         if (phase === 'verifying') {
           setSubmitProgress('Memverifikasi pesanan di server...');
@@ -444,7 +444,7 @@ export default function Cart() {
         }
       });
 
-      // 8. Bersihkan storage dan buka halaman sukses
+      // 9. Bersihkan data sementara dan buka halaman sukses
       secureSessionStorage.removeItem('patient_cart_note');
       secureSessionStorage.removeItem('patient_cart');
       setPendingRetryItems(null);
@@ -463,7 +463,7 @@ export default function Cart() {
       navigate('/order-success', { state: { summary } });
     } catch (error) {
       console.error(error);
-      // 9. Tangani error / retry jika gagal parsial atau verifikasi server gagal
+      // 10. Tangani error / retry jika gagal parsial atau verifikasi server gagal
       if (error.verificationFailed) {
         // Server menerima POST (200 OK) tapi data tidak muncul di database
         setErrorModalState({
