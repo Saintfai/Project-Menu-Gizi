@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import { Utensils, Send } from 'lucide-react';
 
@@ -21,23 +22,45 @@ export const IncludeModal = ({ isOpen, onClose, itemData, onSave, takenRoles = [
     };
   }, [isOpen, itemData, takenRoles]);
 
+  // Dukungan tombol Escape keyboard untuk menutup modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen || !itemData) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-neutral-900/40 backdrop-blur-sm p-0 sm:p-4 md:p-6">
-      <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
+  const modalContent = (
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 overflow-hidden">
+      {/* Fullscreen Backdrop Blur yang menutupi seluruh layar secara merata dan lembut */}
+      <div 
+        className="fixed inset-0 bg-neutral-900/20 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in" 
+        onClick={onClose} 
+        aria-hidden="true" 
+      />
 
       <div 
-        className="relative bg-white w-full max-w-md sm:max-w-2xl rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95"
+        className="relative z-10 bg-white w-full max-w-md sm:max-w-2xl rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200"
         role="dialog"
         aria-modal="true"
         style={{ maxHeight: '85vh' }}
       >
+        {/* Drag handle pill untuk tampilan layar mobile */}
         <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
           <div className="w-12 h-1.5 bg-neutral-200 rounded-full" />
         </div>
 
-        <div className="w-full h-48 sm:h-56 bg-neutral-100 flex-shrink-0">
+        {/* Gambar hero menu */}
+        <div className="w-full h-48 sm:h-56 bg-neutral-100 flex-shrink-0 relative">
           {itemData.image || itemData.imageUrl ? (
             <img 
               src={itemData.image || itemData.imageUrl} 
@@ -63,7 +86,7 @@ export const IncludeModal = ({ isOpen, onClose, itemData, onSave, takenRoles = [
             <button
               onClick={() => !takenRoles.includes('PASIEN') && setSelected('PASIEN')}
               disabled={takenRoles.includes('PASIEN')}
-              className={`flex-1 py-2.5 text-sm font-semibold rounded-full border-0 outline-none transition-all ${
+              className={`flex-1 py-2.5 text-sm font-semibold rounded-full border-0 outline-none transition-all cursor-pointer ${
                 takenRoles.includes('PASIEN')
                   ? 'bg-neutral-100 text-neutral-400 opacity-50 cursor-not-allowed'
                   : selected === 'PASIEN'
@@ -76,7 +99,7 @@ export const IncludeModal = ({ isOpen, onClose, itemData, onSave, takenRoles = [
             <button
               onClick={() => !takenRoles.includes('PENDAMPING') && setSelected('PENDAMPING')}
               disabled={takenRoles.includes('PENDAMPING')}
-              className={`flex-1 py-2.5 text-sm font-semibold rounded-full border-0 outline-none transition-all ${
+              className={`flex-1 py-2.5 text-sm font-semibold rounded-full border-0 outline-none transition-all cursor-pointer ${
                 takenRoles.includes('PENDAMPING')
                   ? 'bg-neutral-100 text-neutral-400 opacity-50 cursor-not-allowed'
                   : selected === 'PENDAMPING'
@@ -92,7 +115,7 @@ export const IncludeModal = ({ isOpen, onClose, itemData, onSave, takenRoles = [
         <div className="px-5 pb-5 pt-2 flex-shrink-0">
           <button
             onClick={() => onSave(selected)}
-            className="w-full flex items-center justify-center gap-2.5 py-3.5 bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm rounded-full shadow-lg border-0 outline-none transition-colors"
+            className="w-full flex items-center justify-center gap-2.5 py-3.5 bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm rounded-full shadow-lg border-0 outline-none transition-colors cursor-pointer"
           >
             <Send className="w-4 h-4 rotate-45 mb-0.5" />
             Simpan Pesanan
@@ -101,6 +124,12 @@ export const IncludeModal = ({ isOpen, onClose, itemData, onSave, takenRoles = [
       </div>
     </div>
   );
+
+  // Render via portal ke document.body agar tidak terpotong oleh PageTransition atau container layout
+  if (typeof document !== 'undefined') {
+    return createPortal(modalContent, document.body);
+  }
+  return modalContent;
 };
 
 IncludeModal.propTypes = {

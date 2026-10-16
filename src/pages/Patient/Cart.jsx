@@ -633,8 +633,13 @@ export default function Cart() {
 
         {/* 9. Modal popup konfirmasi kirim pesanan */}
         {showModal && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-sm">
-            <div className="bg-white w-full max-w-[320px] rounded-2xl p-6 text-center shadow-xl">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div 
+              className="fixed inset-0 bg-neutral-900/20 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
+              onClick={() => !isSubmitting && setShowModal(false)}
+              aria-hidden="true"
+            />
+            <div className="relative z-10 bg-white w-full max-w-[320px] rounded-2xl p-6 text-center shadow-xl animate-in fade-in zoom-in-95 duration-200">
               <div className="mx-auto w-14 h-14 bg-primary-50 rounded-full flex items-center justify-center mb-5">
                 <Send size={24} className="text-primary-600 rotate-45 -ml-1 mt-1" />
               </div>
@@ -677,8 +682,13 @@ export default function Cart() {
 
         {/* 10. Modal popup error / batas waktu / coba lagi item gagal */}
         {errorModalState.isOpen && (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-sm">
-            <div className="bg-white w-full max-w-[320px] rounded-2xl p-6 text-center shadow-xl animate-in fade-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div 
+              className="fixed inset-0 bg-neutral-900/20 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
+              onClick={() => setErrorModalState({ isOpen: false, title: '', message: '' })}
+              aria-hidden="true"
+            />
+            <div className="relative z-10 bg-white w-full max-w-[320px] rounded-2xl p-6 text-center shadow-xl animate-in fade-in zoom-in-95 duration-200">
               <div className="mx-auto w-14 h-14 bg-danger-50 rounded-full flex items-center justify-center mb-4">
                 <AlertCircle size={28} className="text-danger-500" />
               </div>

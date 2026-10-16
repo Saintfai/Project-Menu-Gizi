@@ -13,14 +13,21 @@ export const Stepper = ({ value = 0, min = 0, max = 99, onChange, className = ''
     if (value < max) onChange(value + 1);
   };
 
+  const isMin = value <= min;
+  const isMax = value >= max;
+
   return (
-    <div className={`flex items-center justify-between bg-neutral-100/70 border border-neutral-200/80 rounded-xl p-1.5 ${className}`}>
+    <div className={`flex items-center justify-between bg-neutral-100 rounded-xl p-1 border-none outline-none ring-0 ${className}`}>
       <button
         type="button"
         onClick={handleDecrement}
-        disabled={value <= min}
+        disabled={isMin}
         aria-label="Kurangi jumlah"
-        className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-white text-neutral-700 shadow-sm border border-neutral-200/80 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-neutral-50 active:scale-95 transition-all outline-none"
+        className={`w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg transition-all border-none outline-none ring-0 cursor-pointer ${
+          isMin 
+            ? 'bg-white/50 text-neutral-300 shadow-none cursor-not-allowed' 
+            : 'bg-white text-neutral-800 shadow-[0_1px_4px_rgba(0,0,0,0.12)] hover:shadow-md active:scale-95'
+        }`}
       >
         <Minus className="w-4 h-4" strokeWidth={2.5} />
       </button>
@@ -32,9 +39,13 @@ export const Stepper = ({ value = 0, min = 0, max = 99, onChange, className = ''
       <button
         type="button"
         onClick={handleIncrement}
-        disabled={value >= max}
+        disabled={isMax}
         aria-label="Tambah jumlah"
-        className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-white text-neutral-700 shadow-sm border border-neutral-200/80 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-neutral-50 active:scale-95 transition-all outline-none"
+        className={`w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg transition-all border-none outline-none ring-0 cursor-pointer ${
+          isMax 
+            ? 'bg-white/50 text-neutral-300 shadow-none cursor-not-allowed' 
+            : 'bg-white text-neutral-800 shadow-[0_1px_4px_rgba(0,0,0,0.12)] hover:shadow-md active:scale-95'
+        }`}
       >
         <Plus className="w-4 h-4" strokeWidth={2.5} />
       </button>
