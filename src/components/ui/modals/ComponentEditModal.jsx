@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useLayoutEffect } from 'react';
-import { Save } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Save, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getMenuItemsByCycle } from '../../../services/menuService';
 import { updateOrderNotes } from '../../../services/orderService';
@@ -91,6 +92,33 @@ export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycl
     if (!cycleItemsPending.has(cycleNumber)) cycleItemsCache.delete(cycleNumber);
     loadCycleItems(cycleNumber);
   }, [cycleNumber]);
+
+  // Kunci scroll pada body saat modal terbuka
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
+  // Dukungan tombol Escape keyboard untuk menutup modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   useLayoutEffect(() => {
     if (!isOpen || !selectedMeal || !cycleNumber) return;
@@ -253,58 +281,86 @@ export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycl
 
   const hasAnyOptions = menus.length > 0 || !!originalMenu;
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-white w-full max-w-md rounded-xl shadow-2xl flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
-        
+  if (!isOpen || !selectedMeal) return null;
+
+  const modalContent = (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden">
+      {/* Fullscreen Backdrop Blur lembut dan tidak terlalu gelap */}
+      <div 
+        className="fixed inset-0 bg-neutral-900/20 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in" 
+        onClick={onClose} 
+        aria-hidden="true" 
+      />
+      <div 
+        className="relative z-10 bg-white w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200" 
+        role="dialog"
+        aria-modal="true"
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-neutral-100 bg-neutral-50">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-neutral-100 bg-neutral-50/70">
           <div>
             <h3 className="font-bold text-neutral-900 text-base">Ubah Komponen Gizi</h3>
-            <p className="text-[11px] text-neutral-500 font-medium mt-0.5">Makan {selectedMeal.mealTime} - Pasien {selectedMeal.row.patientName}</p>
+            <p className="text-[11px] text-neutral-500 font-medium mt-0.5">
+              Makan {selectedMeal.mealTime} - Pasien {selectedMeal.row.patientName}
+            </p>
           </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-neutral-400 bg-transparent hover:bg-neutral-200/60 hover:text-neutral-700 rounded-lg p-1.5 transition-colors cursor-pointer border-none outline-none"
+            aria-label="Tutup modal"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         {/* Body */}
-        <div className="px-5 pt-2.5 pb-4 min-h-[400px] max-h-[65vh] overflow-y-auto flex flex-col">
+        <div className="px-5 pt-3 pb-4 min-h-[380px] max-h-[65vh] overflow-y-auto flex flex-col">
           {!hasAnyOptions ? (
-              <div className="flex-1 flex items-center justify-center">
-                  <p className="text-sm text-neutral-500 italic text-center animate-pulse">Memuat opsi menu komponen...</p>
-              </div>
+            <div className="flex-1 flex items-center justify-center">
+              <p className="text-sm text-neutral-500 italic text-center animate-pulse">Memuat opsi menu komponen...</p>
+            </div>
           ) : (
-              <div>
-                  <p className="text-xs text-neutral-600 mb-3">Pilih komponen baru jika pasien meminta penggantian.</p>
-                  {renderSelect('Karbohidrat', karbo, setKarbo, 'karbohidrat')}
-                  {renderSelect('Protein Hewani', protein, setProtein, 'protein')}
-                  {renderSelect('Sayur', sayur, setSayur, 'sayur')}
-                  {renderSelect('Protein Nabati', nabati, setNabati, 'nabati')}
-                  {renderSelect('Protein Tambahan', tambahan, setTambahan, 'proteinTambahan')}
-              </div>
+            <div>
+              <p className="text-xs text-neutral-600 mb-3">Pilih komponen baru jika pasien meminta penggantian.</p>
+              {renderSelect('Karbohidrat', karbo, setKarbo, 'karbohidrat')}
+              {renderSelect('Protein Hewani', protein, setProtein, 'protein')}
+              {renderSelect('Sayur', sayur, setSayur, 'sayur')}
+              {renderSelect('Protein Nabati', nabati, setNabati, 'nabati')}
+              {renderSelect('Protein Tambahan', tambahan, setTambahan, 'proteinTambahan')}
+            </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-neutral-100 bg-neutral-50 flex justify-end gap-3">
+        <div className="p-4 border-t border-neutral-100 bg-neutral-50/70 flex justify-end gap-3">
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-semibold text-neutral-600 hover:bg-neutral-200 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-semibold text-neutral-600 hover:bg-neutral-200/60 rounded-lg transition-colors border-none outline-none cursor-pointer"
           >
             Batal
           </button>
           <button
+            type="button"
             onClick={handleSave}
             disabled={loading || !hasAnyOptions}
-            className="flex items-center gap-2 px-5 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg text-sm font-bold transition-all shadow-xs disabled:opacity-50"
+            className="flex items-center gap-2 px-5 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg text-sm font-bold transition-all shadow-xs disabled:opacity-50 border-none outline-none cursor-pointer"
           >
             {loading ? 'Menyimpan...' : (
-                <>
-                    <Save className="w-4 h-4" />
-                    Simpan Perubahan
-                </>
+              <>
+                <Save className="w-4 h-4" />
+                Simpan Perubahan
+              </>
             )}
           </button>
         </div>
       </div>
     </div>
   );
+
+  if (typeof document !== 'undefined') {
+    return createPortal(modalContent, document.body);
+  }
+  return modalContent;
 }
