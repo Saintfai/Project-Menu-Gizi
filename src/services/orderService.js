@@ -322,7 +322,7 @@ async function postSingleOrderItem(item, maxRetries = 3) {
   formData.append('consumer_name', String(item.consumerName || item.patientName || 'Pasien'));
   formData.append('meal_time', mealTime);
   formData.append('menu_name', String(item.menuName || '-'));
-  formData.append('paket_name', String(item.paketName || 'paket a').toLowerCase());
+  formData.append('paket_name', String(item.paketName || 'Paket A'));
   formData.append('bentuk_makanan', String(item.bentukMakanan || '-'));
   formData.append('description', String(item.description || '-'));
   formData.append('karbohidrat', String(item.karbohidrat || '-'));
