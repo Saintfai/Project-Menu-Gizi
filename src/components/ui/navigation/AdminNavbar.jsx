@@ -49,7 +49,7 @@ export const AdminNavbar = ({ title = 'Menu Gizi', className = '' }) => {
           <div className="flex-shrink-0 flex items-center justify-center mr-3 transition-transform group-hover:scale-105">
             <img src={logoEdhos} alt="Logo Menu Gizi" className="w-8 h-8 object-contain" />
           </div>
-          <h1 className="text-base sm:text-lg font-bold text-primary-700 underline underline-offset-4 decoration-primary-700 leading-none truncate">
+          <h1 className="text-base sm:text-lg font-bold text-neutral-900 leading-none truncate">
             {title}
           </h1>
         </div>

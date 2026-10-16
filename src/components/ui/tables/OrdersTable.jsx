@@ -142,7 +142,7 @@ export const OrdersTable = ({
               <th className="px-3 py-3 text-xs font-bold text-neutral-900" style={{ border: '1px solid #9ca3af' }}>MAKAN PAGI</th>
               <th className="px-3 py-3 text-xs font-bold text-neutral-900" style={{ border: '1px solid #9ca3af' }}>MAKAN SIANG</th>
               <th className="px-3 py-3 text-xs font-bold text-neutral-900" style={{ border: '1px solid #9ca3af' }}>MAKAN SORE</th>
-              <th className="px-3 py-3 text-xs font-bold text-neutral-900 text-center w-32" style={{ border: '1px solid #9ca3af' }}>BENTUK MAKANAN</th>
+              <th className="px-3 py-3 text-xs font-bold text-neutral-900 text-left w-32" style={{ border: '1px solid #9ca3af' }}>BENTUK MAKANAN</th>
               <th className="px-3 py-3 text-xs font-bold text-neutral-900 text-center w-20" style={{ border: '1px solid #9ca3af' }}>CATATAN</th>
             </tr>
           </thead>
@@ -195,7 +195,7 @@ export const OrdersTable = ({
                     <td className="px-3 py-2.5 min-w-[150px] max-w-[250px] align-top whitespace-normal break-words" style={{ border: '1px solid #9ca3af' }}>
                       {renderMealCell(row.itemsSore, 'SORE', row)}
                     </td>
-                    <td className="px-3 py-2.5 text-center align-top" style={{ border: '1px solid #9ca3af' }}>
+                    <td className="px-3 py-2.5 text-left align-top" style={{ border: '1px solid #9ca3af' }}>
                       <span className="font-medium text-xs text-neutral-700">{row.bentukMakananText || '-'}</span>
                     </td>
                     <td className="px-3 py-2.5 text-center align-top" style={{ border: '1px solid #9ca3af' }}>

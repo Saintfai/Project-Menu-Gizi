@@ -450,14 +450,14 @@ export default function MenuCycle() {
           'Makan Pagi',
           pagiItems,
           'PAGI',
-          <Sun className="w-5 h-5 text-warning-600" />
+          <Sun className="w-5 h-5 text-primary-600" />
         )}
 
         {renderMealColumn(
           'Makan Siang',
           siangItems,
           'SIANG',
-          <Utensils className="w-5 h-5 text-primary-600" />
+          <Utensils className="w-5 h-5 text-warning-600" />
         )}
 
         {renderMealColumn(

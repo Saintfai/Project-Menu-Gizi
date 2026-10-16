@@ -323,7 +323,7 @@ export default function Dashboard() {
         {/* Card Makan Pagi */}
         <RekapCard
           title="Makan Pagi"
-          icon={<Sun className="w-4 h-4 text-warning-500" />}
+          icon={<Sun className="w-4 h-4 text-primary-600" />}
           total={stats.pagi.total}
           totalLabel="Total Porsi"
           details={stats.pagi.details}
@@ -332,7 +332,7 @@ export default function Dashboard() {
         {/* Card Makan Siang */}
         <RekapCard
           title="Makan Siang"
-          icon={<Utensils className="w-4 h-4 text-primary-600" />}
+          icon={<Utensils className="w-4 h-4 text-warning-500" />}
           total={stats.siang.total}
           totalLabel="Total Porsi"
           details={stats.siang.details}
