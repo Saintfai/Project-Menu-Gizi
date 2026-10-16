@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { UtensilsCrossed, ShoppingCart, ShoppingBag, AlertCircle, Info } from 'lucide-react';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
@@ -497,8 +498,8 @@ export default function MenuPortal() {
         );
       })()}
 
-      {validationAlert && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      {validationAlert && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden">
           <div 
             className="fixed inset-0 bg-neutral-900/20 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
             onClick={() => setValidationAlert(null)}
@@ -524,7 +525,8 @@ export default function MenuPortal() {
               Oke, Mengerti
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Bilah keranjang mengapung (Floating Cart) jika ada item dipilih */}

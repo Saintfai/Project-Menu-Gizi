@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag, Loader2, Info, AlertCircle } from 'lucide-react';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
@@ -632,8 +633,8 @@ export default function Cart() {
         </div>
 
         {/* 9. Modal popup konfirmasi kirim pesanan */}
-        {showModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        {showModal && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden">
             <div 
               className="fixed inset-0 bg-neutral-900/20 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
               onClick={() => !isSubmitting && setShowModal(false)}
@@ -677,12 +678,13 @@ export default function Cart() {
                 </button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* 10. Modal popup error / batas waktu / coba lagi item gagal */}
-        {errorModalState.isOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        {errorModalState.isOpen && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden">
             <div 
               className="fixed inset-0 bg-neutral-900/20 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
               onClick={() => setErrorModalState({ isOpen: false, title: '', message: '' })}
@@ -730,7 +732,8 @@ export default function Cart() {
                 )}
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
       </div>

@@ -152,7 +152,7 @@ export default function AdminLogin() {
 
         {/* Footer portal dapur gizi */}
         <div className="mt-8 text-center flex flex-col gap-1">
-          <p className="text-xs font-medium text-neutral-600">© 2026 RS Edelweiss. All Rights Reserved.</p>
+          <p className="text-xs font-medium text-neutral-600">© RS Edelweiss. All Rights Reserved.</p>
           <p className="text-xs text-neutral-500">Dashboard Manajemen &amp; Produksi Gizi</p>
         </div>
       </div>
