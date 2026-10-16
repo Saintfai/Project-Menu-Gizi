@@ -396,7 +396,6 @@ export default function PatientLogin() {
                         value={rmNumber}
                         onChange={(e) => setRmNumber(e.target.value)}
                         leftIcon={<Hash size={16} strokeWidth={2} />}
-                        hint="Bisa memasukkan format asli (00-05-10) atau angka biasa"
                         autoFocus
                       />
                     </motion.div>
@@ -431,7 +430,6 @@ export default function PatientLogin() {
                         value={dob}
                         onChange={(e) => setDob(e.target.value)}
                         max={new Date().toISOString().split('T')[0]}
-                        hint="Jika nama sama, sistem akan meminta konfirmasi."
                       />
                     </motion.div>
                   )}
