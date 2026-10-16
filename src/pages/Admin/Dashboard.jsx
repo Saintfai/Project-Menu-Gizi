@@ -34,11 +34,18 @@ export default function Dashboard() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('ALL');
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedNoteData, setSelectedNoteData] = useState(null);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [totalActivePatients, setTotalActivePatients] = useState(0);
 
   const [selectedComponentMeal, setSelectedComponentMeal] = useState(null);
+
+  // Reset pagination saat pencarian atau filter kategori berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedFilter, pageSize]);
 
   // Ambil data seluruh pesanan rawat inap dari API sistem RS
   const fetchOrderData = useCallback(async () => {
@@ -382,6 +389,25 @@ export default function Dashboard() {
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
+
+            {/* Dropdown batas baris per halaman */}
+            <div className="relative w-full sm:w-32">
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="w-full h-9 appearance-none bg-white border border-neutral-300 rounded-lg pl-3 pr-7 text-xs font-semibold text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer shadow-xs"
+                title="Batas jumlah baris per halaman"
+              >
+                <option value={10}>10 Baris</option>
+                <option value={20}>20 Baris</option>
+                <option value={50}>50 Baris</option>
+                <option value="ALL">Semua</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
           </div>
         </div>
 
@@ -392,7 +418,15 @@ export default function Dashboard() {
               <span>Memuat rekapitulasi pesanan pasien...</span>
             </div>
           ) : (
-            <OrdersTable data={filteredData} onNoteClick={handleOpenNote} onMealClick={handleMealClick} />
+            <OrdersTable 
+              data={filteredData} 
+              onNoteClick={handleOpenNote} 
+              onMealClick={handleMealClick}
+              pageSize={pageSize}
+              onPageSizeChange={setPageSize}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+            />
           )}
         </div>
       </section>
