@@ -16,6 +16,7 @@ import {
   Building,
   AlertTriangle,
   Users,
+  Layers,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -235,13 +236,29 @@ export default function PatientLogin() {
                           <p className="text-xs font-bold text-neutral-800 pl-[18px] truncate" title={maskAddress(p.address)}>{maskAddress(p.address)}</p>
                         </div>
 
-                        {/* Ruangan dan kelas kamar */}
-                        <div className="col-span-2">
+                        {/* Kamar */}
+                        <div>
                           <div className="flex items-center gap-1.5 mb-1">
                             <Building size={13} strokeWidth={2} className={isSelected ? 'text-primary-600' : 'text-neutral-400'} />
-                            <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Ruangan</span>
+                            <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Kamar</span>
                           </div>
-                          <p className="text-xs font-bold text-neutral-800 pl-[18px]">{p.roomName} - {formatRoomClass(p.roomClass)}</p>
+                          <p className="text-xs font-bold text-neutral-800 pl-[18px]">{p.roomName}</p>
+                        </div>
+
+                        {/* Kelas Kamar */}
+                        <div>
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <Layers size={13} strokeWidth={2} className={isSelected ? 'text-primary-600' : 'text-neutral-400'} />
+                            <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Kelas</span>
+                          </div>
+                          <p className="text-xs font-bold text-neutral-800 pl-[18px]">
+                            {formatRoomClass(p.originalClass || p.roomClass)}
+                            {p.titipan && (
+                              <span className="block text-[11px] font-semibold text-primary-600 mt-0.5">
+                                (Titipan di {p.titipan})
+                              </span>
+                            )}
+                          </p>
                         </div>
                       </div>
 

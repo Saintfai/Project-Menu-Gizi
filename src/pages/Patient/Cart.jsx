@@ -349,7 +349,7 @@ export default function Cart() {
 
       // 5. Validasi Batas Kuota Porsi Berdasarkan Kelas Kamar Pasien (PRD 3.2)
       if (hasPasienItems || hasPendampingItems) {
-        const roomClassLower = (effectivePatient.roomClass || '').toLowerCase();
+        const roomClassLower = (effectivePatient.effectiveClass || effectivePatient.roomClass || '').toLowerCase();
         const isVipA = roomClassLower.includes('vip a') || roomClassLower.includes('vip_a') || roomClassLower.includes('suite');
         const maxPortions = {
           PAGI: 2,
@@ -365,7 +365,7 @@ export default function Cart() {
             setErrorModalState({
               isOpen: true,
               title: 'Batas Porsi Terlampaui',
-              message: `Jumlah porsi Menu Utama Makan ${meal} (${totalMain} porsi) melebihi batas kuota kelas ${effectivePatient.roomClass || 'kamar'} (maksimal ${maxPortions[meal]} porsi).`
+              message: `Jumlah porsi Menu Utama Makan ${meal} (${totalMain} porsi) melebihi batas kuota kelas ${effectivePatient.effectiveClass || effectivePatient.roomClass || 'kamar'} (maksimal ${maxPortions[meal]} porsi).`
             });
             setIsSubmitting(false);
             setShowModal(false);

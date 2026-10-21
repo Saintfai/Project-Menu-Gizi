@@ -10,7 +10,8 @@ import {
   Phone, 
   Building, 
   AlertTriangle, 
-  Info 
+  Info,
+  Layers
 } from 'lucide-react';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import PatientFooter from '../../components/ui/layout/PatientFooter';
@@ -154,17 +155,28 @@ export default function Onboarding() {
                 <span className="text-xs font-bold text-neutral-900 text-left break-words flex-1">{maskPhone(patient.phone)}</span>
               </div>
 
-              {/* Ruangan */}
-              <div className="flex items-center gap-6 sm:gap-8">
+              {/* Kamar */}
+              <div className="flex items-center border-b border-neutral-100 pb-3 gap-6 sm:gap-8">
                 <div className="flex items-center gap-2.5 text-neutral-500 w-[120px] sm:w-[130px] shrink-0 whitespace-nowrap">
                   <Building size={16} strokeWidth={2} />
-                  <span className="text-xs font-semibold">Ruangan</span>
+                  <span className="text-xs font-semibold">Kamar</span>
                 </div>
                 <span className="text-xs font-bold text-neutral-900 text-left break-words flex-1">
-                  {patient.roomName} - {formatRoomClass(patient.roomClass)}
+                  {patient.roomName}
+                </span>
+              </div>
+
+              {/* Kelas */}
+              <div className="flex items-center gap-6 sm:gap-8">
+                <div className="flex items-center gap-2.5 text-neutral-500 w-[120px] sm:w-[130px] shrink-0 whitespace-nowrap">
+                  <Layers size={16} strokeWidth={2} />
+                  <span className="text-xs font-semibold">Kelas</span>
+                </div>
+                <span className="text-xs font-bold text-neutral-900 text-left break-words flex-1">
+                  {formatRoomClass(patient.originalClass || patient.roomClass)}
                   {patient.titipan && (
                     <span className="block text-[11px] font-semibold text-primary-600 mt-0.5">
-                      (Titipan dari {patient.originalClass})
+                      (Titipan di {patient.titipan})
                     </span>
                   )}
                 </span>

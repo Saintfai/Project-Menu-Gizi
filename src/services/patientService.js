@@ -47,10 +47,16 @@ export function formatDobForApi(dob) {
 export function normalizePatient(raw) {
   if (!raw) return null;
 
-  // Gunakan kelas titipan jika tersedia, jika tidak gunakan kelas asli
-  const effectiveClass = raw.titipan && String(raw.titipan).trim() !== ''
+  const originalClass = raw.kelas && String(raw.kelas).trim() !== ''
+    ? String(raw.kelas).trim()
+    : 'Kelas';
+
+  const titipan = raw.titipan && String(raw.titipan).trim() !== ''
     ? String(raw.titipan).trim()
-    : String(raw.kelas || 'Kelas').trim();
+    : null;
+
+  // Kuota porsi mengikuti titipan jika ada (atau kelas kamar fisik jika tidak ada titipan)
+  const effectiveClass = titipan || originalClass;
 
   const allergyText = raw.alergi && String(raw.alergi).trim() !== ''
     ? String(raw.alergi).trim()
@@ -70,9 +76,10 @@ export function normalizePatient(raw) {
     phone: raw.number_telpon || '-',
     address: raw.alamat || '-',
     allergies: allergyText,
-    originalClass: raw.kelas || '-',
-    titipan: raw.titipan || null,
-    roomClass: effectiveClass,
+    originalClass: originalClass,
+    titipan: titipan,
+    roomClass: originalClass,
+    effectiveClass: effectiveClass,
     roomName: raw.kamar || '-',
     bentukMakanan: raw.bentuk_makan || null,
     isVerified: true,
@@ -93,7 +100,8 @@ export function isVipPatient(raw) {
     : String(raw.kelas || '').trim();
 
   const c = effectiveClass.toUpperCase();
-  return c.includes('VIP') || c.includes('SUITE');
+  const k = String(raw.kelas || '').toUpperCase();
+  return c.includes('VIP') || c.includes('SUITE') || k.includes('VIP') || k.includes('SUITE');
 }
 
 /**
