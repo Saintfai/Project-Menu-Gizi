@@ -15,6 +15,7 @@ import { getOrders, checkPatientHasOrderedMain, getTomorrowServingDate } from '.
 import { getActiveCycleMenu } from '../../services/menuService';
 import { getCurrentWIBHour } from '../../utils/cutoffValidator';
 import { secureSessionStorage } from '../../utils/secureStorage';
+import appConfig from '../../config/appConfig';
 
 // Portal katalog menu: Menu Utama (Include) & Menu Ekstra (Berbayar)
 export default function MenuPortal() {
@@ -22,11 +23,11 @@ export default function MenuPortal() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Batas cut-off time (WIB): Utama (15:00), Ekstra Siang (10:00), Ekstra Sore (14:00)
+  // Batas cut-off time diambil dari appConfig (Single Source of Truth)
   const currentHour = getCurrentWIBHour();
-  const isMainMenuLockedTime = currentHour >= 15;
-  const isExtraSiangLockedTime = currentHour >= 10;
-  const isExtraSoreLockedTime = currentHour >= 14;
+  const isMainMenuLockedTime = appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_MAIN;
+  const isExtraSiangLockedTime = appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_EXTRA_SIANG;
+  const isExtraSoreLockedTime = appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_EXTRA_SORE;
   
   // Proteksi: alihkan ke login jika data pasien kosong
   useEffect(() => {
@@ -296,11 +297,11 @@ export default function MenuPortal() {
         const item = menuItems.find(m => String(m.id) === String(baseKey));
         if (item) {
           const mealTime = item.mealTime?.toUpperCase();
-          if (mealTime === 'SIANG' && isExtraSiangLockedTime) invalidLock = 'Ekstra Siang (maks 10:00 WIB)';
-          if (mealTime === 'SORE' && isExtraSoreLockedTime) invalidLock = 'Ekstra Sore (maks 14:00 WIB)';
+          if (mealTime === 'SIANG' && isExtraSiangLockedTime) invalidLock = `Ekstra Siang (maks ${appConfig.CUTOFF_EXTRA_SIANG_TEXT})`;
+          if (mealTime === 'SORE' && isExtraSoreLockedTime) invalidLock = `Ekstra Sore (maks ${appConfig.CUTOFF_EXTRA_SORE_TEXT})`;
         }
       } else {
-        if (isMainMenuLockedTime) invalidLock = 'Menu Utama (maks 15:00 WIB)';
+        if (isMainMenuLockedTime) invalidLock = `Menu Utama (maks ${appConfig.CUTOFF_MAIN_TEXT})`;
       }
     });
 
@@ -345,7 +346,7 @@ export default function MenuPortal() {
               </svg>
             }
           >
-            Batas order menu utama pukul 15.00 WIB untuk penyajian esok hari.
+            Batas order menu utama pukul {appConfig.CUTOFF_MAIN_TEXT} untuk penyajian esok hari.
           </Alert>
         )}
 
@@ -355,7 +356,7 @@ export default function MenuPortal() {
               <Info size={20} className="text-primary-600" />
             </div>
             <span className="text-sm font-bold text-neutral-700">
-              {hasOrderedMain ? "Menu utama sudah dipesan" : "Batas waktu pemesanan menu utama habis (15:00 WIB)"}
+              {hasOrderedMain ? "Menu utama sudah dipesan" : `Batas waktu pemesanan menu utama habis (${appConfig.CUTOFF_MAIN_TEXT})`}
             </span>
           </div>
         ) : (

@@ -19,6 +19,7 @@ import { groupOrdersForTable } from '../../utils/orderTransformer';
 import { getTodayOrders, getOrders, deleteOrderItem, enrichOrdersWithPatientAllergies, clearPatientCache } from '../../services/orderService';
 import { getTotalActivePatients } from '../../services/patientService';
 import PageTransition from '../../components/PageTransition';
+import appConfig from '../../config/appConfig';
 
 
 // Konversi objek tanggal ke format string YYYY-MM-DD
@@ -434,7 +435,7 @@ export default function Dashboard() {
               Detail Rekap Pesanan Pasien
             </h2>
             <p className="text-xs text-neutral-500 font-medium mt-0.5">
-              Batas Pemesanan Utama (Cut-Off): <strong className="text-danger-600">15:00 WIB</strong>
+              Batas Pemesanan Utama (Cut-Off): <strong className="text-danger-600">{appConfig.CUTOFF_MAIN_TEXT}</strong>
             </p>
           </div>
 

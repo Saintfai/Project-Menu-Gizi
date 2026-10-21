@@ -1,12 +1,10 @@
 /**
  * Utilitas Validasi Batas Waktu Pemesanan (Cut-Off Time)
- * Mengatur pengecekan waktu batas pemesanan Paket Utama (15:00 WIB)
- * dan batas waktu Paket Ekstra berbasis zona waktu Waktu Indonesia Barat (WIB).
  */
+import appConfig from '../config/appConfig';
 
 /**
- * Memeriksa status batas waktu (Cut-Off Time) pemesanan Paket Utama.
- * Berdasarkan PRD 3.2, pemesanan Paket Utama esok hari (T+1) ditutup tepat pukul 15:00 WIB.
+ * Memeriksa status batas waktu pemesanan Paket Utama.
  * Mengonversi waktu lokal perangkat ke Waktu Indonesia Barat (WIB / UTC+7).
  * 
  * @returns {{ isPastCutoff: boolean, cutoffTimeText: string, currentTimeWIB: string }}
@@ -19,18 +17,17 @@ export function checkMainMealCutoff() {
   const hours = wibTime.getHours();
   const minutes = wibTime.getMinutes();
 
-  const isPastCutoff = hours >= 15;
+  const isPastCutoff = appConfig.DEMO_MODE ? false : hours >= appConfig.CUTOFF_MAIN;
 
   return {
     isPastCutoff,
-    cutoffTimeText: '15:00 WIB',
+    cutoffTimeText: appConfig.CUTOFF_MAIN_TEXT,
     currentTimeWIB: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} WIB`,
   };
 }
 
 /**
  * Mendapatkan jam saat ini dalam zona waktu WIB (UTC+7) dalam format integer 0 - 23.
- * Digunakan untuk validasi cut-off bertingkat (Utama: 15:00, Ekstra Siang: 10:00, Ekstra Sore: 14:00).
  * 
  * @returns {number} Jam saat ini dalam WIB (0 s.d. 23)
  */

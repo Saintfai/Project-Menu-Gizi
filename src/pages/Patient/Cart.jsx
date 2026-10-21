@@ -11,6 +11,7 @@ import PageTransition from '../../components/PageTransition';
 import { validateNote } from '../../utils/inputValidator';
 import { secureSessionStorage } from '../../utils/secureStorage';
 import { getCurrentWIBHour } from '../../utils/cutoffValidator';
+import appConfig from '../../config/appConfig';
 
 // Jadwal jam penyajian per waktu makan
 const MEAL_SCHEDULE = {
@@ -298,16 +299,16 @@ export default function Cart() {
       const hasPendampingItems = Object.values(orderData.pendamping).some(arr => arr.length > 0);
 
       if (hasPasienItems || hasPendampingItems) {
-        if (currentHour >= 15) {
-          invalidLock = 'Menu Utama (maks 15:00 WIB)';
+        if (appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_MAIN) {
+          invalidLock = `Menu Utama (maks ${appConfig.CUTOFF_MAIN_TEXT})`;
         }
       }
 
       if (!invalidLock && orderData.ekstra['SIANG']?.length > 0) {
-        if (currentHour >= 10) invalidLock = 'Ekstra Siang (maks 10:00 WIB)';
+        if (appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_EXTRA_SIANG) invalidLock = `Ekstra Siang (maks ${appConfig.CUTOFF_EXTRA_SIANG_TEXT})`;
       }
       if (!invalidLock && orderData.ekstra['SORE']?.length > 0) {
-        if (currentHour >= 14) invalidLock = 'Ekstra Sore (maks 14:00 WIB)';
+        if (appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_EXTRA_SORE) invalidLock = `Ekstra Sore (maks ${appConfig.CUTOFF_EXTRA_SORE_TEXT})`;
       }
 
       if (invalidLock) {
@@ -347,7 +348,7 @@ export default function Cart() {
       const [year, month, date] = tomorrowServingDateStr.split('-');
       const servingDateFormatted = `${year}-${month}-${date} 12:00:00`;
 
-      // 5. Validasi Batas Kuota Porsi Berdasarkan Kelas Kamar Pasien (PRD 3.2)
+      // 5. Validasi Batas Kuota Porsi Berdasarkan Kelas Kamar Pasien
       if (hasPasienItems || hasPendampingItems) {
         const roomClassLower = (effectivePatient.effectiveClass || effectivePatient.roomClass || '').toLowerCase();
         const isVipA = roomClassLower.includes('vip a') || roomClassLower.includes('vip_a') || roomClassLower.includes('suite');
@@ -553,7 +554,7 @@ export default function Cart() {
             <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-start gap-3">
               <AlertCircle size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
               <div className="text-xs text-amber-800 leading-relaxed">
-                <span className="font-bold">Menu Utama Sudah Dipesan di Database:</span> Anda telah melakukan pemesanan Paket Utama untuk jadwal esok hari. Sesuai aturan sesi tunggal (PRD 3.2), menu utama tidak dapat dipesan kembali.
+                <span className="font-bold">Menu Utama Sudah Dipesan di Database:</span> Anda telah melakukan pemesanan Paket Utama untuk jadwal esok hari. Sesuai aturan sesi tunggal, menu utama tidak dapat dipesan kembali.
               </div>
             </div>
           )}
