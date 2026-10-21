@@ -4,7 +4,7 @@
  * sinkronisasi status pengantaran, rekapitulasi dapur gizi, dan kalkulasi ringkasan porsi.
  */
 
-import { apiGet, apiPostFormData, apiPut } from './apiClient';
+import { apiFetch, apiGet, apiPostFormData, apiPut } from './apiClient';
 import { enrichOrdersWithPatientAllergies, clearPatientCache } from './patientService';
 
 export { enrichOrdersWithPatientAllergies, clearPatientCache };
@@ -240,6 +240,83 @@ export async function getOrders(options = {}) {
   }
 
   // Lengkapi data pesanan dengan riwayat alergi pasien
+  if (options.withPatientAllergies) {
+    orders = await enrichOrdersWithPatientAllergies(orders);
+  }
+
+  return orders;
+}
+
+/**
+ * Mengambil daftar pesanan khusus jadwal hari ini / penyajian aktif dari endpoint /webhook/order-item-hari.
+ * Endpoint ini jauh lebih ringan (51 item vs 343+ riwayat di all-order-item) dan ideal untuk Dashboard Dapur & Koki.
+ * 
+ * @param {object} [options={}] - Filter opsional untuk menyaring pesanan
+ * @param {string|number} [options.patientId] - Filter No. RM / ID Pasien
+ * @param {'INCLUDE' | 'EXCLUDE'} [options.type] - Filter tipe pesanan
+ * @param {string} [options.orderCode] - Filter kode unik transaksi pesanan
+ * @param {string} [options.noreg] - Filter nomor registrasi pasien
+ * @param {boolean} [options.withPatientAllergies] - Jika true, lakukan enrichment riwayat alergi pasien
+ * @returns {Promise<Array<object>>} Daftar pesanan hari ini yang telah difilter dan dinormalisasi
+ */
+export async function getTodayOrders(options = {}) {
+  const res = await apiGet('/webhook/order-item-hari');
+  let data = Array.isArray(res) ? res : [];
+
+  const overrides = getStoredOverrides();
+
+  let orders = data.map(raw => {
+    const item = normalizeOrder(raw);
+    if (!item) return null;
+
+    const ov = overrides[String(item.id)];
+    if (ov) {
+      if (ov.notes !== undefined) item.notes = ov.notes;
+      if (ov.karbohidrat !== undefined) item.karbohidrat = ov.karbohidrat;
+      if (ov.protein !== undefined) item.protein = ov.protein;
+      if (ov.sayur !== undefined) item.sayur = ov.sayur;
+      if (ov.nabati !== undefined) item.nabati = ov.nabati;
+      if (ov.proteinTambahan !== undefined) {
+        item.proteinTambahan = ov.proteinTambahan;
+        item.protein_tambahan = ov.proteinTambahan;
+      }
+    }
+    return item;
+  }).filter(Boolean);
+
+  orders = inferMissingTypes(orders);
+
+  // Filter berdasarkan ID pasien (No. RM) jika diminta
+  if (options.patientId !== undefined && options.patientId !== null) {
+    const normalizePid = (val) => {
+      if (val === undefined || val === null) return '';
+      const s = String(val).trim().replace(/^RM-?/i, '');
+      const num = parseInt(s, 10);
+      return !isNaN(num) ? String(num) : s.toLowerCase();
+    };
+
+    const targetPid = normalizePid(options.patientId);
+    orders = orders.filter(item => normalizePid(item.patientId) === targetPid);
+  }
+
+  // Filter type jika diminta
+  if (options.type) {
+    const targetType = options.type.toUpperCase();
+    orders = orders.filter(item => item.type === targetType);
+  }
+
+  // Filter orderCode jika diminta
+  if (options.orderCode) {
+    orders = orders.filter(item => item.orderCode === options.orderCode);
+  }
+
+  // Filter noreg / noReg jika diminta
+  if (options.noreg || options.noReg) {
+    const targetReg = String(options.noreg || options.noReg).trim().toLowerCase();
+    orders = orders.filter(item => String(item.noReg || item.noreg || '').trim().toLowerCase() === targetReg);
+  }
+
+  // Lengkapi data pesanan dengan riwayat alergi pasien jika diminta
   if (options.withPatientAllergies) {
     orders = await enrichOrdersWithPatientAllergies(orders);
   }
@@ -505,6 +582,37 @@ export async function updateOrderNotes(id, notes, updatedFields = {}) {
 }
 
 /**
+ * Menghapus / membatalkan baris pesanan dari database server via API RS Edelweiss.
+ * Endpoint: POST /webhook/hapus-order-item?id={id}
+ * 
+ * @param {string|number} orderItemId - ID baris order yang akan dihapus
+ * @returns {Promise<any>} Hasil respons server
+ */
+export async function deleteOrderItem(orderItemId) {
+  if (orderItemId === undefined || orderItemId === null || String(orderItemId).trim() === '') {
+    throw new Error('ID item pesanan wajib diisi.');
+  }
+
+  const cleanId = String(orderItemId).trim();
+  const res = await apiFetch(`/webhook/hapus-order-item?id=${encodeURIComponent(cleanId)}`, {
+    method: 'POST',
+  });
+
+  // Hapus override lokal jika ada
+  try {
+    const overrides = getStoredOverrides();
+    if (overrides[cleanId]) {
+      delete overrides[cleanId];
+      saveStoredOverrides(overrides);
+    }
+  } catch (e) {
+    console.warn('[orderService] Gagal menghapus override lokal untuk item:', cleanId, e);
+  }
+
+  return res;
+}
+
+/**
  * Fungsi fallback auto-generate pesanan untuk kelas reguler (diabaikan pada integrasi RS langsung).
  * 
  * @returns {Promise<{ success: boolean, generatedOrdersCount: number, message: string }>}
@@ -529,6 +637,8 @@ export function cleanupLegacyLocalOrders() {
 
 export default {
   getOrders,
+  getTodayOrders,
+  deleteOrderItem,
   createOrders,
   checkPatientHasOrderedMain,
   getTomorrowServingDate,

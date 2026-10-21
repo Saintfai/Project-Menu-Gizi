@@ -16,7 +16,8 @@ import { OrdersTable } from '../../components/ui/tables/OrdersTable';
 import NoteDetailModal from '../../components/ui/modals/NoteDetailModal';
 import ComponentEditModal from '../../components/ui/modals/ComponentEditModal';
 import { groupOrdersForTable } from '../../utils/orderTransformer';
-import { getOrders, enrichOrdersWithPatientAllergies, clearPatientCache } from '../../services/orderService';
+import { getTodayOrders, getOrders, deleteOrderItem, enrichOrdersWithPatientAllergies, clearPatientCache } from '../../services/orderService';
+import { getTotalActivePatients } from '../../services/patientService';
 import PageTransition from '../../components/PageTransition';
 
 
@@ -39,6 +40,7 @@ export default function Dashboard() {
   const [selectedNoteData, setSelectedNoteData] = useState(null);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [totalActivePatients, setTotalActivePatients] = useState(0);
+  const [patientCensus, setPatientCensus] = useState({ totalPasien: 0, pasienKelas: 0, pasienVip: 0 });
 
   const [selectedComponentMeal, setSelectedComponentMeal] = useState(null);
 
@@ -82,14 +84,38 @@ export default function Dashboard() {
       }
       setError(null);
 
-      // Langkah 1 (Cepat): Ambil pesanan T+1 saja tanpa menunggu data alergi agar UI muncul instan (< 1 detik)
-      const data = await getOrders({ 
-        servingDate: tomorrowStr, 
-        withPatientAllergies: false 
-      });
+      // Langkah 1 (Cepat): Ambil pesanan T+1 via getTodayOrders() (hanya item jadwal aktif)
+      let data = [];
+      try {
+        data = await getTodayOrders({ withPatientAllergies: false });
+      } catch (errToday) {
+        console.warn('Gagal getTodayOrders, fallback ke getOrders:', errToday.message);
+        data = await getOrders({ 
+          servingDate: tomorrowStr, 
+          withPatientAllergies: false 
+        });
+      }
+
+      if (!data || data.length === 0) {
+        data = await getOrders({ 
+          servingDate: tomorrowStr, 
+          withPatientAllergies: false 
+        });
+      }
       setRawOrders(data || []);
 
-      // Hitung total pasien aktif berdasarkan ID pasien unik dari pesanan esok hari
+      // Ambil sensus total pasien rawat inap aktif dari endpoint /webhook/total-pasien-aktif
+      getTotalActivePatients()
+        .then((census) => {
+          if (census && census.totalPasien > 0) {
+            setPatientCensus(census);
+          }
+        })
+        .catch((censusErr) => {
+          console.warn('Gagal memuat sensus pasien aktif:', censusErr.message);
+        });
+
+      // Hitung total pasien yang sudah memesan berdasarkan ID pasien unik dari pesanan
       const uniquePatients = new Set((data || []).map(o => o.patientId).filter(Boolean));
       setTotalActivePatients(uniquePatients.size || 0);
 
@@ -322,10 +348,18 @@ export default function Dashboard() {
             <span className="w-1.5 h-1.5 rounded-full bg-primary-600 animate-pulse"></span>
             Siklus Hari {cycleNumber}
           </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200">
+          <div 
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200"
+            title={patientCensus.totalPasien > 0 ? `Sensus RS: ${patientCensus.totalPasien} Pasien (${patientCensus.pasienVip} VIP, ${patientCensus.pasienKelas} Kelas)` : `${totalActivePatients} Pasien Memesan`}
+          >
             <Users className="w-3.5 h-3.5 text-primary-600" />
-            {totalActivePatients} Pasien Aktif
-          </span>
+            <span>{totalActivePatients} Pasien Memesan</span>
+            {patientCensus.totalPasien > 0 && (
+              <span className="text-[10px] font-medium text-primary-700 bg-primary-100/70 px-1.5 py-0.5 rounded">
+                Sensus: {patientCensus.totalPasien} ({patientCensus.pasienVip} VIP)
+              </span>
+            )}
+          </div>
           <div className="px-3 py-1.5 rounded-lg text-xs font-bold bg-neutral-100 text-neutral-700 border border-neutral-200 flex flex-col items-end">
             <span className="text-[10px] text-neutral-500 leading-none">Penyajian T+1</span>
             <span>{formatServingDateDisplay(tomorrowObj)}</span>

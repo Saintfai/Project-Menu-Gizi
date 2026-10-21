@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { 
   RefreshCw, AlertCircle, FileText, ChefHat, UtensilsCrossed, Info, X, ChevronDown
 } from 'lucide-react';
-import { getOrders } from '../../services/orderService';
+import { getTodayOrders, getOrders } from '../../services/orderService';
 import { getMenuItemsByCycle } from '../../services/menuService';
 import PageTransition from '../../components/PageTransition';
 
@@ -22,12 +22,21 @@ export default function Chef() {
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [selectedMealTime, setSelectedMealTime] = useState('Semua');
 
-  // Ambil seluruh data pesanan untuk jadwal penyajian besok dari sistem RS
+  // Ambil data pesanan aktif dari sistem RS via endpoint cepat getTodayOrders()
   const fetchChefData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const ordersData = await getOrders();
+      let ordersData = [];
+      try {
+        ordersData = await getTodayOrders();
+      } catch (e) {
+        console.warn('Gagal getTodayOrders di Chef, fallback ke getOrders:', e.message);
+        ordersData = await getOrders();
+      }
+      if (!ordersData || ordersData.length === 0) {
+        ordersData = await getOrders();
+      }
       setRawOrders(ordersData || []);
     } catch (err) {
       console.error('Failed to fetch chef data:', err);

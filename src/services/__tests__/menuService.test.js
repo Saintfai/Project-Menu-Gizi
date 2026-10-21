@@ -5,7 +5,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as apiClient from '../apiClient';
-import { createMenuItem } from '../menuService';
+import { createMenuItem, getActiveCycleMenuFast, getActiveCycleMenu } from '../menuService';
 
 describe('menuService - createMenuItem', () => {
   beforeEach(() => {
@@ -81,5 +81,52 @@ describe('menuService - createMenuItem', () => {
     expect(capturedFormData.get('nabati')).toBe('-');
     expect(capturedFormData.get('protein_tambahan')).toBe('-');
     expect(capturedFormData.get('sayur')).toBe('-');
+  });
+
+  describe('getActiveCycleMenuFast', () => {
+    it('mengambil 11 item menu siklus aktif dari /webhook/menu-gizi-cycle', async () => {
+      vi.spyOn(apiClient, 'apiGet').mockResolvedValueOnce([
+        {
+          mid: 4,
+          name: 'Bubur Sumsum',
+          cycle_id: 1,
+          meal_time: 'PAGI',
+          paket_name: 'Paket C',
+          description: 'Bubur sumsum dengan kinca',
+          karbohidrat: 'Bubur Sumsum',
+          protein: '-',
+          nabati: '-',
+          protein_tambahan: 'Telur Rebus',
+          sayur: '-',
+        },
+      ]);
+
+      const items = await getActiveCycleMenuFast();
+      expect(apiClient.apiGet).toHaveBeenCalledWith('/webhook/menu-gizi-cycle');
+      expect(items).toHaveLength(1);
+      expect(items[0].id).toBe(4);
+      expect(items[0].name).toBe('Bubur Sumsum');
+      expect(items[0].mealTime).toBe('PAGI');
+      expect(items[0].paketName).toBe('Paket C');
+    });
+
+    it('fallback ke getMenuItemsByCycle jika endpoint /webhook/menu-gizi-cycle gagal', async () => {
+      vi.spyOn(apiClient, 'apiGet')
+        .mockRejectedValueOnce(new Error('Network error'))
+        .mockResolvedValueOnce([
+          {
+            mid: 10,
+            name: 'Fallback Menu',
+            cycle_id: 1,
+            meal_time: 'SIANG',
+            paket_name: 'Paket A',
+          },
+        ]);
+
+      const items = await getActiveCycleMenuFast();
+      expect(apiClient.apiGet).toHaveBeenCalledWith('/webhook/menu-gizi-cycle');
+      expect(apiClient.apiGet).toHaveBeenCalledWith('/webhook/menu-gizi');
+      expect(items.length).toBeGreaterThanOrEqual(0);
+    });
   });
 });
