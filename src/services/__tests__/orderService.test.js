@@ -5,10 +5,11 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getOrders } from '../orderService';
+import { getOrders, getTodayOrders, deleteOrderItem } from '../orderService';
 import * as apiClient from '../apiClient';
 
 vi.mock('../apiClient', () => ({
+  apiFetch: vi.fn(),
   apiGet: vi.fn(),
   apiPostFormData: vi.fn(),
   apiPut: vi.fn(),
@@ -318,6 +319,54 @@ describe('orderService - getOrders normalization', () => {
     // Tanggal berbeda tidak terdeteksi
     const differentDate = await checkPatientHasOrderedMain('148075', '2026-10-20');
     expect(differentDate).toBe(false);
+  });
+
+  describe('getTodayOrders', () => {
+    it('mengambil pesanan dari endpoint /webhook/order-item-hari dan menormalisasinya', async () => {
+      apiClient.apiGet.mockResolvedValueOnce([
+        {
+          id: 389,
+          patient_id: 148329,
+          room_number: 'JASMINE 5 - 5.3',
+          class_type: 'KELAS 2 | ',
+          notes: '',
+          consumer: 'pasien',
+          consumer_name: 'EUIS LISNAWATI',
+          meal_time: 'SORE',
+          menu_name: 'Beef Teriyaki',
+          paket_name: 'Paket A',
+          serving_date: '2026-10-21T17:00:00.000Z',
+          order_id: 'ORD-20261021-148329-4015',
+          type: 'include',
+        },
+      ]);
+
+      const orders = await getTodayOrders();
+      expect(apiClient.apiGet).toHaveBeenCalledWith('/webhook/order-item-hari');
+      expect(orders).toHaveLength(1);
+      expect(orders[0].id).toBe(389);
+      expect(orders[0].patientName).toBe('EUIS LISNAWATI');
+      expect(orders[0].mealTime).toBe('SORE');
+      expect(orders[0].type).toBe('INCLUDE');
+    });
+  });
+
+  describe('deleteOrderItem', () => {
+    it('mengirim request POST ke /webhook/hapus-order-item?id={id}', async () => {
+      apiClient.apiFetch.mockResolvedValueOnce([{ success: true }]);
+
+      const res = await deleteOrderItem(389);
+      expect(apiClient.apiFetch).toHaveBeenCalledWith(
+        '/webhook/hapus-order-item?id=389',
+        expect.objectContaining({ method: 'POST' })
+      );
+      expect(res).toEqual([{ success: true }]);
+    });
+
+    it('melempar error jika ID pesanan tidak disertakan', async () => {
+      await expect(deleteOrderItem('')).rejects.toThrow('ID item pesanan wajib diisi.');
+      await expect(deleteOrderItem(null)).rejects.toThrow('ID item pesanan wajib diisi.');
+    });
   });
 });
 

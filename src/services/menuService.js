@@ -41,6 +41,27 @@ function normalizeMenuItem(item) {
 }
 
 /**
+ * Mengambil menu siklus yang sedang aktif untuk jadwal penyajian besok (T+1) langsung dari
+ * endpoint cepat RS Edelweiss (/webhook/menu-gizi-cycle).
+ * Mengembalikan 11 hidangan khusus siklus aktif tanpa mengunduh seluruh 117 menu.
+ * 
+ * @returns {Promise<Array<object>>} Daftar hidangan menu pada siklus aktif
+ */
+export async function getActiveCycleMenuFast() {
+  try {
+    const data = await apiGet('/webhook/menu-gizi-cycle');
+    if (Array.isArray(data) && data.length > 0) {
+      return data.map(normalizeMenuItem);
+    }
+  } catch (err) {
+    console.warn('[menuService] Gagal mengambil menu-gizi-cycle, fallback ke getAllMenuItems:', err.message);
+  }
+  // Fallback ke siklus berdasarkan tanggal jika endpoint khusus gagal
+  const targetCycle = getMenuCycleByDate();
+  return getMenuItemsByCycle(targetCycle);
+}
+
+/**
  * Mengambil menu siklus yang sedang aktif untuk jadwal penyajian besok (T+1) dari API RS Edelweiss.
  * Memastikan siklus menu yang dilihat pasien dan admin selalu SAMA PERSIS.
  * 
@@ -48,6 +69,9 @@ function normalizeMenuItem(item) {
  * @returns {Promise<Array<object>>} Daftar hidangan menu pada siklus aktif
  */
 export async function getActiveCycleMenu(cycleId) {
+  if (!cycleId) {
+    return getActiveCycleMenuFast();
+  }
   const targetCycle = cycleId || getMenuCycleByDate();
   return getMenuItemsByCycle(targetCycle);
 }
@@ -206,3 +230,15 @@ export async function createMenuItem(item = {}) {
 export async function deleteMenuItem() {
   throw new Error('Penghapusan item menu tidak didukung oleh sistem RS. Silakan ubah konten menu yang ada.');
 }
+
+export default {
+  getActiveCycleMenu,
+  getActiveCycleMenuFast,
+  getAllMenuItems,
+  getMenuItemsByCycle,
+  getMenuCycles,
+  updateMenuItem,
+  createMenuItem,
+  deleteMenuItem,
+  clearMenuCache,
+};

@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getPatientByRm, getPatientByNameAndDob, isVipPatient, getPatientsAllergiesMap, clearPatientCache } from '../patientService';
+import { getPatientByRm, getPatientByNameAndDob, isVipPatient, getPatientsAllergiesMap, clearPatientCache, getTotalActivePatients } from '../patientService';
 import * as apiClient from '../apiClient';
 
 vi.mock('../apiClient', () => ({
@@ -210,6 +210,35 @@ describe('patientService - VIP only access', () => {
       const map3 = await getPatientsAllergiesMap(['77777']);
       expect(map3.get('77777')?.allergies).toBe('Udang, Telur');
       expect(apiClient.apiGet).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('getTotalActivePatients', () => {
+    it('mengambil data total pasien aktif, kelas, dan VIP dengan format angka', async () => {
+      apiClient.apiGet.mockResolvedValueOnce({
+        total_pasien: '48',
+        pasien_kelas: '23',
+        pasien_vip: '25',
+      });
+
+      const res = await getTotalActivePatients();
+      expect(apiClient.apiGet).toHaveBeenCalledWith('/webhook/total-pasien-aktif');
+      expect(res).toEqual({
+        totalPasien: 48,
+        pasienKelas: 23,
+        pasienVip: 25,
+      });
+    });
+
+    it('mengembalikan fallback 0 jika respons server kosong atau error', async () => {
+      apiClient.apiGet.mockRejectedValueOnce(new Error('Network error'));
+
+      const res = await getTotalActivePatients();
+      expect(res).toEqual({
+        totalPasien: 0,
+        pasienKelas: 0,
+        pasienVip: 0,
+      });
     });
   });
 });

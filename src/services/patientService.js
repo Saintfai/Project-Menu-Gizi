@@ -411,11 +411,35 @@ export async function enrichOrdersWithPatientAllergies(orders = []) {
   });
 }
 
+/**
+ * Mengambil ringkasan sensus total pasien rawat inap aktif dari server RS Edelweiss
+ * Endpoint: /webhook/total-pasien-aktif
+ * 
+ * @returns {Promise<{ totalPasien: number, pasienKelas: number, pasienVip: number }>}
+ */
+export async function getTotalActivePatients() {
+  try {
+    const data = await apiGet('/webhook/total-pasien-aktif');
+    if (!data || typeof data !== 'object') {
+      return { totalPasien: 0, pasienKelas: 0, pasienVip: 0 };
+    }
+    return {
+      totalPasien: Number(data.total_pasien) || 0,
+      pasienKelas: Number(data.pasien_kelas) || 0,
+      pasienVip: Number(data.pasien_vip) || 0,
+    };
+  } catch (err) {
+    console.warn('[patientService] Gagal mengambil total pasien aktif:', err.message);
+    return { totalPasien: 0, pasienKelas: 0, pasienVip: 0 };
+  }
+}
+
 export default {
   getPatientByRm,
   getPatientByNameAndDob,
   getPatientsAllergiesMap,
   enrichOrdersWithPatientAllergies,
+  getTotalActivePatients,
   normalizePatient,
   isVipPatient,
   formatDobForApi,
