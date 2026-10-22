@@ -54,8 +54,8 @@ function normalizeOrder(raw) {
     servingDate: raw.serving_date,
     serving_date: raw.serving_date,
     createdAt: raw.created_at,
-    created_at: raw.created_at,
-    notes: raw.notes || null,
+    notes: (raw.notes || raw.catatan || raw.note || raw.keterangan || '').trim() || null,
+    catatan: (raw.catatan || raw.notes || raw.note || raw.keterangan || '').trim() || null,
     type: orderType,
     hasExplicitType: Boolean(raw.type),
     description: raw.description || '-',
@@ -635,10 +635,167 @@ export function cleanupLegacyLocalOrders() {
   }
 }
 
+/**
+ * Format tanggal penyajian ke format DD-MM-YYYY untuk API note-chef RS Edelweiss.
+ * 
+ * @param {string|Date} dateVal - String tanggal YYYY-MM-DD atau Date object
+ * @returns {string} Format DD-MM-YYYY (contoh: "21-10-2026")
+ */
+function formatServingDateForChef(dateVal) {
+  if (!dateVal) return '';
+  const s = String(dateVal).trim();
+  if (/^\d{2}-\d{2}-\d{4}$/.test(s)) return s;
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const [y, m, d] = s.slice(0, 10).split('-');
+    return `${d}-${m}-${y}`;
+  }
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) {
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}`;
+  }
+  return s;
+}
+
+/**
+ * Normalisasi string tanggal apa pun ke format standar YYYY-MM-DD (WIB/lokal)
+ * untuk komparasi tanggal yang konsisten.
+ */
+function normalizeServingDateStr(val) {
+  if (!val) return '';
+  const s = String(val).trim();
+  const dmyMatch = s.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if (dmyMatch) {
+    return `${dmyMatch[3]}-${dmyMatch[2]}-${dmyMatch[1]}`;
+  }
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) {
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+  return s.slice(0, 10);
+}
+
+const CHEF_NOTE_LOCAL_KEY_PREFIX = 'hospital_chef_daily_note_';
+
+/**
+ * Mengambil catatan operasional harian koki dari API RS Edelweiss (/webhook/note-chef).
+ * Catatan dan catatan rangkuman dihitung dan diisolasi ketat per tanggal penyajian.
+ * 
+ * @param {string} [servingDate] - Tanggal penyajian (format YYYY-MM-DD atau DD-MM-YYYY)
+ * @returns {Promise<{ id?: number|string, note: string, servingDate: string, source: 'server'|'local'|'empty' }>}
+ */
+export async function getChefDailyNote(servingDate) {
+  const targetDateNorm = normalizeServingDateStr(servingDate || getTomorrowServingDate());
+  const dateKey = formatServingDateForChef(targetDateNorm);
+
+  // Ambil cache lokal khusus untuk tanggal ini (TIDAK BOLEH fallback ke tanggal lain)
+  const localSaved = typeof window !== 'undefined' && dateKey 
+    ? localStorage.getItem(`${CHEF_NOTE_LOCAL_KEY_PREFIX}${dateKey}`) 
+    : null;
+
+  try {
+    const res = await apiGet('/webhook/note-chef');
+    let matchedItem = null;
+
+    if (Array.isArray(res)) {
+      matchedItem = res.find(r => r && normalizeServingDateStr(r.serving_date || r.servingDate) === targetDateNorm);
+    } else if (res && typeof res === 'object') {
+      const serverDateNorm = normalizeServingDateStr(res.serving_date || res.servingDate);
+      if (serverDateNorm === targetDateNorm) {
+        matchedItem = res;
+      }
+    }
+
+    if (matchedItem) {
+      const serverNote = (matchedItem.note || '').trim();
+
+      // Jika catatan di server kosong tapi ada teks di lokal untuk tanggal ini, gunakan lokal
+      if (localSaved && localSaved.trim() !== '' && !serverNote) {
+        return {
+          id: matchedItem.id,
+          note: localSaved,
+          servingDate: dateKey,
+          source: 'local',
+        };
+      }
+
+      return {
+        id: matchedItem.id,
+        note: localSaved || serverNote,
+        servingDate: dateKey,
+        source: 'server',
+      };
+    }
+  } catch (err) {
+    console.warn('[orderService] Gagal memuat catatan koki dari server, memeriksa cache lokal:', err.message);
+  }
+
+  // Jika tidak ditemukan catatan di server untuk tanggal ini, cek cache lokal khusus tanggal ini
+  if (localSaved && localSaved.trim() !== '') {
+    return {
+      note: localSaved,
+      servingDate: dateKey,
+      source: 'local',
+    };
+  }
+
+  // Benar-benar belum ada catatan rangkuman untuk tanggal ini
+  return {
+    note: '',
+    servingDate: dateKey,
+    source: 'empty',
+  };
+}
+
+/**
+ * Menyimpan catatan operasional harian koki ke API RS Edelweiss via POST multipart/form-data.
+ * Endpoint: POST /webhook/note-chef
+ * Catatan disimpan dengan key tanggal penyajian spesifik.
+ * 
+ * @param {string} noteText - Teks catatan panjang rangkuman dari Tim Gizi
+ * @param {string} [servingDate] - Tanggal penyajian (contoh: "2026-10-21" atau "21-10-2026")
+ * @returns {Promise<{ success: boolean, data?: any, note: string, servingDate: string }>}
+ */
+export async function saveChefDailyNote(noteText, servingDate) {
+  const targetDateNorm = normalizeServingDateStr(servingDate || getTomorrowServingDate());
+  const formattedDate = formatServingDateForChef(targetDateNorm);
+  const cleanNote = String(noteText || '').trim();
+
+  // Simpan ke cache persisten lokal KHUSUS untuk tanggal ini
+  try {
+    if (typeof window !== 'undefined') {
+      if (formattedDate) {
+        localStorage.setItem(`${CHEF_NOTE_LOCAL_KEY_PREFIX}${formattedDate}`, cleanNote);
+      }
+      window.dispatchEvent(new CustomEvent('chef-daily-note-updated', { 
+        detail: { note: cleanNote, servingDate: formattedDate, dateNorm: targetDateNorm } 
+      }));
+    }
+  } catch (e) {
+    console.warn('[orderService] Gagal menyimpan catatan koki ke localStorage:', e);
+  }
+
+  const formData = new FormData();
+  formData.append('note', cleanNote);
+  formData.append('serving_date', formattedDate);
+
+  const res = await apiPostFormData('/webhook/note-chef', formData);
+
+  return {
+    success: true,
+    data: res,
+    note: cleanNote,
+    servingDate: formattedDate,
+  };
+}
+
 export default {
   getOrders,
   getTodayOrders,
   deleteOrderItem,
+  getChefDailyNote,
+  saveChefDailyNote,
   createOrders,
   checkPatientHasOrderedMain,
   getTomorrowServingDate,

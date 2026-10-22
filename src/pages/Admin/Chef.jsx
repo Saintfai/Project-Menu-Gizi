@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  RefreshCw, AlertCircle, FileText, ChefHat, UtensilsCrossed, Info, X, ChevronDown
+  RefreshCw, AlertCircle, FileText, ChefHat, UtensilsCrossed, Info, X, ChevronDown, FileEdit
 } from 'lucide-react';
-import { getTodayOrders, getOrders } from '../../services/orderService';
+import { getTodayOrders, getOrders, getChefDailyNote, enrichOrdersWithPatientAllergies } from '../../services/orderService';
+import { hasRealAllergy } from '../../utils/orderTransformer';
 import { getMenuItemsByCycle } from '../../services/menuService';
+import Button from '../../components/ui/buttons/Button';
+import ChefNoteSynthesizerModal from '../../components/ui/modals/ChefNoteSynthesizerModal';
 import PageTransition from '../../components/PageTransition';
 
 // Konversi objek tanggal ke format string YYYY-MM-DD
@@ -20,7 +23,34 @@ export default function Chef() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentDate, setCurrentDate] = useState(() => new Date());
+  const [selectedDateMode, setSelectedDateMode] = useState('tomorrow'); // 'today' | 'tomorrow'
   const [selectedMealTime, setSelectedMealTime] = useState('Semua');
+  const [chefDailyNote, setChefDailyNote] = useState('');
+  const [isChefNoteModalOpen, setIsChefNoteModalOpen] = useState(false);
+
+  // Tanggal Hari Ini (T) dan Esok Hari (T+1)
+  const todayObj = useMemo(() => new Date(currentDate), [currentDate]);
+  const tomorrowObj = useMemo(() => {
+    const d = new Date(currentDate);
+    d.setDate(d.getDate() + 1);
+    return d;
+  }, [currentDate]);
+
+  // Tanggal penyajian aktif yang dipilih (Hari Ini atau Besok)
+  const activeServingDateObj = useMemo(() => {
+    return selectedDateMode === 'today' ? todayObj : tomorrowObj;
+  }, [selectedDateMode, todayObj, tomorrowObj]);
+
+  const activeServingDateStr = useMemo(() => toDateInputString(activeServingDateObj), [activeServingDateObj]);
+
+  // Nomor siklus menu berjalan (1 s.d. 11) berdasarkan tanggal aktif
+  const cycleNumber = useMemo(() => {
+    const day = activeServingDateObj.getDate();
+    let num = day % 10;
+    if (num === 0) num = 10;
+    if (day === 31) num = 11;
+    return num;
+  }, [activeServingDateObj]);
 
   // Ambil data pesanan aktif dari sistem RS via endpoint cepat getTodayOrders()
   const fetchChefData = useCallback(async () => {
@@ -38,31 +68,38 @@ export default function Chef() {
         ordersData = await getOrders();
       }
       setRawOrders(ordersData || []);
+
+      // Langkah background: Perkaya data pesanan dengan riwayat alergi pasien di latar belakang
+      if (ordersData && ordersData.length > 0) {
+        enrichOrdersWithPatientAllergies(ordersData)
+          .then((enriched) => {
+            if (Array.isArray(enriched)) {
+              setRawOrders(enriched);
+            }
+          })
+          .catch((enrichErr) => {
+            console.warn('Gagal memuat riwayat alergi pasien di Chef:', enrichErr);
+          });
+      }
+
+      // Ambil catatan koki rangkuman tim gizi KHUSUS untuk tanggal penyajian aktif
+      try {
+        const noteRes = await getChefDailyNote(activeServingDateStr);
+        if (noteRes && noteRes.note) {
+          setChefDailyNote(noteRes.note);
+        } else {
+          setChefDailyNote('');
+        }
+      } catch (noteErr) {
+        console.warn('Gagal memuat catatan koki di Chef.jsx:', noteErr);
+      }
     } catch (err) {
       console.error('Failed to fetch chef data:', err);
       setError(err.message || 'Gagal mengambil data pesanan.');
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  // Objek tanggal penyajian esok hari (T+1)
-  const tomorrowObj = useMemo(() => {
-    const d = new Date(currentDate);
-    d.setDate(d.getDate() + 1);
-    return d;
-  }, [currentDate]);
-
-  const tomorrowStr = useMemo(() => toDateInputString(tomorrowObj), [tomorrowObj]);
-
-  // Nomor siklus menu berjalan (1 s.d. 11)
-  const cycleNumber = useMemo(() => {
-    const day = tomorrowObj.getDate();
-    let num = day % 10;
-    if (num === 0) num = 10;
-    if (day === 31) num = 11;
-    return num;
-  }, [tomorrowObj]);
+  }, [activeServingDateStr]);
 
   // Ambil komponen master menu berdasarkan siklus menu aktif
   useEffect(() => {
@@ -90,7 +127,22 @@ export default function Chef() {
     };
   }, [fetchChefData]);
 
-  // Filter pesanan khusus untuk jadwal produksi esok hari (T+1)
+  // Sinkronisasi instan jika ada update catatan koki dari modal rangkuman gizi untuk tanggal aktif
+  useEffect(() => {
+    const handleNoteUpdated = (e) => {
+      if (e.detail?.note !== undefined) {
+        if (!e.detail.dateNorm || e.detail.dateNorm === activeServingDateStr) {
+          setChefDailyNote(e.detail.note);
+        }
+      }
+    };
+    window.addEventListener('chef-daily-note-updated', handleNoteUpdated);
+    return () => {
+      window.removeEventListener('chef-daily-note-updated', handleNoteUpdated);
+    };
+  }, [activeServingDateStr]);
+
+  // Filter pesanan khusus untuk jadwal produksi tanggal penyajian aktif (Hari Ini atau Besok)
   const filteredDailyOrders = useMemo(() => {
     return rawOrders.filter((order) => {
       const dateVal = order.servingDate || order.createdAt;
@@ -98,9 +150,9 @@ export default function Chef() {
       const d = new Date(dateVal);
       const localStr = !isNaN(d.getTime()) ? toDateInputString(d) : '';
       const isoPrefix = typeof dateVal === 'string' ? dateVal.slice(0, 10) : '';
-      return localStr === tomorrowStr || isoPrefix === tomorrowStr;
+      return localStr === activeServingDateStr || isoPrefix === activeServingDateStr;
     });
-  }, [rawOrders, tomorrowStr]);
+  }, [rawOrders, activeServingDateStr]);
 
   // Agregasi jumlah porsi per bahan/komponen lauk dan catatan khusus diet pasien
   const chefStats = useMemo(() => {
@@ -112,6 +164,7 @@ export default function Chef() {
       'Protein Tambahan': {}, 
       notes: []
     };
+    const patientNotesMap = new Map();
 
     filteredDailyOrders.forEach(order => {
       const qty = order.quantity || 1;
@@ -208,18 +261,35 @@ export default function Chef() {
         addStat('Karbohidrat', fallbackName);
       }
 
-      // Rekap catatan khusus pesanan per pasien (alergi dipisahkan)
-      if (order.notes && typeof order.notes === 'string' && order.notes.trim() !== '' && order.notes.trim() !== '-') {
-        overallStats.notes.push({
-          patientName: order.patientName || order.patient?.name,
-          room: (order.roomNumber ? `${order.roomNumber} - ${order.classType || ''}` : (order.kamar || '-')).replace(/\s*\|\s*$/, ''),
-          note: order.notes,
-          menu: order.menuName || order.paketName,
-          mealTime: meal
-        });
+      // Rekap catatan khusus pesanan per pasien (filter 1 catatan per pasien)
+      const hasNote = order.notes && typeof order.notes === 'string' && order.notes.trim() !== '' && order.notes.trim() !== '-';
+      const allergyRaw = order.patient?.allergies || order.allergies || order.allergyNote || null;
+      const isAllergic = typeof order.hasAllergy === 'boolean' ? order.hasAllergy : hasRealAllergy(allergyRaw);
+
+      if (hasNote || (isAllergic && allergyRaw)) {
+        const patientName = order.patientName || order.patient?.name || order.consumer_name || 'Pasien';
+        const room = (order.roomNumber ? `${order.roomNumber} - ${order.classType || ''}` : (order.kamar || '-')).replace(/\s*\|\s*$/, '');
+        const patientId = order.patientId || order.rmNumber || '-';
+        const patientKey = String(patientId && patientId !== '-' ? patientId : `${patientName}_${room}`).trim().toLowerCase();
+
+        if (!patientNotesMap.has(patientKey)) {
+          patientNotesMap.set(patientKey, {
+            patientName,
+            room,
+            note: hasNote ? order.notes.trim() : '',
+            allergy: isAllergic ? allergyRaw : '',
+            menu: order.menuName || order.paketName,
+            mealTime: meal
+          });
+        } else {
+          const existing = patientNotesMap.get(patientKey);
+          if (!existing.note && hasNote) existing.note = order.notes.trim();
+          if (!existing.allergy && allergyRaw) existing.allergy = allergyRaw;
+        }
       }
     });
 
+    overallStats.notes = Array.from(patientNotesMap.values());
     return overallStats;
   }, [filteredDailyOrders, menuItems, selectedMealTime]);
 
@@ -251,36 +321,7 @@ export default function Chef() {
     tambahan: tambahanEntries[i] || null,
   }));
 
-  // Kelompokkan catatan khusus pasien per kamar dan nama pasien
-  const groupedNotes = useMemo(() => {
-    const groups = {};
-    (chefStats?.notes || []).forEach(n => {
-      const menuName = n.menu || 'Menu Lainnya';
-      let noteText = n.note || '';
 
-      const labels = ['Karbohidrat', 'Protein Hewani', 'Sayur', 'Protein Nabati', 'Protein Tambahan'];
-      labels.forEach(label => {
-          noteText = noteText.replace(new RegExp(`\\[Ganti ${label}: .*?\\]\\n?`, 'g'), '');
-          noteText = noteText.replace(new RegExp(`\\[Tanpa ${label}\\]\\n?`, 'g'), '');
-      });
-      noteText = noteText.trim();
-      
-      if (noteText) {
-        const patientKey = `${n.patientName || 'Pasien'}|||${n.room || '-'}`;
-        if (!groups[patientKey]) {
-          groups[patientKey] = {
-            patientName: n.patientName || 'Pasien',
-            room: n.room || '-',
-            notes: []
-          };
-        }
-        if (!groups[patientKey].notes.includes(noteText)) {
-          groups[patientKey].notes.push(noteText);
-        }
-      }
-    });
-    return Object.values(groups);
-  }, [chefStats]);
 
   const hasAnyData = maxRows > 0;
 
@@ -309,13 +350,41 @@ export default function Chef() {
           </div>
           
           <div className="flex items-center gap-3 flex-wrap">
+            {/* Toggle Hari Ini vs Besok (T+1) */}
+            <div className="inline-flex rounded-lg border border-neutral-200 bg-neutral-100 p-0.5">
+              <button
+                type="button"
+                onClick={() => setSelectedDateMode('today')}
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                  selectedDateMode === 'today'
+                    ? 'bg-white text-primary-700 shadow-xs'
+                    : 'text-neutral-600 hover:text-neutral-900'
+                }`}
+              >
+                Hari Ini
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedDateMode('tomorrow')}
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                  selectedDateMode === 'tomorrow'
+                    ? 'bg-white text-primary-700 shadow-xs'
+                    : 'text-neutral-600 hover:text-neutral-900'
+                }`}
+              >
+                Besok (T+1)
+              </button>
+            </div>
+
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200">
               <span className="w-1.5 h-1.5 rounded-full bg-primary-600 animate-pulse"></span>
               Siklus Hari {cycleNumber}
             </span>
             <div className="px-3 py-1.5 rounded-lg text-xs font-bold bg-neutral-100 text-neutral-700 border border-neutral-200 flex flex-col items-end">
-              <span className="text-[10px] text-neutral-500 leading-none">Penyajian T+1</span>
-              <span>{formatServingDateDisplay(tomorrowObj)}</span>
+              <span className="text-[10px] text-neutral-500 leading-none">
+                {selectedDateMode === 'today' ? 'Penyajian Hari Ini (T)' : 'Penyajian Besok (T+1)'}
+              </span>
+              <span>{formatServingDateDisplay(activeServingDateObj)}</span>
             </div>
             <button
               type="button"
@@ -344,6 +413,8 @@ export default function Chef() {
         ) : (
           <div className="space-y-6">
             
+
+
             {/* Filter Section */}
             <div className="flex pb-2">
               <div className="relative w-44">
@@ -437,35 +508,51 @@ export default function Chef() {
             </div>
             )}
 
-            {/* Notes Section Below Table */}
-            {hasAnyData && groupedNotes.length > 0 && (
-              <div className="mt-8 bg-white border border-neutral-200 rounded-xl p-5 shadow-sm">
-                <h3 className="font-bold text-neutral-900 text-lg mb-4 flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-primary-600" />
-                  Catatan Khusus per Pasien
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {groupedNotes.map((group, idx) => (
-                    <div key={idx} className="bg-neutral-50 rounded-lg p-4 border border-neutral-200 shadow-sm flex flex-col gap-0.5">
-                      <div className="flex justify-between items-start gap-2">
-                        <div className="font-semibold text-neutral-900 text-sm uppercase tracking-wide">{group.patientName}</div>
-                        <div className="text-neutral-500 text-xs text-right shrink-0">Kamar {group.room}</div>
-                      </div>
-                      <div className="text-neutral-900 text-sm mt-1.5">Catatan:</div>
-                      {group.notes.map((noteText, nIdx) => (
-                        <div key={nIdx} className="text-sm text-neutral-800">
-                          {noteText}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
+            {/* Catatan Rangkuman Dapur / Koki (Format Simpel & Formal) */}
+            <div className="bg-white mb-8 overflow-hidden" style={{ border: '1px solid #9ca3af' }}>
+              <div 
+                className="bg-primary-50 px-4 py-2.5 flex items-center justify-between flex-wrap gap-2"
+                style={{ borderBottom: '1px solid #9ca3af' }}
+              >
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-primary-700" />
+                  <span className="text-xs sm:text-sm font-bold text-neutral-900 uppercase tracking-wide">
+                    Catatan Rangkuman Dapur ({formatServingDateDisplay(activeServingDateObj)})
+                  </span>
                 </div>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setIsChefNoteModalOpen(true)}
+                  leftIcon={<FileEdit className="w-3.5 h-3.5" />}
+                >
+                  {chefDailyNote ? 'Edit Catatan' : 'Buat Catatan'}
+                </Button>
               </div>
-            )}
+
+              <div className="p-4">
+                {chefDailyNote ? (
+                  <div className="text-sm text-neutral-900 leading-relaxed font-sans whitespace-pre-wrap">
+                    {chefDailyNote}
+                  </div>
+                ) : (
+                  <div className="py-6 text-center text-xs text-neutral-500">
+                    Belum ada catatan rangkuman dapur untuk jadwal {selectedDateMode === 'today' ? 'Hari Ini' : 'Besok'}.
+                  </div>
+                )}
+              </div>
+            </div>
             
           </div>
         )}
 
+        <ChefNoteSynthesizerModal
+          isOpen={isChefNoteModalOpen}
+          onClose={() => setIsChefNoteModalOpen(false)}
+          orders={rawOrders}
+          servingDate={activeServingDateStr}
+          onSaved={(savedNote) => setChefDailyNote(savedNote)}
+        />
       </div>
     </PageTransition>
   );

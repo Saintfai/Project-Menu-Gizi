@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getOrders, getTodayOrders, deleteOrderItem } from '../orderService';
+import { getOrders, getTodayOrders, deleteOrderItem, getChefDailyNote, saveChefDailyNote } from '../orderService';
 import * as apiClient from '../apiClient';
 
 vi.mock('../apiClient', () => ({
@@ -366,6 +366,58 @@ describe('orderService - getOrders normalization', () => {
     it('melempar error jika ID pesanan tidak disertakan', async () => {
       await expect(deleteOrderItem('')).rejects.toThrow('ID item pesanan wajib diisi.');
       await expect(deleteOrderItem(null)).rejects.toThrow('ID item pesanan wajib diisi.');
+    });
+  });
+
+  describe('getChefDailyNote & saveChefDailyNote', () => {
+    it('mengambil catatan koki dari server dan menormalisasinya', async () => {
+      apiClient.apiGet.mockResolvedValueOnce({
+        id: 2,
+        serving_date: '21-10-2026',
+        note: 'Porsi sup dipisah untuk kamar 302',
+      });
+
+      const res = await getChefDailyNote('2026-10-21');
+      expect(apiClient.apiGet).toHaveBeenCalledWith('/webhook/note-chef');
+      expect(res.note).toBe('Porsi sup dipisah untuk kamar 302');
+      expect(res.servingDate).toBe('21-10-2026');
+    });
+
+    it('mendukung respons berupa array dari server', async () => {
+      apiClient.apiGet.mockResolvedValueOnce([
+        { id: 1, serving_date: '20-10-2026', note: 'Catatan lama' },
+        { id: 2, serving_date: '21-10-2026', note: 'Catatan baru T+1' },
+      ]);
+
+      const res = await getChefDailyNote('2026-10-21');
+      expect(res.note).toBe('Catatan baru T+1');
+    });
+
+    it('menyimpan catatan koki ke server dengan multipart FormData dan format tanggal DD-MM-YYYY', async () => {
+      apiClient.apiPostFormData.mockResolvedValueOnce({ success: true });
+
+      const res = await saveChefDailyNote('Bubur encer untuk VIP Suite', '2026-10-22');
+      expect(apiClient.apiPostFormData).toHaveBeenCalledWith(
+        '/webhook/note-chef',
+        expect.any(FormData)
+      );
+      expect(res.success).toBe(true);
+      expect(res.note).toBe('Bubur encer untuk VIP Suite');
+      expect(res.servingDate).toBe('22-10-2026');
+    });
+
+    it('tidak mengembalikan catatan tanggal lain jika tanggal yang diminta berbeda (isolasi per hari)', async () => {
+      apiClient.apiGet.mockResolvedValueOnce({
+        id: 99,
+        serving_date: '21-10-2026',
+        note: 'Catatan untuk hari 21',
+      });
+
+      // Minta untuk tanggal 22-10-2026
+      const res = await getChefDailyNote('2026-10-22');
+      expect(res.note).toBe('');
+      expect(res.source).toBe('empty');
+      expect(res.servingDate).toBe('22-10-2026');
     });
   });
 });

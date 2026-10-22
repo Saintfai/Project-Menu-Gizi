@@ -53,6 +53,9 @@ export default function MenuCycle() {
     nabati: '',
     proteinTambahan: '',
     sayur: '',
+    isBiasa: true,
+    isCair: false,
+    isLunak: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -101,6 +104,9 @@ export default function MenuCycle() {
       nabati: '',
       proteinTambahan: '',
       sayur: '',
+      isBiasa: true,
+      isCair: false,
+      isLunak: false,
     });
     setIsAddModalOpen(true);
   };
@@ -117,6 +123,9 @@ export default function MenuCycle() {
       nabati: item.nabati || '',
       proteinTambahan: item.proteinTambahan || '',
       sayur: item.sayur || '',
+      isBiasa: item.isBiasa ?? item.is_biasa ?? true,
+      isCair: item.isCair ?? item.is_cair ?? false,
+      isLunak: item.isLunak ?? item.is_lunak ?? false,
     });
     setIsEditModalOpen(true);
   };
@@ -155,6 +164,9 @@ export default function MenuCycle() {
         nabati: sanitized.nabati || null,
         proteinTambahan: sanitized.proteinTambahan || null,
         sayur: sanitized.sayur || null,
+        isBiasa: formData.isBiasa,
+        isCair: formData.isCair,
+        isLunak: formData.isLunak,
       });
       toast.success('Menu baru berhasil ditambahkan!');
       setIsAddModalOpen(false);
@@ -191,6 +203,9 @@ export default function MenuCycle() {
         nabati: sanitized.nabati || '-',
         proteinTambahan: sanitized.proteinTambahan || '-',
         sayur: sanitized.sayur || '-',
+        isBiasa: formData.isBiasa,
+        isCair: formData.isCair,
+        isLunak: formData.isLunak,
       });
       toast.success('Perubahan menu berhasil disimpan!');
       setIsEditModalOpen(false);
@@ -269,9 +284,26 @@ export default function MenuCycle() {
               >
                 {/* Header item: Badge & Actions */}
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-md border border-neutral-300 bg-neutral-100 text-neutral-800">
-                    {item.paketName || 'Paket'}
-                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-md border border-neutral-300 bg-neutral-100 text-neutral-800">
+                      {item.paketName || 'Paket'}
+                    </span>
+                    {(item.isBiasa || item.is_biasa) && (
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200" title="Bentuk Makanan Biasa">
+                        Biasa
+                      </span>
+                    )}
+                    {(item.isLunak || item.is_lunak) && (
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200" title="Bentuk Makanan Lunak">
+                        Lunak
+                      </span>
+                    )}
+                    {(item.isCair || item.is_cair) && (
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200" title="Bentuk Makanan Cair">
+                        Cair
+                      </span>
+                    )}
+                  </div>
                   
                   {/* Action Buttons */}
                   <div className="flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
@@ -536,6 +568,40 @@ export default function MenuCycle() {
             />
           </div>
 
+          {/* ── Kesesuaian Diet / Bentuk Makanan ── */}
+          <div className="pt-1 border-t border-neutral-100 space-y-2">
+            <p className="text-xs font-bold text-neutral-600">Bentuk Makanan (Kesesuaian Diet)</p>
+            <div className="flex items-center gap-4 flex-wrap">
+              <label className="flex items-center gap-1.5 text-xs text-neutral-700 cursor-pointer font-medium select-none">
+                <input
+                  type="checkbox"
+                  checked={formData.isBiasa}
+                  onChange={(e) => setFormData({ ...formData, isBiasa: e.target.checked })}
+                  className="rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span>Makanan Biasa</span>
+              </label>
+              <label className="flex items-center gap-1.5 text-xs text-neutral-700 cursor-pointer font-medium select-none">
+                <input
+                  type="checkbox"
+                  checked={formData.isLunak}
+                  onChange={(e) => setFormData({ ...formData, isLunak: e.target.checked })}
+                  className="rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span>Makanan Lunak</span>
+              </label>
+              <label className="flex items-center gap-1.5 text-xs text-neutral-700 cursor-pointer font-medium select-none">
+                <input
+                  type="checkbox"
+                  checked={formData.isCair}
+                  onChange={(e) => setFormData({ ...formData, isCair: e.target.checked })}
+                  className="rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span>Makanan Cair</span>
+              </label>
+            </div>
+          </div>
+
           <div className="pt-3 flex items-center justify-end gap-2 border-t border-neutral-100">
             <Button
               type="button"
@@ -625,6 +691,40 @@ export default function MenuCycle() {
               value={formData.sayur}
               onChange={(e) => setFormData({ ...formData, sayur: e.target.value })}
             />
+          </div>
+
+          {/* ── Kesesuaian Diet / Bentuk Makanan ── */}
+          <div className="pt-1 border-t border-neutral-100 space-y-2">
+            <p className="text-xs font-bold text-neutral-600">Bentuk Makanan (Kesesuaian Diet)</p>
+            <div className="flex items-center gap-4 flex-wrap">
+              <label className="flex items-center gap-1.5 text-xs text-neutral-700 cursor-pointer font-medium select-none">
+                <input
+                  type="checkbox"
+                  checked={formData.isBiasa}
+                  onChange={(e) => setFormData({ ...formData, isBiasa: e.target.checked })}
+                  className="rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span>Makanan Biasa</span>
+              </label>
+              <label className="flex items-center gap-1.5 text-xs text-neutral-700 cursor-pointer font-medium select-none">
+                <input
+                  type="checkbox"
+                  checked={formData.isLunak}
+                  onChange={(e) => setFormData({ ...formData, isLunak: e.target.checked })}
+                  className="rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span>Makanan Lunak</span>
+              </label>
+              <label className="flex items-center gap-1.5 text-xs text-neutral-700 cursor-pointer font-medium select-none">
+                <input
+                  type="checkbox"
+                  checked={formData.isCair}
+                  onChange={(e) => setFormData({ ...formData, isCair: e.target.checked })}
+                  className="rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span>Makanan Cair</span>
+              </label>
+            </div>
           </div>
 
           <div className="pt-3 flex items-center justify-end gap-2 border-t border-neutral-100">

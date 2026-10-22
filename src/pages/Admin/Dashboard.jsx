@@ -7,9 +7,9 @@ import {
   Search, 
   RefreshCw, 
   AlertCircle, 
-  ChevronDown,
-  Users,
-  ClipboardList
+  ChevronDown, 
+  Users, 
+  ClipboardList 
 } from 'lucide-react';
 import RekapCard from '../../components/ui/cards/RekapCard';
 import { OrdersTable } from '../../components/ui/tables/OrdersTable';
@@ -40,8 +40,31 @@ export default function Dashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedNoteData, setSelectedNoteData] = useState(null);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
-  const [totalActivePatients, setTotalActivePatients] = useState(0);
   const [patientCensus, setPatientCensus] = useState({ totalPasien: 0, pasienKelas: 0, pasienVip: 0 });
+
+  // Hitung jumlah pasien VIP dan Kelas dari sensus atau pesanan aktif
+  const { vipCount, kelasCount } = useMemo(() => {
+    let vip = Number(patientCensus?.pasienVip) || 0;
+    let kelas = Number(patientCensus?.pasienKelas) || 0;
+
+    if (vip === 0 && kelas === 0 && Array.isArray(rawOrders) && rawOrders.length > 0) {
+      const vipSet = new Set();
+      const kelasSet = new Set();
+      rawOrders.forEach(o => {
+        const room = String(o.roomNumber || o.classType || o.kamar || '').toLowerCase();
+        const isVip = room.includes('vip') || room.includes('suite');
+        const patientKey = o.patientId || o.rmNumber || o.consumer_name;
+        if (patientKey) {
+          if (isVip) vipSet.add(patientKey);
+          else kelasSet.add(patientKey);
+        }
+      });
+      vip = vipSet.size;
+      kelas = kelasSet.size;
+    }
+
+    return { vipCount: vip, kelasCount: kelas };
+  }, [patientCensus, rawOrders]);
 
   const [selectedComponentMeal, setSelectedComponentMeal] = useState(null);
 
@@ -115,10 +138,6 @@ export default function Dashboard() {
         .catch((censusErr) => {
           console.warn('Gagal memuat sensus pasien aktif:', censusErr.message);
         });
-
-      // Hitung total pasien yang sudah memesan berdasarkan ID pasien unik dari pesanan
-      const uniquePatients = new Set((data || []).map(o => o.patientId).filter(Boolean));
-      setTotalActivePatients(uniquePatients.size || 0);
 
       // Langsung matikan loading agar tabel dan 4 kartu rekapitulasi langsung tampil
       if (!isSilent) {
@@ -350,16 +369,13 @@ export default function Dashboard() {
             Siklus Hari {cycleNumber}
           </span>
           <div 
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200"
-            title={patientCensus.totalPasien > 0 ? `Sensus RS: ${patientCensus.totalPasien} Pasien (${patientCensus.pasienVip} VIP, ${patientCensus.pasienKelas} Kelas)` : `${totalActivePatients} Pasien Memesan`}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200"
+            title={`Sensus Pasien Rawat Inap: ${vipCount} Pasien VIP, ${kelasCount} Pasien Kelas`}
           >
             <Users className="w-3.5 h-3.5 text-primary-600" />
-            <span>{totalActivePatients} Pasien Memesan</span>
-            {patientCensus.totalPasien > 0 && (
-              <span className="text-[10px] font-medium text-primary-700 bg-primary-100/70 px-1.5 py-0.5 rounded">
-                Sensus: {patientCensus.totalPasien} ({patientCensus.pasienVip} VIP)
-              </span>
-            )}
+            <span>VIP: {vipCount} Pasien</span>
+            <span className="text-primary-300">|</span>
+            <span>Kelas: {kelasCount} Pasien</span>
           </div>
           <div className="px-3 py-1.5 rounded-lg text-xs font-bold bg-neutral-100 text-neutral-700 border border-neutral-200 flex flex-col items-end">
             <span className="text-[10px] text-neutral-500 leading-none">Penyajian T+1</span>

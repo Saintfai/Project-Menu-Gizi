@@ -35,6 +35,12 @@ function normalizeMenuItem(item) {
     sayur: item.sayur || '-',
     bentukMakanan: item.bentuk_makanan || '-',
     bentuk_makanan: item.bentuk_makanan || '-',
+    isBiasa: item.is_biasa === true || item.is_biasa === 'true',
+    isCair: item.is_cair === true || item.is_cair === 'true',
+    isLunak: item.is_lunak === true || item.is_lunak === 'true',
+    is_biasa: item.is_biasa === true || item.is_biasa === 'true',
+    is_cair: item.is_cair === true || item.is_cair === 'true',
+    is_lunak: item.is_lunak === true || item.is_lunak === 'true',
     createdAt: item.created_at,
     updatedAt: item.updated_at,
   };
@@ -171,6 +177,9 @@ export async function updateMenuItem(id, updates = {}) {
     protein_tambahan: updates.proteinTambahan || updates.protein_tambahan || '-',
     sayur: updates.sayur || '-',
     bentuk_makanan: updates.bentukMakanan || updates.bentuk_makanan || '-',
+    is_biasa: String(Boolean(updates.isBiasa ?? updates.is_biasa)),
+    is_cair: String(Boolean(updates.isCair ?? updates.is_cair)),
+    is_lunak: String(Boolean(updates.isLunak ?? updates.is_lunak)),
   };
 
   const res = await apiPut('/webhook/edit-menu-gizi', params);
@@ -194,6 +203,9 @@ export async function updateMenuItem(id, updates = {}) {
  * @param {string} [item.proteinTambahan] - Komponen protein tambahan
  * @param {string} [item.sayur] - Komponen sayur
  * @param {string} [item.bentukMakanan] - Bentuk makanan (Biasa / Lunak / Cair)
+ * @param {boolean} [item.isBiasa] - Cocok untuk diet makanan biasa
+ * @param {boolean} [item.isCair] - Cocok untuk diet makanan cair
+ * @param {boolean} [item.isLunak] - Cocok untuk diet makanan lunak
  * @returns {Promise<any>} Hasil respons penambahan dari server
  */
 export async function createMenuItem(item = {}) {
@@ -215,6 +227,9 @@ export async function createMenuItem(item = {}) {
   );
   formData.append('sayur', item.sayur && item.sayur.trim() !== '' ? item.sayur.trim() : '-');
   formData.append('bentuk_makanan', String(item.bentukMakanan || item.bentuk_makanan || '-'));
+  formData.append('is_biasa', String(Boolean(item.isBiasa ?? item.is_biasa)));
+  formData.append('is_cair', String(Boolean(item.isCair ?? item.is_cair)));
+  formData.append('is_lunak', String(Boolean(item.isLunak ?? item.is_lunak)));
 
   const res = await apiPostFormData('/webhook/add-menu-gizi', formData);
   clearMenuCache();
