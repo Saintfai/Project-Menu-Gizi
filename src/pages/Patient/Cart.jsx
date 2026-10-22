@@ -24,9 +24,18 @@ const MEAL_SCHEDULE = {
 export default function Cart() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { patient, updatePatientInfo } = usePatient();
+  const { patient, updatePatientInfo, logoutPatient } = usePatient();
+  const handleLogout = () => {
+    logoutPatient();
+    navigate('/login', { replace: true });
+  };
+  const currentPatientKey = patient?.id || patient?.rmNumber ? String(patient.id || patient.rmNumber) : null;
   const [note, setNote] = useState(() => {
-    return secureSessionStorage.getItem('patient_cart_note') || '';
+    const savedOwner = secureSessionStorage.getItem('patient_cart_owner');
+    if (savedOwner && currentPatientKey && savedOwner === currentPatientKey) {
+      return secureSessionStorage.getItem('patient_cart_note') || '';
+    }
+    return '';
   });
 
   const [showModal, setShowModal] = useState(false);
@@ -67,8 +76,10 @@ export default function Cart() {
 
   // Simpan catatan ke session storage agar tidak hilang saat reload
   React.useEffect(() => {
-    secureSessionStorage.setItem('patient_cart_note', note);
-  }, [note]);
+    if (currentPatientKey) {
+      secureSessionStorage.setItem('patient_cart_note', note);
+    }
+  }, [note, currentPatientKey]);
 
   // Ambil pilihan menu dari state navigasi atau pulihkan dari session storage terenkripsi
   const [quantities] = useState(() => {
@@ -77,7 +88,11 @@ export default function Cart() {
       secureSessionStorage.setItem('patient_cart_quantities', locQuantities);
       return locQuantities;
     }
-    return secureSessionStorage.getItem('patient_cart_quantities', true) || {};
+    const savedOwner = secureSessionStorage.getItem('patient_cart_owner');
+    if (savedOwner && currentPatientKey && savedOwner === currentPatientKey) {
+      return secureSessionStorage.getItem('patient_cart_quantities', true) || {};
+    }
+    return {};
   });
 
   const [menuItems, setMenuItems] = useState(location.state?.menuItems || []);
@@ -512,6 +527,7 @@ export default function Cart() {
       // 9. Bersihkan data sementara dan buka halaman sukses
       secureSessionStorage.removeItem('patient_cart_note');
       secureSessionStorage.removeItem('patient_cart');
+      secureSessionStorage.removeItem('patient_cart_owner');
       secureSessionStorage.removeItem('patient_cart_quantities');
       setPendingRetryItems(null);
 
@@ -565,6 +581,7 @@ export default function Cart() {
         {/* 1. Header atas aplikasi mobile */}
         <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-neutral-100">
           <HeaderMobile
+            onLogout={handleLogout}
             title={
               <div className="flex flex-col gap-1">
                 <span className="font-bold text-neutral-900 leading-tight">Menu Gizi</span>

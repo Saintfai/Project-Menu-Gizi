@@ -9,7 +9,7 @@ import { usePatient } from '../../context/PatientContext';
 export default function OrderSuccess() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { patient } = usePatient();
+  const { patient, logoutPatient } = usePatient();
   
   // Data ringkasan pesanan dari Cart
   const { summary } = location.state || {};
@@ -35,6 +35,10 @@ export default function OrderSuccess() {
 
       <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-neutral-100">
         <HeaderMobile 
+          onLogout={() => {
+            logoutPatient();
+            navigate('/login', { replace: true });
+          }}
           title={
             <div className="flex flex-col gap-1">
               <span className="font-bold text-neutral-900 leading-tight">Menu Gizi</span>

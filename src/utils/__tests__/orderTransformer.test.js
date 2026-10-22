@@ -191,23 +191,45 @@ describe('Transformasi & Format Rekapitulasi Dapur Gizi (PRD 3.8)', () => {
       expect(budiOrder.allergyNote).toBe('Seafood, Kacang');
     });
 
-    it('mempertahankan atribut noReg / noreg pada hasil groupOrdersForTable', () => {
-      const rawWithNoReg = [
+    it('memisahkan pesanan Hari Ini (Ekstra) dan Besok (Utama) menjadi 2 baris terpisah', () => {
+      const mixedOrder = [
+        // Paket Utama Besok
         {
-          orderCode: 'ORD-REG-01',
-          patientId: 40430,
-          noReg: '2610140210',
+          orderCode: 'ORD-MIXED-001',
+          patientId: 'p-100',
+          patientName: 'Dewi Lestari',
+          rmNumber: 'RM-9999',
           mealTime: 'PAGI',
-          quantity: 1,
           paketName: 'Paket A',
           type: 'INCLUDE',
+          servingDate: '2026-10-23',
+        },
+        // Paket Ekstra Hari Ini
+        {
+          orderCode: 'ORD-MIXED-001',
+          patientId: 'p-100',
+          patientName: 'Dewi Lestari',
+          rmNumber: 'RM-9999',
+          mealTime: 'SIANG',
+          menuName: 'Sop Iga Spesial',
+          type: 'EXCLUDE',
+          servingDate: '2026-10-22',
         },
       ];
 
-      const res = groupOrdersForTable(rawWithNoReg);
-      expect(res).toHaveLength(1);
-      expect(res[0].noReg).toBe('2610140210');
-      expect(res[0].noreg).toBe('2610140210');
+      const res = groupOrdersForTable(mixedOrder);
+      expect(res).toHaveLength(2);
+
+      const todayRow = res.find((r) => r.servingDate === '2026-10-22' || String(r.servingDate).includes('2026-10-22'));
+      const tomorrowRow = res.find((r) => r.servingDate === '2026-10-23' || String(r.servingDate).includes('2026-10-23'));
+
+      expect(todayRow).toBeDefined();
+      expect(todayRow.makanSiang).toContain('Sop Iga Spesial');
+      expect(todayRow.makanPagi).toBe('-');
+
+      expect(tomorrowRow).toBeDefined();
+      expect(tomorrowRow.makanPagi).toBe('Paket A');
+      expect(tomorrowRow.makanSiang).toBe('-');
     });
   });
 });

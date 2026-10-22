@@ -37,6 +37,12 @@ export function PatientProvider({ children }) {
 
   // Login / verifikasi data pasien via Sistem Eksisting RS Edelweiss
   const loginPatient = async (identifier, dob) => {
+    // Bersihkan data keranjang dari sesi sebelumnya agar tidak bocor ke pasien baru
+    secureSessionStorage.removeItem('patient_cart');
+    secureSessionStorage.removeItem('patient_cart_owner');
+    secureSessionStorage.removeItem('patient_cart_note');
+    secureSessionStorage.removeItem('patient_cart_quantities');
+
     let result;
     if (dob) {
       // Login via Nama Pasien & Tanggal Lahir
@@ -56,6 +62,11 @@ export function PatientProvider({ children }) {
 
   // Simpan data pasien yang dipilih (jika pencarian menghasilkan lebih dari 1 pasien)
   const selectPatient = (selectedPatient) => {
+    secureSessionStorage.removeItem('patient_cart');
+    secureSessionStorage.removeItem('patient_cart_owner');
+    secureSessionStorage.removeItem('patient_cart_note');
+    secureSessionStorage.removeItem('patient_cart_quantities');
+
     const patientData = {
       ...selectedPatient,
       isVerified: selectedPatient.isVerified ?? true,
@@ -79,6 +90,7 @@ export function PatientProvider({ children }) {
     setPatient(null);
     secureSessionStorage.removeItem('active_patient_session');
     secureSessionStorage.removeItem('patient_cart');
+    secureSessionStorage.removeItem('patient_cart_owner');
     secureSessionStorage.removeItem('patient_cart_note');
     secureSessionStorage.removeItem('patient_cart_quantities');
   };

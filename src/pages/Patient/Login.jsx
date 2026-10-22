@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   IdCard, 
@@ -32,7 +32,12 @@ import { isValidRMFormat } from '../../utils/inputValidator';
 export default function PatientLogin() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { loginPatient, selectPatient } = usePatient();
+  const { loginPatient, selectPatient, logoutPatient } = usePatient();
+
+  // Bersihkan data sesi dan keranjang pasien sebelumnya saat membuka halaman login
+  useEffect(() => {
+    logoutPatient();
+  }, []);
 
   const [activeTab, setActiveTab] = useState('rm'); // Tab aktif: 'rm' atau 'name'
   const [rmNumber, setRmNumber] = useState(location.state?.identifier || '');

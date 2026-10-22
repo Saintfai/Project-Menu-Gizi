@@ -20,9 +20,14 @@ import appConfig from '../../config/appConfig';
 
 // Portal katalog menu: Menu Utama (Include) & Menu Ekstra (Berbayar)
 export default function MenuPortal() {
-  const { patient } = usePatient();
+  const { patient, logoutPatient } = usePatient();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleLogout = () => {
+    logoutPatient();
+    navigate('/login', { replace: true });
+  };
   
   // Batas cut-off time diambil dari appConfig (Single Source of Truth)
   const currentHour = getCurrentWIBHour();
@@ -48,19 +53,35 @@ export default function MenuPortal() {
   const [validationAlert, setValidationAlert] = useState(null);
   const [hasOrderedMain, setHasOrderedMain] = useState(false);
   
+  const currentPatientKey = patient?.id || patient?.rmNumber ? String(patient.id || patient.rmNumber) : null;
+
   const [quantities, setQuantities] = useState(() => {
     if (location.state?.restoredQuantities && Object.keys(location.state.restoredQuantities).length > 0) {
       return location.state.restoredQuantities;
     }
     const saved = secureSessionStorage.getItem('patient_cart_quantities', true);
-    return saved || {};
+    const savedOwner = secureSessionStorage.getItem('patient_cart_owner');
+    if (saved && savedOwner && currentPatientKey && savedOwner === currentPatientKey) {
+      return saved;
+    }
+    return {};
   });
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Sinkronkan pilihan menu ke session storage agar tidak hilang saat navigasi atau reload
+  // Sinkronkan pilihan menu ke session storage hanya jika terhubung ke pasien aktif
   useEffect(() => {
-    secureSessionStorage.setItem('patient_cart_quantities', quantities);
-  }, [quantities]);
+    if (currentPatientKey) {
+      secureSessionStorage.setItem('patient_cart_quantities', quantities);
+    }
+  }, [quantities, currentPatientKey]);
+
+  // Bersihkan state pilihan jika pasien berganti
+  useEffect(() => {
+    const savedOwner = secureSessionStorage.getItem('patient_cart_owner');
+    if (savedOwner && currentPatientKey && savedOwner !== currentPatientKey) {
+      setQuantities({});
+    }
+  }, [currentPatientKey]);
 
   // Ambil menu siklus aktif T+1 dan cek apakah pasien sudah pesan menu utama
   useEffect(() => {
@@ -355,6 +376,7 @@ export default function MenuPortal() {
 
       <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-neutral-100">
         <HeaderMobile 
+          onLogout={handleLogout}
           title={
             <div className="flex flex-col gap-1">
               <span className="font-bold text-neutral-900 leading-tight">Menu Gizi</span>

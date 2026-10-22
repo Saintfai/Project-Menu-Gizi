@@ -1,31 +1,52 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { secureSessionStorage } from '../utils/secureStorage';
+import { usePatient } from './PatientContext';
 
 const CartContext = createContext(null);
 
+const EMPTY_CART = {
+  mainMeals: { breakfast: [], lunch: [], dinner: [] },
+  extraMeals: [],
+};
+
 export function CartProvider({ children }) {
-  
-  
-  
+  const { patient } = usePatient();
+  const currentPatientKey = patient?.id || patient?.rmNumber ? String(patient.id || patient.rmNumber) : null;
+  const prevPatientKeyRef = useRef(currentPatientKey);
+
   const [cart, setCart] = useState(() => {
-    
     const saved = secureSessionStorage.getItem('patient_cart', true);
-    if (saved) {
+    const savedOwner = secureSessionStorage.getItem('patient_cart_owner');
+    if (saved && savedOwner && currentPatientKey && savedOwner === currentPatientKey) {
       return saved;
     }
-    return {
-      mainMeals: { breakfast: [], lunch: [], dinner: [] },
-      extraMeals: [],
-    };
+    return EMPTY_CART;
   });
 
+  // Jika pasien berganti (misal logout RM 01 lalu login RM 02), reset keranjang seketika
   useEffect(() => {
-    
-    secureSessionStorage.setItem('patient_cart', cart);
-  }, [cart]);
+    if (prevPatientKeyRef.current !== currentPatientKey) {
+      prevPatientKeyRef.current = currentPatientKey;
+      setCart(EMPTY_CART);
+      secureSessionStorage.removeItem('patient_cart');
+      secureSessionStorage.removeItem('patient_cart_owner');
+      secureSessionStorage.removeItem('patient_cart_note');
+      secureSessionStorage.removeItem('patient_cart_quantities');
+    }
+  }, [currentPatientKey]);
+
+  // Sinkronkan ke session storage dengan penanda identitas pemilik keranjang
+  useEffect(() => {
+    if (currentPatientKey) {
+      secureSessionStorage.setItem('patient_cart', cart);
+      secureSessionStorage.setItem('patient_cart_owner', currentPatientKey);
+    } else {
+      secureSessionStorage.removeItem('patient_cart');
+      secureSessionStorage.removeItem('patient_cart_owner');
+    }
+  }, [cart, currentPatientKey]);
 
   const setMainMeal = (mealTime, items) => {
-    
     setCart((prev) => ({
       ...prev,
       mainMeals: {
@@ -69,11 +90,11 @@ export function CartProvider({ children }) {
   };
 
   const clearCart = () => {
-    setCart({
-      mainMeals: { breakfast: [], lunch: [], dinner: [] },
-      extraMeals: [],
-    });
+    setCart(EMPTY_CART);
     secureSessionStorage.removeItem('patient_cart');
+    secureSessionStorage.removeItem('patient_cart_owner');
+    secureSessionStorage.removeItem('patient_cart_note');
+    secureSessionStorage.removeItem('patient_cart_quantities');
   };
 
   return (
