@@ -382,10 +382,30 @@ export default function Dashboard() {
     setSelectedComponentMeal({ row, mealTime, items });
   }, []);
 
-  // Tutup modal edit komponen dan muat ulang data pesanan
+  // Tutup modal edit komponen makanan tanpa refresh (ketika batal atau hanya melihat)
   const handleCloseComponentModal = useCallback(() => {
     setSelectedComponentMeal(null);
-    fetchOrderData({ force: true });
+  }, []);
+
+  // Simpan perubahan komponen makanan dan perbarui state lokal secara instan & silent sync
+  const handleSavedComponentModal = useCallback((orderId, newNotes, updatedFields) => {
+    setSelectedComponentMeal(null);
+    if (orderId) {
+      setRawOrders((prevOrders) =>
+        prevOrders.map((order) => {
+          if (order.id === orderId) {
+            return {
+              ...order,
+              notes: newNotes,
+              ...updatedFields,
+            };
+          }
+          return order;
+        })
+      );
+    }
+    // Sinkronisasi data ke server di latar belakang tanpa spinner/refresh UI
+    fetchOrderData({ isSilent: true });
   }, [fetchOrderData]);
 
   // Format tanggal penyajian ke teks formal bahasa Indonesia
@@ -581,6 +601,7 @@ export default function Dashboard() {
       <ComponentEditModal
         isOpen={!!selectedComponentMeal}
         onClose={handleCloseComponentModal}
+        onSaved={handleSavedComponentModal}
         selectedMeal={selectedComponentMeal}
         cycleNumber={cycleNumber}
       />
