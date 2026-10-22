@@ -29,12 +29,17 @@ export const RekapCard = ({
       {details.length > 0 && (
         <div className="mt-auto space-y-1.5 flex-1 flex flex-col justify-end pt-2 border-t border-neutral-100">
           {details.map((detail, index) => (
-            <div key={index} className="flex justify-between items-center text-xs">
-              <span className="text-neutral-500 font-medium">{detail.label}</span>
+            <div key={index} className="flex justify-between items-center text-xs gap-2">
+              <span 
+                className="text-neutral-600 font-medium truncate flex-1 min-w-0" 
+                title={detail.label}
+              >
+                {detail.label}
+              </span>
               {detail.icon ? (
-                <div className="text-primary-600">{detail.icon}</div>
+                <div className="text-primary-600 flex-shrink-0">{detail.icon}</div>
               ) : (
-                <span className="font-bold text-neutral-800">{detail.value}</span>
+                <span className="font-bold text-neutral-800 flex-shrink-0 tabular-nums">{detail.value}</span>
               )}
             </div>
           ))}

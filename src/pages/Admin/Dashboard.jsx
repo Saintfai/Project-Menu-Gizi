@@ -18,6 +18,7 @@ import ComponentEditModal from '../../components/ui/modals/ComponentEditModal';
 import { groupOrdersForTable } from '../../utils/orderTransformer';
 import { getTodayOrders, getOrders, deleteOrderItem, enrichOrdersWithPatientAllergies, clearPatientCache } from '../../services/orderService';
 import { getTotalActivePatients } from '../../services/patientService';
+import { getActiveCycleMenu } from '../../services/menuService';
 import PageTransition from '../../components/PageTransition';
 import appConfig from '../../config/appConfig';
 
@@ -87,6 +88,42 @@ export default function Dashboard() {
     if (day === 31) num = 11;
     return num;
   }, [tomorrowObj]);
+
+  const [cycleMenuItems, setCycleMenuItems] = useState([]);
+
+  // Ambil referensi hidangan menu siklus aktif T+1
+  useEffect(() => {
+    let isMounted = true;
+    getActiveCycleMenu(cycleNumber)
+      .then((items) => {
+        if (isMounted && Array.isArray(items)) {
+          setCycleMenuItems(items);
+        }
+      })
+      .catch((err) => {
+        console.warn('Gagal memuat menu siklus untuk kartu rekapitulasi:', err?.message);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [cycleNumber]);
+
+  // Lookup map dari paketName & mealTime ke nama hidangan aktual (cth: 'PAGI_PAKET A' -> 'Nasi Liwet Solo')
+  const cycleMenuLookup = useMemo(() => {
+    const map = {};
+    if (Array.isArray(cycleMenuItems)) {
+      cycleMenuItems.forEach(item => {
+        const meal = (item.mealTime || '').toUpperCase();
+        const targetMeal = meal === 'MALAM' ? 'SORE' : meal;
+        const paket = (item.paketName || '').toUpperCase();
+        if (targetMeal && paket && item.name) {
+          map[`${targetMeal}_${paket}`] = item.name.trim();
+        }
+      });
+    }
+    return map;
+  }, [cycleMenuItems]);
 
   // Reset pagination saat pencarian atau filter kategori berubah
   useEffect(() => {
@@ -227,28 +264,38 @@ export default function Dashboard() {
     filteredDailyOrders.forEach(order => {
       const qty = order.quantity || 1;
       const meal = (order.mealTime || '').toUpperCase();
-      const paket = (order.paketName || order.menuName || 'Paket').trim();
+      const targetMeal = meal === 'MALAM' ? 'SORE' : meal;
+
+      // Prioritaskan nama menu aktual (menuName / name), jika kosong/hanya Paket A/B, lakukan lookup ke siklus T+1
+      let rawName = (order.menuName || order.name || '').trim();
+      if (!rawName || rawName === '-' || /^paket\s+[a-z]$/i.test(rawName)) {
+        const key = `${targetMeal}_${(order.paketName || rawName).toUpperCase()}`;
+        if (cycleMenuLookup[key]) {
+          rawName = cycleMenuLookup[key];
+        } else if (!rawName || rawName === '-') {
+          rawName = order.paketName || 'Menu';
+        }
+      }
+      const menuLabel = rawName.trim();
+
       const isEkstra = (order.type || '').toUpperCase() === 'EXCLUDE';
-      
       if (isEkstra) {
         ekstraTotal += qty;
-        ekstraNames.add(order.menuName || order.paketName || 'Menu Ekstra');
+        ekstraNames.add(menuLabel || 'Menu Ekstra');
       }
 
-      const targetMeal = meal === 'MALAM' ? 'SORE' : meal;
       if (mealStats[targetMeal]) {
         mealStats[targetMeal].total += qty;
-        mealStats[targetMeal].packages[paket] = (mealStats[targetMeal].packages[paket] || 0) + qty;
+        mealStats[targetMeal].packages[menuLabel] = (mealStats[targetMeal].packages[menuLabel] || 0) + qty;
       }
     });
 
     const formatDetails = (packagesObj) => {
-      const entries = Object.entries(packagesObj);
+      const entries = Object.entries(packagesObj).filter(([_, value]) => value > 0);
       let res = [];
       if (entries.length === 0) {
         res = [
-          { label: 'Paket A', value: 0 },
-          { label: 'Paket B', value: 0 },
+          { label: 'Belum ada pesanan', value: 0 },
         ];
       } else {
         res = entries
@@ -276,7 +323,7 @@ export default function Dashboard() {
         kinds: ekstraNames.size,
       },
     };
-  }, [filteredDailyOrders]);
+  }, [filteredDailyOrders, cycleMenuItems, cycleMenuLookup]);
 
   
   // Filter data tabel berdasarkan pencarian kata kunci dan filter kategori
