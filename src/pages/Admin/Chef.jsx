@@ -266,7 +266,7 @@ export default function Chef() {
       const allergyRaw = order.patient?.allergies || order.allergies || order.allergyNote || null;
       const isAllergic = typeof order.hasAllergy === 'boolean' ? order.hasAllergy : hasRealAllergy(allergyRaw);
 
-      if (hasNote || (isAllergic && allergyRaw)) {
+      if (hasNote) {
         const patientName = order.patientName || order.patient?.name || order.consumer_name || 'Pasien';
         const room = (order.roomNumber ? `${order.roomNumber} - ${order.classType || ''}` : (order.kamar || '-')).replace(/\s*\|\s*$/, '');
         const patientId = order.patientId || order.rmNumber || '-';
@@ -276,7 +276,7 @@ export default function Chef() {
           patientNotesMap.set(patientKey, {
             patientName,
             room,
-            note: hasNote ? order.notes.trim() : '',
+            note: order.notes.trim(),
             allergy: isAllergic ? allergyRaw : '',
             menu: order.menuName || order.paketName,
             mealTime: meal

@@ -129,22 +129,34 @@ export default function ChefNoteSynthesizerModal({
         ? order.hasAllergy
         : hasRealAllergy(allergyRaw);
 
-      if (hasNote || isAllergic) {
+      // Hanya tampilkan di daftar kurasi jika pesanan benar-benar memiliki catatan khusus
+      if (hasNote) {
         const patientName = order.patientName || order.consumer_name || order.patient?.name || 'Pasien';
         const room = order.roomNumber || order.kamar || '-';
         const patientId = order.patientId || order.rmNumber || '-';
         const rawMeal = (order.mealTime || order.meal_time || 'PAGI').toUpperCase();
         const mealTime = rawMeal === 'MALAM' ? 'SORE' : rawMeal;
         const menu = order.menuName || order.paketName || 'Paket Menu';
-        const noteText = hasNote ? order.notes.trim() : '';
+        const noteText = order.notes.trim();
         const allergyText = isAllergic ? allergyRaw.trim() : '';
+        const rawType = (order.type || '').toUpperCase();
+        const orderType = rawType === 'EXCLUDE' ? 'Ekstra' : 'Utama';
+        const orderIdVal = order.orderId || order.order_id || order.orderCode;
 
-        // Kunci pembeda unik per pasien
+        // Kunci pembeda per sesi transaksi pesanan (order_id):
+        // 1. Jika dalam 1 sesi checkout memesan Pagi, Siang, Sore -> orderId-nya sama, sehingga disatukan menjadi 1 kartu (tidak dobel 3 kali).
+        // 2. Jika pasien yang sama kemudian memesan lagi (misal Paket Ekstra) dengan orderId baru, catatannya tetap muncul sebagai kartu pesanan baru!
         const patientKey = String(patientId && patientId !== '-' ? patientId : `${patientName}_${room}`).trim().toLowerCase();
+        const groupKey = orderIdVal && orderIdVal !== '-'
+          ? String(orderIdVal).trim()
+          : `${patientKey}_${orderType}_${noteText || idx}`;
 
-        if (!patientMap.has(patientKey)) {
-          patientMap.set(patientKey, {
-            id: order.id || `${patientKey}-${idx}`,
+        if (!patientMap.has(groupKey)) {
+          patientMap.set(groupKey, {
+            id: orderIdVal || order.id || `${groupKey}-${idx}`,
+            groupKey,
+            orderId: orderIdVal || '-',
+            orderType,
             patientKey,
             patientId,
             patientName,
@@ -156,7 +168,7 @@ export default function ChefNoteSynthesizerModal({
             hasAllergy: Boolean(allergyText && hasRealAllergy(allergyText)),
           });
         } else {
-          const existing = patientMap.get(patientKey);
+          const existing = patientMap.get(groupKey);
           if (mealTime) existing.mealTimes.add(mealTime);
           if (menu && menu !== '-') existing.menus.add(menu);
           if (noteText) existing.notesSet.add(noteText);
@@ -178,6 +190,8 @@ export default function ChefNoteSynthesizerModal({
 
       return {
         id: item.id,
+        orderId: item.orderId,
+        orderType: item.orderType,
         patientKey: item.patientKey,
         patientId: item.patientId,
         patientName: item.patientName,
@@ -204,17 +218,18 @@ export default function ChefNoteSynthesizerModal({
     );
   }, [patientNotesList, searchQuery]);
 
-  // Sisipkan catatan pasien ke textarea dokumen di sisi kanan (1 snippet bersih per pasien)
+  // Sisipkan catatan pasien ke textarea dokumen di sisi kanan (1 snippet bersih per transaksi pesanan)
   const handleInsertNote = (item) => {
     const allergyPart = item.hasAllergy ? ` [Alergi: ${item.allergies}]` : '';
     const notePart = item.notes ? `: ${item.notes}` : '';
-    const mealPart = item.mealTime ? ` (${item.mealTime})` : '';
+    const typeLabel = item.orderType ? ` - ${item.orderType}` : '';
+    const mealPart = item.mealTime ? ` (${item.mealTime}${typeLabel})` : '';
     const snippet = `• Kamar ${item.room} - ${item.patientName}${mealPart}${allergyPart}${notePart}\n`;
     
     setChefNoteText(prev => (prev ? `${prev.trimEnd()}\n${snippet}` : snippet));
     setCopiedId(item.id);
     setTimeout(() => setCopiedId(null), 1800);
-    toast.success(`Catatan ${item.patientName} disisipkan!`, { duration: 1500 });
+    toast.success(`Catatan ${item.patientName} (${item.orderType}) disisipkan!`, { duration: 1500 });
   };
 
   // Simpan catatan rangkuman ke server RS Edelweiss
@@ -291,7 +306,7 @@ export default function ChefNoteSynthesizerModal({
             <div className="p-3 border-b border-neutral-200 bg-white space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-neutral-800 uppercase tracking-wide">
-                  Catatan Pasien ({patientNotesList.length} Pasien)
+                  Catatan Pesanan Masuk ({patientNotesList.length})
                 </span>
                 <span className="text-[11px] font-semibold text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200">
                   {servingDate ? `Tgl: ${servingDate}` : 'Jadwal Hari Ini'}
@@ -325,10 +340,21 @@ export default function ChefNoteSynthesizerModal({
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-xs font-bold text-neutral-900 leading-tight">
-                          {item.patientName}
-                        </p>
-                        <p className="text-[11px] text-neutral-500 font-mono">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="text-xs font-bold text-neutral-900 leading-tight">
+                            {item.patientName}
+                          </p>
+                          {item.orderType && (
+                            <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded uppercase tracking-wider ${
+                              item.orderType === 'Ekstra'
+                                ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                : 'bg-primary-50 text-primary-700 border border-primary-200'
+                            }`}>
+                              {item.orderType}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-neutral-500 font-mono mt-0.5">
                           {item.room} • RM: {item.patientId}
                         </p>
                       </div>
