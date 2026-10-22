@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag, Loader2, Info, AlertCircle } from 'lucide-react';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import { usePatient } from '../../context/PatientContext';
-import { createOrders, getOrders, checkPatientHasOrderedMain, getTomorrowServingDate } from '../../services/orderService';
+import { createOrders, getOrders, checkPatientHasOrderedMain, getTomorrowServingDate, getTodayServingDate } from '../../services/orderService';
 import { getPatientByRm } from '../../services/patientService';
 import { getActiveCycleMenu } from '../../services/menuService';
 import PageTransition from '../../components/PageTransition';
@@ -102,11 +102,12 @@ export default function Cart() {
     return map;
   }, [menuItems]);
 
-  // Kelompokkan item terpilih ke kategori: pasien, pendamping, dan ekstra
+  // Kelompokkan item terpilih ke kategori: pasien, pendamping, dan ekstra (Hari Ini vs Besok)
   const orderData = useMemo(() => {
     const pasien = { PAGI: [], SIANG: [], SORE: [] };
     const pendamping = { PAGI: [], SIANG: [], SORE: [] };
-    const ekstra = { SIANG: [], SORE: [] };
+    const ekstraHariIni = { SIANG: [], SORE: [] };
+    const ekstraBesok = { SIANG: [], SORE: [] };
 
     Object.entries(quantities).forEach(([key, consumers]) => {
       if (!consumers || consumers.length === 0) return;
@@ -120,12 +121,24 @@ export default function Cart() {
       const normalizedMealTime = mealTime;
 
       if (isEkstra) {
-        const count = consumers.length;
-        if (count > 0 && ekstra[normalizedMealTime]) {
-          ekstra[normalizedMealTime].push({
+        const hariIniCount = consumers.filter(c => c === 'HARI_INI').length;
+        // Dukung backward compatibility untuk format lama 'EKSTRA' sebagai 'BESOK'
+        const besokCount = consumers.filter(c => c === 'BESOK' || c === 'EKSTRA').length;
+
+        if (hariIniCount > 0 && ekstraHariIni[normalizedMealTime]) {
+          ekstraHariIni[normalizedMealTime].push({
             item,
-            qty: count,
+            qty: hariIniCount,
             paketName: item.paketName || 'Paket',
+            servingTarget: 'HARI_INI',
+          });
+        }
+        if (besokCount > 0 && ekstraBesok[normalizedMealTime]) {
+          ekstraBesok[normalizedMealTime].push({
+            item,
+            qty: besokCount,
+            paketName: item.paketName || 'Paket',
+            servingTarget: 'BESOK',
           });
         }
       } else {
@@ -149,25 +162,32 @@ export default function Cart() {
       }
     });
 
-    return { pasien, pendamping, ekstra };
+    return { pasien, pendamping, ekstraHariIni, ekstraBesok };
   }, [quantities, menuMap]);
 
   const hasPasienItems = Object.values(orderData.pasien).some(arr => arr.length > 0);
   const hasPendampingItems = Object.values(orderData.pendamping).some(arr => arr.length > 0);
-  const hasEkstraItems = Object.values(orderData.ekstra).some(arr => arr.length > 0);
+  const hasEkstraHariIni = Object.values(orderData.ekstraHariIni).some(arr => arr.length > 0);
+  const hasEkstraBesok = Object.values(orderData.ekstraBesok).some(arr => arr.length > 0);
+  const hasEkstraItems = hasEkstraHariIni || hasEkstraBesok;
 
   // Total porsi paket ekstra berbayar untuk kalkulasi tagihan
   const totalExtraQuantity = useMemo(() => {
     let total = 0;
     ['SIANG', 'SORE'].forEach(key => {
-      if (orderData.ekstra[key]) {
-        orderData.ekstra[key].forEach(entry => {
+      if (orderData.ekstraHariIni[key]) {
+        orderData.ekstraHariIni[key].forEach(entry => {
+          total += entry.qty;
+        });
+      }
+      if (orderData.ekstraBesok[key]) {
+        orderData.ekstraBesok[key].forEach(entry => {
           total += entry.qty;
         });
       }
     });
     return total;
-  }, [orderData.ekstra]);
+  }, [orderData.ekstraHariIni, orderData.ekstraBesok]);
 
   if (!quantities || Object.keys(quantities).length === 0) {
     return (
@@ -304,11 +324,20 @@ export default function Cart() {
         }
       }
 
-      if (!invalidLock && orderData.ekstra['SIANG']?.length > 0) {
-        if (appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_EXTRA_SIANG) invalidLock = `Ekstra Siang (maks ${appConfig.CUTOFF_EXTRA_SIANG_TEXT})`;
+      if (!invalidLock && orderData.ekstraHariIni['SIANG']?.length > 0) {
+        if (appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_EXTRA_SIANG) {
+          invalidLock = `Ekstra Hari Ini Siang (maks ${appConfig.CUTOFF_EXTRA_SIANG_TEXT})`;
+        }
       }
-      if (!invalidLock && orderData.ekstra['SORE']?.length > 0) {
-        if (appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_EXTRA_SORE) invalidLock = `Ekstra Sore (maks ${appConfig.CUTOFF_EXTRA_SORE_TEXT})`;
+      if (!invalidLock && orderData.ekstraHariIni['SORE']?.length > 0) {
+        if (appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_EXTRA_SORE) {
+          invalidLock = `Ekstra Hari Ini Sore (maks ${appConfig.CUTOFF_EXTRA_SORE_TEXT})`;
+        }
+      }
+      if (!invalidLock && (orderData.ekstraBesok['SIANG']?.length > 0 || orderData.ekstraBesok['SORE']?.length > 0)) {
+        if (appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_MAIN) {
+          invalidLock = `Ekstra Besok (maks ${appConfig.CUTOFF_MAIN_TEXT})`;
+        }
       }
 
       if (invalidLock) {
@@ -338,7 +367,7 @@ export default function Cart() {
         }
       }
 
-      // 4. Buat kode pesanan unik & format tanggal saji T+1
+      // 4. Buat kode pesanan unik & format tanggal saji (Besok & Hari Ini)
       const orderItemsToInsert = [];
       const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
       const randomStr = Math.floor(1000 + Math.random() * 9000);
@@ -346,7 +375,11 @@ export default function Cart() {
 
       const tomorrowServingDateStr = getTomorrowServingDate();
       const [year, month, date] = tomorrowServingDateStr.split('-');
-      const servingDateFormatted = `${year}-${month}-${date} 12:00:00`;
+      const tomorrowServingDateFormatted = `${year}-${month}-${date} 12:00:00`;
+
+      const todayServingDateStr = getTodayServingDate();
+      const [tdYear, tdMonth, tdDate] = todayServingDateStr.split('-');
+      const todayServingDateFormatted = `${tdYear}-${tdMonth}-${tdDate} 12:00:00`;
 
       // 5. Validasi Batas Kuota Porsi Berdasarkan Kelas Kamar Pasien
       if (hasPasienItems || hasPendampingItems) {
@@ -408,7 +441,7 @@ export default function Cart() {
       }
 
       // 7. Susun data pesanan ke format tabel orders
-      const addItems = (type, consumer, mealTimeKey, itemsArr) => {
+      const addItems = (type, consumer, mealTimeKey, itemsArr, servingDateVal) => {
         itemsArr.forEach(entry => {
           const patientReg = effectivePatient.noReg || effectivePatient.noreg || effectivePatient.no_regis || effectivePatient.no_reg || '';
           orderItemsToInsert.push({
@@ -424,7 +457,7 @@ export default function Cart() {
             menuName: entry.item.name || '-',
             paketName: entry.paketName || 'Paket A',
             mealTime: mealTimeKey,
-            servingDate: servingDateFormatted,
+            servingDate: servingDateVal,
             quantity: entry.qty,
             type: type,
             consumer: consumer,
@@ -441,19 +474,26 @@ export default function Cart() {
         });
       };
 
-      // Alokasikan menu utama (Include)
+      // Alokasikan menu utama (Include - Besok)
       ['PAGI', 'SIANG', 'SORE'].forEach(key => {
         const pasienItems = orderData.pasien[key] || [];
         const pendampingItems = orderData.pendamping[key] || [];
 
-        if (pasienItems.length > 0) addItems('INCLUDE', 'PASIEN', key, pasienItems);
-        if (pendampingItems.length > 0) addItems('INCLUDE', 'PENDAMPING', key, pendampingItems);
+        if (pasienItems.length > 0) addItems('INCLUDE', 'PASIEN', key, pasienItems, tomorrowServingDateFormatted);
+        if (pendampingItems.length > 0) addItems('INCLUDE', 'PENDAMPING', key, pendampingItems, tomorrowServingDateFormatted);
       });
 
-      // Alokasikan menu ekstra (Berbayar / Exclude)
+      // Alokasikan menu ekstra Hari Ini (Berbayar / Exclude - Hari Ini)
       ['SIANG', 'SORE'].forEach(key => {
-        if (orderData.ekstra[key] && orderData.ekstra[key].length > 0) {
-          addItems('EXCLUDE', 'PENDAMPING', key, orderData.ekstra[key]);
+        if (orderData.ekstraHariIni[key] && orderData.ekstraHariIni[key].length > 0) {
+          addItems('EXCLUDE', 'PENDAMPING', key, orderData.ekstraHariIni[key], todayServingDateFormatted);
+        }
+      });
+
+      // Alokasikan menu ekstra Besok (Berbayar / Exclude - Besok)
+      ['SIANG', 'SORE'].forEach(key => {
+        if (orderData.ekstraBesok[key] && orderData.ekstraBesok[key].length > 0) {
+          addItems('EXCLUDE', 'PENDAMPING', key, orderData.ekstraBesok[key], tomorrowServingDateFormatted);
         }
       });
 
@@ -589,16 +629,41 @@ export default function Cart() {
             </div>
           )}
 
-          {/* 5. Kartu rincian menu ekstra (berbayar) */}
-          {hasEkstraItems && (
+          {/* 5. Kartu rincian menu ekstra Hari Ini (berbayar) */}
+          {hasEkstraHariIni && (
             <div className="mt-5">
-              <div className="flex items-center gap-2 mb-3">
-                <ShoppingBag size={18} className="text-warning-600" />
-                <h2 className="text-base font-bold text-warning-600">Pesanan Ekstra</h2>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <ShoppingBag size={18} className="text-warning-600" />
+                  <h2 className="text-base font-bold text-warning-600">Pesanan Ekstra (Hari Ini)</h2>
+                </div>
+                <span className="text-[11px] font-semibold bg-warning-50 text-warning-700 border border-warning-200 px-2.5 py-0.5 rounded-full">
+                  Penyajian Hari Ini
+                </span>
               </div>
               <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-4 md:p-5">
                 {['SIANG', 'SORE'].map(key =>
-                  renderEkstraMealSection(key, orderData.ekstra[key])
+                  renderEkstraMealSection(key, orderData.ekstraHariIni[key])
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 5b. Kartu rincian menu ekstra Besok (berbayar) */}
+          {hasEkstraBesok && (
+            <div className="mt-5">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <ShoppingBag size={18} className="text-warning-600" />
+                  <h2 className="text-base font-bold text-warning-600">Pesanan Ekstra (Besok)</h2>
+                </div>
+                <span className="text-[11px] font-semibold bg-primary-50 text-primary-700 border border-primary-200 px-2.5 py-0.5 rounded-full">
+                  Penyajian Besok
+                </span>
+              </div>
+              <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-4 md:p-5">
+                {['SIANG', 'SORE'].map(key =>
+                  renderEkstraMealSection(key, orderData.ekstraBesok[key])
                 )}
               </div>
             </div>

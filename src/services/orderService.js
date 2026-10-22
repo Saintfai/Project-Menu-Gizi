@@ -340,6 +340,20 @@ export function getTomorrowServingDate() {
 }
 
 /**
+ * Mendapatkan tanggal penyajian hari ini (T) dalam zona waktu WIB (UTC+7)
+ * dengan format YYYY-MM-DD.
+ * 
+ * @returns {string} Tanggal hari ini format YYYY-MM-DD
+ */
+export function getTodayServingDate() {
+  const now = new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const wibTime = new Date(utc + 3600000 * 7);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${wibTime.getFullYear()}-${pad(wibTime.getMonth() + 1)}-${pad(wibTime.getDate())}`;
+}
+
+/**
  * Memeriksa langsung ke database server apakah pasien telah memiliki pesanan Paket Utama
  * untuk tanggal penyajian tertentu (default: esok hari T+1).
  * 
@@ -799,6 +813,7 @@ export default {
   createOrders,
   checkPatientHasOrderedMain,
   getTomorrowServingDate,
+  getTodayServingDate,
   updateOrderNotes,
   autoGenerateOrdersForKelas,
   enrichOrdersWithPatientAllergies,

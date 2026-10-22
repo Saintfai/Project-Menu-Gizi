@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getOrders, getTodayOrders, deleteOrderItem, getChefDailyNote, saveChefDailyNote } from '../orderService';
+import { getOrders, getTodayOrders, deleteOrderItem, getChefDailyNote, saveChefDailyNote, getTomorrowServingDate, getTodayServingDate } from '../orderService';
 import * as apiClient from '../apiClient';
 
 vi.mock('../apiClient', () => ({
@@ -418,6 +418,20 @@ describe('orderService - getOrders normalization', () => {
       expect(res.note).toBe('');
       expect(res.source).toBe('empty');
       expect(res.servingDate).toBe('22-10-2026');
+    });
+  });
+
+  describe('Serving Date Helpers', () => {
+    it('getTodayServingDate mengembalikan string tanggal YYYY-MM-DD yang valid', () => {
+      const today = getTodayServingDate();
+      expect(today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+
+    it('getTomorrowServingDate mengembalikan string tanggal YYYY-MM-DD yang valid (T+1)', () => {
+      const tomorrow = getTomorrowServingDate();
+      expect(tomorrow).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      const today = getTodayServingDate();
+      expect(tomorrow).not.toBe(today);
     });
   });
 });

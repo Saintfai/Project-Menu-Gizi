@@ -9,6 +9,7 @@ import Accordion from '../../components/ui/data-display/Accordion';
 import MenuCard from '../../components/ui/cards/MenuCard';
 import SearchBar from '../../components/ui/forms/SearchBar';
 import IncludeModal from '../../components/ui/modals/IncludeModal';
+import EkstraModal from '../../components/ui/modals/EkstraModal';
 import { usePatient } from '../../context/PatientContext';
 import PageTransition from '../../components/PageTransition';
 import { getOrders, checkPatientHasOrderedMain, getTomorrowServingDate } from '../../services/orderService';
@@ -28,6 +29,7 @@ export default function MenuPortal() {
   const isMainMenuLockedTime = appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_MAIN;
   const isExtraSiangLockedTime = appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_EXTRA_SIANG;
   const isExtraSoreLockedTime = appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_EXTRA_SORE;
+  const isExtraBesokLockedTime = appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_MAIN;
   
   // Proteksi: alihkan ke login jika data pasien kosong
   useEffect(() => {
@@ -41,6 +43,8 @@ export default function MenuPortal() {
   const [error, setError] = useState(null);
   const [includeModalOpen, setIncludeModalOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState(null);
+  const [ekstraModalOpen, setEkstraModalOpen] = useState(false);
+  const [selectedEkstraItem, setSelectedEkstraItem] = useState(null);
   const [validationAlert, setValidationAlert] = useState(null);
   const [hasOrderedMain, setHasOrderedMain] = useState(false);
   
@@ -172,10 +176,18 @@ export default function MenuPortal() {
     const currentQty = quantities[itemId]?.length || 0;
     
     if (val > currentQty) {
-      setQuantities(prev => ({
-        ...prev,
-        [itemId]: [...(prev[itemId] || []), 'EKSTRA']
-      }));
+      const isSiang = item.mealTime?.toUpperCase() === 'SIANG';
+      const isHariIniLocked = isSiang ? isExtraSiangLockedTime : isExtraSoreLockedTime;
+      
+      // Jika kedua jadwal (Hari Ini dan Besok) sudah lewat batas cut-off
+      if (isHariIniLocked && isExtraBesokLockedTime) {
+        setValidationAlert(`Batas waktu pemesanan menu ekstra untuk ${item.name} telah habis.`);
+        return;
+      }
+
+      // Buka modal pemilihan jadwal (Hari Ini vs Besok)
+      setSelectedEkstraItem(item);
+      setEkstraModalOpen(true);
     } else if (val < currentQty) {
       setQuantities(prev => {
         const arr = prev[itemId] || [];
@@ -185,6 +197,18 @@ export default function MenuPortal() {
         };
       });
     }
+  };
+
+  // Simpan jadwal penyajian menu ekstra (Hari Ini / Besok) dari modal
+  const handleEkstraModalSave = (targetDay) => {
+    if (!selectedEkstraItem) return;
+    const itemId = `ekstra_${selectedEkstraItem.id}`;
+    setQuantities(prev => ({
+      ...prev,
+      [itemId]: [...(prev[itemId] || []), targetDay]
+    }));
+    setEkstraModalOpen(false);
+    setSelectedEkstraItem(null);
   };
 
   // Filter menu per waktu makan
@@ -297,8 +321,20 @@ export default function MenuPortal() {
         const item = menuItems.find(m => String(m.id) === String(baseKey));
         if (item) {
           const mealTime = item.mealTime?.toUpperCase();
-          if (mealTime === 'SIANG' && isExtraSiangLockedTime) invalidLock = `Ekstra Siang (maks ${appConfig.CUTOFF_EXTRA_SIANG_TEXT})`;
-          if (mealTime === 'SORE' && isExtraSoreLockedTime) invalidLock = `Ekstra Sore (maks ${appConfig.CUTOFF_EXTRA_SORE_TEXT})`;
+          const hasHariIni = consumers.includes('HARI_INI');
+          const hasBesok = consumers.some(c => c === 'BESOK' || c === 'EKSTRA');
+
+          if (hasHariIni) {
+            if (mealTime === 'SIANG' && isExtraSiangLockedTime) {
+              invalidLock = `Ekstra Hari Ini Siang (maks ${appConfig.CUTOFF_EXTRA_SIANG_TEXT})`;
+            }
+            if (mealTime === 'SORE' && isExtraSoreLockedTime) {
+              invalidLock = `Ekstra Hari Ini Sore (maks ${appConfig.CUTOFF_EXTRA_SORE_TEXT})`;
+            }
+          }
+          if (hasBesok && isExtraBesokLockedTime) {
+            invalidLock = `Ekstra Besok (maks ${appConfig.CUTOFF_MAIN_TEXT})`;
+          }
         }
       } else {
         if (isMainMenuLockedTime) invalidLock = `Menu Utama (maks ${appConfig.CUTOFF_MAIN_TEXT})`;
@@ -420,62 +456,42 @@ export default function MenuPortal() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
 
-          {(!isExtraSiangLockedTime || !isExtraSoreLockedTime) && (
-            <Alert 
-              variant="danger" 
-              icon={
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-              }
-            >
-              Batas order untuk makan siang pukul 10.00 WIB, dan untuk makan sore 14.00 WIB.
-            </Alert>
-          )}
-
-          {isExtraSiangLockedTime ? (
+          {isExtraBesokLockedTime ? (
             <div className="bg-white shadow-sm border border-neutral-200 border-l-[4px] border-l-warning-600 rounded-xl p-4 flex items-center gap-3 mt-2 mb-4">
               <div className="bg-warning-50 p-2 rounded-full">
                 <AlertCircle size={20} className="text-warning-600" />
               </div>
-              <span className="text-sm font-bold text-neutral-700">Batas order ekstra siang habis (10:00 WIB)</span>
+              <span className="text-sm font-bold text-neutral-700">Batas waktu pemesanan menu ekstra telah habis ({appConfig.CUTOFF_MAIN_TEXT})</span>
             </div>
           ) : (
-            <Accordion 
-              title="Makan Siang" 
-              iconBg="bg-warning-50"
-              iconColor="text-warning-700"
-              defaultExpanded={true}
-              icon={
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              }
-            >
-              {renderEkstraGrid(filteredEkstraSiang)}
-            </Accordion>
-          )}
+            <>
+              <Accordion 
+                title="Makan Siang" 
+                iconBg="bg-warning-50"
+                iconColor="text-warning-700"
+                defaultExpanded={true}
+                icon={
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                }
+              >
+                {renderEkstraGrid(filteredEkstraSiang)}
+              </Accordion>
 
-          {isExtraSoreLockedTime ? (
-            <div className="bg-white shadow-sm border border-neutral-200 border-l-[4px] border-l-warning-600 rounded-xl p-4 flex items-center gap-3 mt-2 mb-4">
-              <div className="bg-warning-50 p-2 rounded-full">
-                <AlertCircle size={20} className="text-warning-600" />
-              </div>
-              <span className="text-sm font-bold text-neutral-700">Batas order ekstra sore habis (14:00 WIB)</span>
-            </div>
-          ) : (
-            <Accordion 
-              title="Makan Sore" 
-              iconBg="bg-neutral-700"
-              iconColor="text-white"
-              icon={
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-              }
-            >
-              {renderEkstraGrid(filteredEkstraSore)}
-            </Accordion>
+              <Accordion 
+                title="Makan Sore" 
+                iconBg="bg-neutral-700"
+                iconColor="text-white"
+                icon={
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                }
+              >
+                {renderEkstraGrid(filteredEkstraSore)}
+              </Accordion>
+            </>
           )}
         </div>
 
@@ -497,16 +513,34 @@ export default function MenuPortal() {
         }
         
         return (
-          <IncludeModal 
-            isOpen={includeModalOpen}
-            onClose={() => {
-              setIncludeModalOpen(false);
-              setSelectedCardId(null);
-            }}
-            itemData={selectedCardId ? menuItems.find(m => m.id === selectedCardId) : null}
-            onSave={handleIncludeModalSave}
-            takenRoles={takenRoles}
-          />
+          <>
+            <IncludeModal 
+              isOpen={includeModalOpen}
+              onClose={() => {
+                setIncludeModalOpen(false);
+                setSelectedCardId(null);
+              }}
+              itemData={selectedCardId ? menuItems.find(m => m.id === selectedCardId) : null}
+              onSave={handleIncludeModalSave}
+              takenRoles={takenRoles}
+            />
+
+            <EkstraModal 
+              isOpen={ekstraModalOpen}
+              onClose={() => {
+                setEkstraModalOpen(false);
+                setSelectedEkstraItem(null);
+              }}
+              itemData={selectedEkstraItem}
+              onSave={handleEkstraModalSave}
+              isHariIniDisabled={
+                selectedEkstraItem 
+                  ? (selectedEkstraItem.mealTime?.toUpperCase() === 'SIANG' ? isExtraSiangLockedTime : isExtraSoreLockedTime)
+                  : false
+              }
+              isBesokDisabled={isExtraBesokLockedTime}
+            />
+          </>
         );
       })()}
 
