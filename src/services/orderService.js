@@ -636,6 +636,56 @@ export async function autoGenerateOrdersForKelas() {
 }
 
 /**
+ * Sinkronisasi data pesanan pasien baru dengan SIMRS via API sync-data-tera.
+ * Digunakan untuk kasus pasien yang registrasi setelah jam 15:00 WIB (lewat cut-off Paket Utama),
+ * di mana backend RS otomatis membuat order kosong (tanpa menu) untuk besok (T+1).
+ * 
+ * Fungsi ini mengirim POST dengan patient_id (No. RM) ke endpoint /webhook/sync-data-tera,
+ * yang memicu backend n8n untuk membuat/memperbarui pesanan di database berdasarkan data SIMRS.
+ * Setelah sinkronisasi, data baru akan otomatis tampil di Dashboard melalui polling 30 detik.
+ * 
+ * @param {string|number} patientId - Nomor RM / patient_id pasien yang akan di-sync
+ * @param {number} [maxRetries=3] - Maksimal jumlah percobaan pengiriman ulang
+ * @returns {Promise<{ success: boolean, patientId: string, message: string }>} Status sinkronisasi
+ */
+export async function syncPatientOrder(patientId, maxRetries = 3) {
+  if (!patientId) {
+    throw new Error('Nomor RM pasien wajib diisi untuk sinkronisasi.');
+  }
+
+  const cleanPid = String(patientId).trim();
+
+  const formData = new FormData();
+  formData.append('patient_id', cleanPid);
+  formData.append('pid', cleanPid);
+
+  let lastError = null;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await apiPostFormData('/webhook/sync-data-tera', formData);
+      return {
+        success: true,
+        patientId: cleanPid,
+        message: `Data pasien ${cleanPid} berhasil disinkronisasi dengan SIMRS.`,
+        data: response,
+      };
+    } catch (err) {
+      lastError = err;
+      console.warn(`[orderService] Sync percobaan ${attempt}/${maxRetries} gagal untuk pasien ${cleanPid}:`, err.message);
+      if (attempt < maxRetries) {
+        await new Promise(res => setTimeout(res, attempt * 800));
+      }
+    }
+  }
+
+  throw new Error(
+    `Gagal menyinkronisasi data pasien ${cleanPid} setelah ${maxRetries} percobaan. ` +
+    `Pesan error: ${lastError?.message || 'Unknown error'}. ` +
+    `Silakan coba lagi atau hubungi tim IT.`
+  );
+}
+
+/**
  * Membersihkan data local orders lama dari localStorage (jika ada dari versi sebelumnya).
  * Dipanggil sekali saat aplikasi dimuat untuk memastikan tidak ada ghost data.
  */
@@ -816,6 +866,7 @@ export default {
   getTodayServingDate,
   updateOrderNotes,
   autoGenerateOrdersForKelas,
+  syncPatientOrder,
   enrichOrdersWithPatientAllergies,
   cleanupLegacyLocalOrders,
 };

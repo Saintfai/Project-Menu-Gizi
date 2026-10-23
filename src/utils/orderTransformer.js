@@ -53,6 +53,50 @@ export function formatMealColumn(items = []) {
 }
 
 /**
+ * Memeriksa apakah pesanan merupakan order kosong (tanpa menu) dari pasien registrasi lewat cut-off.
+ * Digunakan untuk mendeteksi order yang perlu di-sync dengan SIMRS.
+ * 
+ * @param {object} groupedRow - Baris data pesanan yang sudah dikelompokkan per pasien/orderCode
+ * @returns {boolean} True jika semua waktu makan kosong (tidak ada item menu sama sekali)
+ */
+export function isEmptyOrder(groupedRow) {
+  if (!groupedRow) return true;
+
+  // Cek apakah ada item di salah satu sesi makan
+  const hasItems = (
+    (Array.isArray(groupedRow.itemsPagi) && groupedRow.itemsPagi.length > 0) ||
+    (Array.isArray(groupedRow.itemsSiang) && groupedRow.itemsSiang.length > 0) ||
+    (Array.isArray(groupedRow.itemsSore) && groupedRow.itemsSore.length > 0)
+  );
+
+  if (hasItems) {
+    // Pastikan item tersebut bukan hanya placeholder kosong
+    const allItems = [
+      ...(groupedRow.itemsPagi || []),
+      ...(groupedRow.itemsSiang || []),
+      ...(groupedRow.itemsSore || []),
+    ];
+    const hasRealMenu = allItems.some(item => {
+      const name = (item.menuName || item.name || item.paketName || '').trim();
+      return name !== '' && name !== '-';
+    });
+    if (hasRealMenu) return false;
+  }
+
+  // Jika tidak ada item atau hanya placeholder, periksa teks kolom makan
+  if (groupedRow.makanPagi || groupedRow.makanSiang || groupedRow.makanSore || groupedRow.makanMalam) {
+    const p = (groupedRow.makanPagi || '-').trim();
+    const s = (groupedRow.makanSiang || '-').trim();
+    const m = (groupedRow.makanSore || groupedRow.makanMalam || '-').trim();
+    if (p !== '-' || s !== '-' || m !== '-') {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * Memeriksa apakah pasien memiliki riwayat alergi yang valid (bukan teks kosong atau 'tidak ada').
  * 
  * @param {string | null | undefined} allergies - Teks riwayat alergi pasien
@@ -102,7 +146,7 @@ export function groupOrdersForTable(rawOrders = []) {
       grouped[key] = {
         id: key,
         orderCode: order.orderCode || key,
-        patientId: order.patientId,
+        patientId: order.patientId || order.patient_id || order.rmNumber || order.rm_number,
         noReg: noReg,
         noreg: noReg,
         patientName: order.patient?.name || order.patientName || order.pasienRM || 'Pasien',
@@ -171,6 +215,7 @@ export function groupOrdersForTable(rawOrders = []) {
     return {
       id: group.id,
       orderCode: group.orderCode,
+      patientId: group.patientId || group.rmNumber,
       noReg: group.noReg,
       noreg: group.noreg,
       pasienRM: group.pasienRM,
@@ -197,5 +242,8 @@ export function groupOrdersForTable(rawOrders = []) {
       menuSoreText: makanSore,
       menuMalamText: makanSore, // alias for backwards compatibility
     };
-  });
+  }).map(row => ({
+    ...row,
+    isEmptyOrder: isEmptyOrder(row),
+  }));
 }
