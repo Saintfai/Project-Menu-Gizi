@@ -438,8 +438,8 @@ export default function Chef() {
                 <h3 className="text-lg font-bold text-neutral-700">Belum Ada Data Produksi</h3>
                 <p className="text-sm text-neutral-500 max-w-sm">
                   {selectedMealTime === 'Semua' 
-                    ? 'Belum ada pesanan yang terdaftar untuk jadwal penyajian besok hari.'
-                    : `Belum ada pesanan untuk waktu Makan ${selectedMealTime.charAt(0) + selectedMealTime.slice(1).toLowerCase()} besok hari.`}
+                    ? `Belum ada pesanan yang terdaftar untuk jadwal penyajian ${selectedDateMode === 'today' ? 'hari ini' : 'besok hari'}.`
+                    : `Belum ada pesanan untuk waktu Makan ${selectedMealTime.charAt(0) + selectedMealTime.slice(1).toLowerCase()} ${selectedDateMode === 'today' ? 'hari ini' : 'besok hari'}.`}
                 </p>
               </div>
             ) : (
