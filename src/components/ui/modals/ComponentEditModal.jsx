@@ -78,7 +78,7 @@ const computeInitialState = (cycleItems, selectedMeal) => {
 };
 
 // Modal ubah komponen lauk gizi pasien secara langsung dari tabel dashboard admin
-export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycleNumber }) {
+export default function ComponentEditModal({ isOpen, onClose, onSaved, selectedMeal, cycleNumber }) {
   const [loading, setLoading] = useState(false);
   const [menus, setMenus] = useState([]);
   
@@ -252,12 +252,17 @@ export default function ComponentEditModal({ isOpen, onClose, selectedMeal, cycl
               </div>
             </div>
         ), { position: 'top-right', duration: 3000 });
+
+        if (onSaved) {
+          onSaved(targetOrder.id, newNotes, updatedFields);
+        } else {
+          onClose();
+        }
     } catch (err) {
         console.error('Failed to update component overrides', err);
         alert(`Gagal menyimpan perubahan komponen gizi.\n\nDetail: ${err.message || JSON.stringify(err)}`);
     } finally {
         setLoading(false);
-        onClose();
     }
   };
 

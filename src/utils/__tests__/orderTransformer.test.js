@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { formatMealColumn, hasRealAllergy, groupOrdersForTable } from '../orderTransformer';
+import { formatMealColumn, hasRealAllergy, groupOrdersForTable, isEmptyOrder } from '../orderTransformer';
 
 describe('Transformasi & Format Rekapitulasi Dapur Gizi (PRD 3.8)', () => {
   // Uji formatting notasi string pada kolom waktu makan tabel rekap
@@ -231,5 +231,43 @@ describe('Transformasi & Format Rekapitulasi Dapur Gizi (PRD 3.8)', () => {
       expect(tomorrowRow.makanPagi).toBe('Paket A');
       expect(tomorrowRow.makanSiang).toBe('-');
     });
+
+    it('menandai isEmptyOrder = true untuk pasien baru registrasi lewat cut-off tanpa menu', () => {
+      const rawEmptyOrder = [
+        {
+          orderCode: 'ORD-146027',
+          patientId: '146027',
+          patientName: 'muncang',
+          roomNumber: 'LILAC 5',
+          classType: 'VIP A',
+          servingDate: '2026-10-23',
+          mealTime: null,
+          menuName: null,
+          quantity: 0,
+        },
+      ];
+
+      const res = groupOrdersForTable(rawEmptyOrder);
+      expect(res).toHaveLength(1);
+      expect(res[0].patientId).toBe('146027');
+      expect(res[0].isEmptyOrder).toBe(true);
+      expect(res[0].makanPagi).toBe('-');
+      expect(res[0].makanSiang).toBe('-');
+      expect(res[0].makanSore).toBe('-');
+    });
+  });
+
+  describe('isEmptyOrder() - Deteksi Pesanan Kosong Pasien Masuk Lewat Jam 15:00', () => {
+    it('mengembalikan true jika semua waktu makan tidak memiliki item', () => {
+      expect(isEmptyOrder({ itemsPagi: [], itemsSiang: [], itemsSore: [] })).toBe(true);
+      expect(isEmptyOrder({ makanPagi: '-', makanSiang: '-', makanSore: '-' })).toBe(true);
+      expect(isEmptyOrder(null)).toBe(true);
+    });
+
+    it('mengembalikan false jika setidaknya ada 1 item menu yang dipesan', () => {
+      expect(isEmptyOrder({ itemsPagi: [{ name: 'Nasi Liwet' }], itemsSiang: [], itemsSore: [] })).toBe(false);
+      expect(isEmptyOrder({ makanPagi: 'Paket A', makanSiang: '-', makanSore: '-' })).toBe(false);
+    });
   });
 });
+

@@ -11,12 +11,13 @@ import {
   Users, 
   ClipboardList 
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import RekapCard from '../../components/ui/cards/RekapCard';
 import { OrdersTable } from '../../components/ui/tables/OrdersTable';
 import NoteDetailModal from '../../components/ui/modals/NoteDetailModal';
 import ComponentEditModal from '../../components/ui/modals/ComponentEditModal';
 import { groupOrdersForTable, normalizeDateToYYYYMMDD } from '../../utils/orderTransformer';
-import { getTodayOrders, getOrders, deleteOrderItem, enrichOrdersWithPatientAllergies, clearPatientCache } from '../../services/orderService';
+import { getTodayOrders, getOrders, deleteOrderItem, enrichOrdersWithPatientAllergies, clearPatientCache, syncPatientOrder } from '../../services/orderService';
 import { getTotalActivePatients } from '../../services/patientService';
 import { getActiveCycleMenu } from '../../services/menuService';
 import PageTransition from '../../components/PageTransition';
@@ -42,6 +43,7 @@ export default function Dashboard() {
   const [selectedNoteData, setSelectedNoteData] = useState(null);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [patientCensus, setPatientCensus] = useState({ totalPasien: 0, pasienKelas: 0, pasienVip: 0 });
+  const [syncingPatientIds, setSyncingPatientIds] = useState(new Set());
 
   // Hitung jumlah pasien VIP dan Kelas dari sensus atau pesanan aktif
   const { vipCount, kelasCount } = useMemo(() => {
@@ -421,15 +423,67 @@ export default function Dashboard() {
     setSelectedNoteData(null);
   };
 
+  // Sinkronisasi data pesanan pasien baru (registrasi lewat 15:00) via API sync-data-tera
+  const handleSyncPatient = useCallback(async (row) => {
+    const patientId = row.patientId || row.rmNumber;
+    if (!patientId) {
+      toast.error('Nomor RM pasien tidak ditemukan.');
+      return;
+    }
+
+    const patientLabel = row.patientName ? `${row.patientName} (${patientId})` : patientId;
+    const toastId = toast.loading(`Menyinkronisasi pesanan ${patientLabel} dengan SIMRS...`);
+
+    setSyncingPatientIds((prev) => new Set(prev).add(patientId));
+    try {
+      const result = await syncPatientOrder(patientId);
+      toast.success(result.message || `Pesanan ${patientLabel} berhasil disinkronisasi!`, { id: toastId });
+      // Fetch ulang data pesanan dari server agar tabel langsung terupdate
+      await fetchOrderData({ force: true, isSilent: false });
+    } catch (err) {
+      console.error('Gagal sinkronisasi data pasien:', err);
+      toast.error(
+        err.message || `Gagal menyinkronisasi data pesanan ${patientLabel} dengan SIMRS.`,
+        { id: toastId, duration: 6000 }
+      );
+    } finally {
+      setSyncingPatientIds((prev) => {
+        const next = new Set(prev);
+        next.delete(patientId);
+        return next;
+      });
+    }
+  }, [fetchOrderData]);
+
   // Buka modal edit komponen makanan per sesi makan
   const handleMealClick = useCallback((row, mealTime, items) => {
     setSelectedComponentMeal({ row, mealTime, items });
   }, []);
 
-  // Tutup modal edit komponen dan muat ulang data pesanan
+  // Tutup modal edit komponen makanan tanpa refresh (ketika batal atau hanya melihat)
   const handleCloseComponentModal = useCallback(() => {
     setSelectedComponentMeal(null);
-    fetchOrderData({ force: true });
+  }, []);
+
+  // Simpan perubahan komponen makanan dan perbarui state lokal secara instan & silent sync
+  const handleSavedComponentModal = useCallback((orderId, newNotes, updatedFields) => {
+    setSelectedComponentMeal(null);
+    if (orderId) {
+      setRawOrders((prevOrders) =>
+        prevOrders.map((order) => {
+          if (order.id === orderId) {
+            return {
+              ...order,
+              notes: newNotes,
+              ...updatedFields,
+            };
+          }
+          return order;
+        })
+      );
+    }
+    // Sinkronisasi data ke server di latar belakang tanpa spinner/refresh UI
+    fetchOrderData({ isSilent: true });
   }, [fetchOrderData]);
 
   // Format tanggal penyajian ke teks formal bahasa Indonesia
@@ -611,6 +665,8 @@ export default function Dashboard() {
               data={filteredData} 
               onNoteClick={handleOpenNote} 
               onMealClick={handleMealClick}
+              onSyncClick={handleSyncPatient}
+              syncingPatientIds={syncingPatientIds}
               pageSize={pageSize}
               onPageSizeChange={setPageSize}
               currentPage={currentPage}
@@ -629,6 +685,7 @@ export default function Dashboard() {
       <ComponentEditModal
         isOpen={!!selectedComponentMeal}
         onClose={handleCloseComponentModal}
+        onSaved={handleSavedComponentModal}
         selectedMeal={selectedComponentMeal}
         cycleNumber={activeCycleNumber}
       />

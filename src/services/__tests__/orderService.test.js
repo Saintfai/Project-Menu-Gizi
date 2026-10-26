@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getOrders, getTodayOrders, deleteOrderItem, getChefDailyNote, saveChefDailyNote, getTomorrowServingDate, getTodayServingDate } from '../orderService';
+import { getOrders, getTodayOrders, deleteOrderItem, getChefDailyNote, saveChefDailyNote, getTomorrowServingDate, getTodayServingDate, syncPatientOrder } from '../orderService';
 import * as apiClient from '../apiClient';
 
 vi.mock('../apiClient', () => ({
@@ -432,6 +432,33 @@ describe('orderService - getOrders normalization', () => {
       expect(tomorrow).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       const today = getTodayServingDate();
       expect(tomorrow).not.toBe(today);
+    });
+  });
+
+  describe('syncPatientOrder() - Sinkronisasi Pasien Baru SIMRS', () => {
+    it('berhasil memanggil webhook sync-data-tera dengan FormData patient_id', async () => {
+      apiClient.apiPostFormData.mockResolvedValueOnce({
+        status: 'success',
+        message: 'Patient synchronized',
+      });
+
+      const res = await syncPatientOrder('146027');
+      expect(res.success).toBe(true);
+      expect(res.patientId).toBe('146027');
+      expect(apiClient.apiPostFormData).toHaveBeenCalledWith(
+        '/webhook/sync-data-tera',
+        expect.any(FormData)
+      );
+    });
+
+    it('melempar error jika patientId tidak diisi', async () => {
+      await expect(syncPatientOrder('')).rejects.toThrow('Nomor RM pasien wajib diisi');
+    });
+
+    it('melempar error jika semua percobaan retry gagal', async () => {
+      apiClient.apiPostFormData.mockRejectedValue(new Error('Network error 500'));
+
+      await expect(syncPatientOrder('146027', 1)).rejects.toThrow('Gagal menyinkronisasi data pasien 146027');
     });
   });
 });

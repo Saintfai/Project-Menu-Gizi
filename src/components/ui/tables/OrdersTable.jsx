@@ -1,11 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { FileText, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import { FileText, ChevronLeft, ChevronRight, ChevronDown, RefreshCw } from 'lucide-react';
 
 // Komponen tabel rekapitulasi pesanan pasien terintegrasi (mendukung pagination, rincian paket, alergi, dan modal catatan)
 export const OrdersTable = ({ 
   data = [], 
   onNoteClick, 
+  onSyncClick,
+  syncingPatientIds = new Set(),
   className = '', 
   onMealClick,
   pageSize: controlledPageSize,
@@ -205,16 +207,38 @@ export const OrdersTable = ({
                       <span className="font-medium text-xs text-neutral-700">{row.bentukMakananText || '-'}</span>
                     </td>
                     <td className="px-3 py-2.5 text-center align-top" style={{ border: '1px solid #9ca3af' }}>
-                      <button 
-                        type="button"
-                        onClick={() => row.hasCatatan && onNoteClick && onNoteClick(row)}
-                        className={`p-1.5 rounded-md transition-colors ${row.hasCatatan ? 'text-primary-700 bg-primary-50 hover:bg-primary-100 cursor-pointer border border-primary-200' : 'text-neutral-300 cursor-default'}`}
-                        disabled={!row.hasCatatan}
-                        aria-label={row.hasCatatan ? `Lihat catatan ${displayName}` : 'Tidak ada catatan'}
-                        title={row.hasCatatan ? 'Lihat catatan khusus' : 'Tidak ada catatan'}
-                      >
-                        <FileText className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button 
+                          type="button"
+                          onClick={() => row.hasCatatan && onNoteClick && onNoteClick(row)}
+                          className={`p-1.5 rounded-md transition-colors ${row.hasCatatan ? 'text-primary-700 bg-primary-50 hover:bg-primary-100 cursor-pointer border border-primary-200' : 'text-neutral-300 cursor-default'}`}
+                          disabled={!row.hasCatatan}
+                          aria-label={row.hasCatatan ? `Lihat catatan ${displayName}` : 'Tidak ada catatan'}
+                          title={row.hasCatatan ? 'Lihat catatan khusus' : 'Tidak ada catatan'}
+                        >
+                          <FileText className="w-4 h-4" />
+                        </button>
+                        {row.isEmptyOrder && onSyncClick && (
+                          <button
+                            type="button"
+                            onClick={() => onSyncClick(row)}
+                            className={`p-1.5 rounded-md transition-all ${
+                              syncingPatientIds.has(row.patientId || row.rmNumber)
+                                ? 'text-amber-600 bg-amber-50 border border-amber-300 cursor-wait'
+                                : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 cursor-pointer border border-emerald-200 hover:border-emerald-300'
+                            }`}
+                            disabled={syncingPatientIds.has(row.patientId || row.rmNumber)}
+                            aria-label={`Sinkronisasi data pesanan ${displayName}`}
+                            title={
+                              syncingPatientIds.has(row.patientId || row.rmNumber)
+                                ? 'Sedang menyinkronisasi...'
+                                : 'Sync data pesanan dengan SIMRS'
+                            }
+                          >
+                            <RefreshCw className={`w-4 h-4 ${syncingPatientIds.has(row.patientId || row.rmNumber) ? 'animate-spin' : ''}`} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -322,6 +346,8 @@ export const OrdersTable = ({
 OrdersTable.propTypes = {
   data: PropTypes.array,
   onNoteClick: PropTypes.func,
+  onSyncClick: PropTypes.func,
+  syncingPatientIds: PropTypes.instanceOf(Set),
   className: PropTypes.string,
   onMealClick: PropTypes.func,
   pageSize: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
