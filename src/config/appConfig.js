@@ -3,7 +3,7 @@
  */
 const appConfig = {
   // Set true agar bebas pesan kapan saja saat demo
-  DEMO_MODE: true,
+  DEMO_MODE: false,
 
   // Batas jam pemesanan (format jam WIB: 0-23)
   CUTOFF_MAIN: 15,          // Paket Utama (15:00 WIB)
