@@ -38,12 +38,42 @@ export function getMenuCycleByDate(dateInput) {
 }
 
 /**
- * Mendapatkan string tanggal penyajian esok hari (T+1) dalam format YYYY-MM-DD.
+ * Mendapatkan string tanggal penyajian esok hari (T+1) dalam format YYYY-MM-DD (waktu lokal/WIB).
  * 
- * @returns {string} Tanggal esok hari dalam format ISO date string (YYYY-MM-DD)
+ * @returns {string} Tanggal esok hari dalam format YYYY-MM-DD
  */
 export function getTomorrowServingDate() {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  return tomorrow.toISOString().split('T')[0];
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}`;
+}
+
+/**
+ * Mendapatkan string tanggal penyajian hari ini (T) dalam format YYYY-MM-DD (waktu lokal/WIB).
+ * 
+ * @returns {string} Tanggal hari ini format YYYY-MM-DD
+ */
+export function getTodayServingDate() {
+  const today = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+}
+
+/**
+ * Mendapatkan nomor siklus menu untuk hari ini.
+ * 
+ * @returns {number} Nomor siklus hari ini (1 - 11)
+ */
+export function getTodayMenuCycle() {
+  return getMenuCycleByDate(new Date());
+}
+
+/**
+ * Mendapatkan nomor siklus menu untuk esok hari (T+1).
+ * 
+ * @returns {number} Nomor siklus esok hari (1 - 11)
+ */
+export function getTomorrowMenuCycle() {
+  return getMenuCycleByDate();
 }

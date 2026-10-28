@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { getMenuCycleByDate, getTomorrowServingDate } from '../cycleHelper';
+import { getMenuCycleByDate, getTomorrowServingDate, getTodayServingDate, getTodayMenuCycle, getTomorrowMenuCycle } from '../cycleHelper';
 
 describe('Logika Siklus Menu (PRD 3.2)', () => {
   // Uji penentuan nomor siklus menu dari tanggal kalender
@@ -64,6 +64,23 @@ describe('Logika Siklus Menu (PRD 3.2)', () => {
       const expected = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}`;
 
       expect(tomorrowStr).toBe(expected);
+    });
+  });
+
+  describe('getTodayServingDate() & Siklus Hari Ini / Besok', () => {
+    it('harus menghasilkan tanggal hari ini dengan format YYYY-MM-DD', () => {
+      const todayStr = getTodayServingDate();
+      expect(todayStr).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+
+    it('getTodayMenuCycle() dan getTomorrowMenuCycle() harus menghasilkan nomor siklus 1-11 yang valid', () => {
+      const todayCycle = getTodayMenuCycle();
+      const tomorrowCycle = getTomorrowMenuCycle();
+
+      expect(todayCycle).toBeGreaterThanOrEqual(1);
+      expect(todayCycle).toBeLessThanOrEqual(11);
+      expect(tomorrowCycle).toBeGreaterThanOrEqual(1);
+      expect(tomorrowCycle).toBeLessThanOrEqual(11);
     });
   });
 });

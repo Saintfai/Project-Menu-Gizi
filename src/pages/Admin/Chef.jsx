@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import { 
-  RefreshCw, AlertCircle, FileText, ChefHat, UtensilsCrossed, Info, X, ChevronDown, FileEdit
+  RefreshCw, AlertCircle, FileText, ChefHat, UtensilsCrossed, ChevronDown, FileEdit
 } from 'lucide-react';
 import { getTodayOrders, getOrders, getChefDailyNote, enrichOrdersWithPatientAllergies } from '../../services/orderService';
 import { hasRealAllergy } from '../../utils/orderTransformer';
@@ -22,7 +21,7 @@ export default function Chef() {
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentDate, setCurrentDate] = useState(() => new Date());
+  const [currentDate] = useState(() => new Date());
   const [selectedDateMode, setSelectedDateMode] = useState('tomorrow'); // 'today' | 'tomorrow'
   const [selectedMealTime, setSelectedMealTime] = useState('Semua');
   const [chefDailyNote, setChefDailyNote] = useState('');
@@ -52,25 +51,39 @@ export default function Chef() {
     return num;
   }, [activeServingDateObj]);
 
-  // Ambil data pesanan aktif dari sistem RS via endpoint cepat getTodayOrders()
+  // Ambil data pesanan dari sistem RS (menggabungkan getOrders + getTodayOrders seperti pada Dashboard)
+  // agar pesanan baru pasien untuk Hari Ini (Ekstra) maupun Besok T+1 (Utama & Ekstra) selalu masuk
   const fetchChefData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      let ordersData = [];
-      try {
-        ordersData = await getTodayOrders();
-      } catch (e) {
-        console.warn('Gagal getTodayOrders di Chef, fallback ke getOrders:', e.message);
-        ordersData = await getOrders();
+
+      const [allRes, todayRes] = await Promise.allSettled([
+        getOrders({ withPatientAllergies: false }),
+        getTodayOrders({ withPatientAllergies: false }),
+      ]);
+
+      const allData = allRes.status === 'fulfilled' && Array.isArray(allRes.value) ? allRes.value : [];
+      const todayData = todayRes.status === 'fulfilled' && Array.isArray(todayRes.value) ? todayRes.value : [];
+
+      if (allRes.status === 'rejected' && todayRes.status === 'rejected') {
+        throw allRes.reason || todayRes.reason || new Error('Gagal mengambil data pesanan.');
       }
-      if (!ordersData || ordersData.length === 0) {
-        ordersData = await getOrders();
-      }
-      setRawOrders(ordersData || []);
+
+      const combinedMap = new Map();
+      [...allData, ...todayData].forEach(item => {
+        if (!item) return;
+        const key = item.id
+          ? String(item.id)
+          : `${item.patientId || item.rmNumber}_${item.mealTime}_${item.menuName}_${item.servingDate || item.createdAt}`;
+        combinedMap.set(key, item);
+      });
+
+      const ordersData = Array.from(combinedMap.values());
+      setRawOrders(ordersData);
 
       // Langkah background: Perkaya data pesanan dengan riwayat alergi pasien di latar belakang
-      if (ordersData && ordersData.length > 0) {
+      if (ordersData.length > 0) {
         enrichOrdersWithPatientAllergies(ordersData)
           .then((enriched) => {
             if (Array.isArray(enriched)) {
@@ -321,8 +334,6 @@ export default function Chef() {
     tambahan: tambahanEntries[i] || null,
   }));
 
-
-
   const hasAnyData = maxRows > 0;
 
   // Format tanggal penyajian ke teks formal bahasa Indonesia
@@ -412,9 +423,6 @@ export default function Chef() {
           </div>
         ) : (
           <div className="space-y-6">
-            
-
-
             {/* Filter Section */}
             <div className="flex pb-2">
               <div className="relative w-44">

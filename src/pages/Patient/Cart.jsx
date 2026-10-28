@@ -4,9 +4,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag, Loader2, Info, AlertCircle } from 'lucide-react';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import { usePatient } from '../../context/PatientContext';
-import { createOrders, getOrders, checkPatientHasOrderedMain, getTomorrowServingDate, getTodayServingDate } from '../../services/orderService';
+import { createOrders, checkPatientHasOrderedMain, getTomorrowServingDate, getTodayServingDate } from '../../services/orderService';
 import { getPatientByRm } from '../../services/patientService';
-import { getActiveCycleMenu } from '../../services/menuService';
+import { getAllMenuItems } from '../../services/menuService';
 import PageTransition from '../../components/PageTransition';
 import { validateNote } from '../../utils/inputValidator';
 import { secureSessionStorage } from '../../utils/secureStorage';
@@ -24,11 +24,7 @@ const MEAL_SCHEDULE = {
 export default function Cart() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { patient, updatePatientInfo, logoutPatient } = usePatient();
-  const handleLogout = () => {
-    logoutPatient();
-    navigate('/login', { replace: true });
-  };
+  const { patient, updatePatientInfo } = usePatient();
   const currentPatientKey = patient?.id || patient?.rmNumber ? String(patient.id || patient.rmNumber) : null;
   const [note, setNote] = useState(() => {
     const savedOwner = secureSessionStorage.getItem('patient_cart_owner');
@@ -78,6 +74,7 @@ export default function Cart() {
   React.useEffect(() => {
     if (currentPatientKey) {
       secureSessionStorage.setItem('patient_cart_note', note);
+      secureSessionStorage.setItem('patient_cart_owner', currentPatientKey);
     }
   }, [note, currentPatientKey]);
 
@@ -86,6 +83,7 @@ export default function Cart() {
     const locQuantities = location.state?.quantities;
     if (locQuantities && Object.keys(locQuantities).length > 0) {
       secureSessionStorage.setItem('patient_cart_quantities', locQuantities);
+      if (currentPatientKey) secureSessionStorage.setItem('patient_cart_owner', currentPatientKey);
       return locQuantities;
     }
     const savedOwner = secureSessionStorage.getItem('patient_cart_owner');
@@ -97,10 +95,10 @@ export default function Cart() {
 
   const [menuItems, setMenuItems] = useState(location.state?.menuItems || []);
 
-  // Muat ulang menu siklus aktif jika menuItems belum terisi (misal saat halaman di-refresh)
+  // Muat ulang menu lengkap jika menuItems belum terisi (misal saat halaman di-refresh)
   React.useEffect(() => {
     if (menuItems.length === 0) {
-      getActiveCycleMenu().then(data => {
+      getAllMenuItems().then(data => {
         if (data && data.length > 0) {
           setMenuItems(data);
         }
@@ -333,7 +331,7 @@ export default function Cart() {
       const hasPasienItems = Object.values(orderData.pasien).some(arr => arr.length > 0);
       const hasPendampingItems = Object.values(orderData.pendamping).some(arr => arr.length > 0);
 
-      if (hasPasienItems || hasPendampingItems) {
+      if ((hasPasienItems || hasPendampingItems) && !pendingRetryItems) {
         if (appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_MAIN) {
           invalidLock = `Menu Utama (maks ${appConfig.CUTOFF_MAIN_TEXT})`;
         }
@@ -397,9 +395,9 @@ export default function Cart() {
       const todayServingDateFormatted = `${tdYear}-${tdMonth}-${tdDate} 12:00:00`;
 
       // 5. Validasi Batas Kuota Porsi Berdasarkan Kelas Kamar Pasien
-      if (hasPasienItems || hasPendampingItems) {
+      if ((hasPasienItems || hasPendampingItems) && !pendingRetryItems) {
         const roomClassLower = (effectivePatient.effectiveClass || effectivePatient.roomClass || '').toLowerCase();
-        const isVipA = roomClassLower.includes('vip a') || roomClassLower.includes('vip_a') || roomClassLower.includes('suite');
+        const isVipA = roomClassLower.includes('vip a') || roomClassLower.includes('vip_a') || roomClassLower.includes('vvip') || roomClassLower.includes('suite');
         const maxPortions = {
           PAGI: 2,
           SIANG: isVipA ? 2 : 1,
@@ -424,7 +422,7 @@ export default function Cart() {
       }
 
       // 6. Pastikan menu utama belum pernah dipesan hari ini untuk besok (cek pesanan ganda di server)
-      if (hasPasienItems || hasPendampingItems) {
+      if ((hasPasienItems || hasPendampingItems) && !pendingRetryItems) {
         try {
           const hasAlreadyOrdered = await checkPatientHasOrderedMain(
             effectivePatient.id || effectivePatient.rmNumber,
@@ -581,7 +579,6 @@ export default function Cart() {
         {/* 1. Header atas aplikasi mobile */}
         <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-neutral-100">
           <HeaderMobile
-            onLogout={handleLogout}
             title={
               <div className="flex flex-col gap-1">
                 <span className="font-bold text-neutral-900 leading-tight">Menu Gizi</span>

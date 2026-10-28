@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { UtensilsCrossed, ShoppingCart, ShoppingBag, AlertCircle, Info } from 'lucide-react';
@@ -9,25 +9,28 @@ import Accordion from '../../components/ui/data-display/Accordion';
 import MenuCard from '../../components/ui/cards/MenuCard';
 import SearchBar from '../../components/ui/forms/SearchBar';
 import IncludeModal from '../../components/ui/modals/IncludeModal';
-import EkstraModal from '../../components/ui/modals/EkstraModal';
 import { usePatient } from '../../context/PatientContext';
 import PageTransition from '../../components/PageTransition';
-import { getOrders, checkPatientHasOrderedMain, getTomorrowServingDate } from '../../services/orderService';
-import { getActiveCycleMenu } from '../../services/menuService';
+import { checkPatientHasOrderedMain } from '../../services/orderService';
+import { getAllMenuItems, getMenuItemsByCycle } from '../../services/menuService';
+import { getTomorrowServingDate, getTomorrowMenuCycle, getTodayMenuCycle } from '../../utils/cycleHelper';
 import { getCurrentWIBHour } from '../../utils/cutoffValidator';
 import { secureSessionStorage } from '../../utils/secureStorage';
 import appConfig from '../../config/appConfig';
 
-// Portal katalog menu: Menu Utama (Include) & Menu Ekstra (Berbayar)
+// Format representasi tanggal untuk tampilan pengguna (cth: "Rabu, 28 Okt")
+const formatDateDisplay = (dateObj) => {
+  if (!dateObj) return '';
+  const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  return `${days[dateObj.getDay()]}, ${dateObj.getDate()} ${months[dateObj.getMonth()]}`;
+};
+
+// Portal katalog menu: Menu Utama (Include - Siklus Besok T+1) & Menu Ekstra (Berbayar - Pilihan Pasien: Hari Ini / Besok)
 export default function MenuPortal() {
-  const { patient, logoutPatient } = usePatient();
+  const { patient } = usePatient();
   const navigate = useNavigate();
   const location = useLocation();
-
-  const handleLogout = () => {
-    logoutPatient();
-    navigate('/login', { replace: true });
-  };
   
   // Batas cut-off time diambil dari appConfig (Single Source of Truth)
   const currentHour = getCurrentWIBHour();
@@ -35,7 +38,19 @@ export default function MenuPortal() {
   const isExtraSiangLockedTime = appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_EXTRA_SIANG;
   const isExtraSoreLockedTime = appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_EXTRA_SORE;
   const isExtraBesokLockedTime = appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_MAIN;
-  
+  const isExtraTodayFullyClosed = isExtraSiangLockedTime && isExtraSoreLockedTime;
+  const isExtraAllClosed = isExtraTodayFullyClosed && isExtraBesokLockedTime;
+
+  // Siklus & Objek Tanggal Hari Ini dan Besok
+  const tomorrowCycle = useMemo(() => getTomorrowMenuCycle(), []);
+  const todayCycle = useMemo(() => getTodayMenuCycle(), []);
+  const todayObj = useMemo(() => new Date(), []);
+  const tomorrowObj = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d;
+  }, []);
+
   // Proteksi: alihkan ke login jika data pasien kosong
   useEffect(() => {
     if (!patient || !patient.id || !patient.rmNumber) {
@@ -43,15 +58,29 @@ export default function MenuPortal() {
     }
   }, [patient, navigate]);
   
-  const [menuItems, setMenuItems] = useState([]);
+  // Menu Utama selalu menggunakan siklus esok hari (T+1)
+  const [tomorrowMenuItems, setTomorrowMenuItems] = useState([]);
+  // Menu Ekstra dapat memilih antara siklus Hari Ini atau Besok
+  const [todayMenuItems, setTodayMenuItems] = useState([]);
+  const [allMenuItems, setAllMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const [includeModalOpen, setIncludeModalOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState(null);
-  const [ekstraModalOpen, setEkstraModalOpen] = useState(false);
-  const [selectedEkstraItem, setSelectedEkstraItem] = useState(null);
   const [validationAlert, setValidationAlert] = useState(null);
   const [hasOrderedMain, setHasOrderedMain] = useState(false);
+
+  // Tab pemilihan jadwal Menu Ekstra: 'HARI_INI' vs 'BESOK'
+  // Jika hari ini sudah tutup kedua sesi makannya, otomatis arahkan ke 'BESOK'
+  const [extraTargetDay, setExtraTargetDay] = useState(() => isExtraTodayFullyClosed ? 'BESOK' : 'HARI_INI');
+
+  // Pastikan extraTargetDay sinkron jika hari ini sudah tutup
+  useEffect(() => {
+    if (isExtraTodayFullyClosed && extraTargetDay !== 'BESOK') {
+      setExtraTargetDay('BESOK');
+    }
+  }, [isExtraTodayFullyClosed, extraTargetDay]);
   
   const currentPatientKey = patient?.id || patient?.rmNumber ? String(patient.id || patient.rmNumber) : null;
 
@@ -72,6 +101,7 @@ export default function MenuPortal() {
   useEffect(() => {
     if (currentPatientKey) {
       secureSessionStorage.setItem('patient_cart_quantities', quantities);
+      secureSessionStorage.setItem('patient_cart_owner', currentPatientKey);
     }
   }, [quantities, currentPatientKey]);
 
@@ -83,31 +113,38 @@ export default function MenuPortal() {
     }
   }, [currentPatientKey]);
 
-  // Ambil menu siklus aktif T+1 dan cek apakah pasien sudah pesan menu utama
+  // Ambil hidangan menu untuk siklus esok hari (Menu Utama) dan siklus hari ini + besok (Menu Ekstra)
   useEffect(() => {
     async function fetchMenus() {
       if (!patient?.id) return;
       try {
         setLoading(true);
         
-        // Ambil menu siklus yang sedang aktif dari sistem RS
-        const data = await getActiveCycleMenu();
-        
-        if (data) {
+        // Ambil data menu siklus besok (T+1), siklus hari ini (T), dan seluruh menu referensi
+        const [tomorrowData, todayData, allData] = await Promise.all([
+          getMenuItemsByCycle(tomorrowCycle),
+          getMenuItemsByCycle(todayCycle),
+          getAllMenuItems()
+        ]);
+
+        setTomorrowMenuItems(tomorrowData || []);
+        setTodayMenuItems(todayData || []);
+        setAllMenuItems(allData || []);
+
+        const fullPool = (allData && allData.length > 0) ? allData : [...(tomorrowData || []), ...(todayData || [])];
+        if (fullPool.length > 0) {
           setQuantities(prev => {
-            const currentIds = new Set(data.map(d => String(d.id)));
+            const validIds = new Set(fullPool.map(d => String(d.id)));
             const newQuantities = {};
             for (const [key, val] of Object.entries(prev)) {
               const baseKey = key.startsWith('ekstra_') ? key.replace('ekstra_', '') : key;
-              if (currentIds.has(String(baseKey))) {
+              if (validIds.has(String(baseKey))) {
                 newQuantities[key] = val;
               }
             }
             return newQuantities;
           });
         }
-
-        setMenuItems(data || []);
 
         // Cek apakah pasien sudah memesan menu utama untuk jadwal besok langsung ke database server
         const targetServingDate = getTomorrowServingDate();
@@ -140,15 +177,15 @@ export default function MenuPortal() {
       }
     }
     fetchMenus();
-  }, [patient?.id]);
+  }, [patient?.id, patient?.rmNumber, patient?.noReg, patient?.noreg, tomorrowCycle, todayCycle]);
 
   if (!patient || !patient.id || !patient.rmNumber) return null;
 
   const displayPatient = patient;
 
-  // Kuota porsi: VIP A ke atas dapat 2 porsi untuk siang & sore
-  const roomClassLower = displayPatient.roomClass?.toLowerCase() || '';
-  const isVip = roomClassLower.includes('vip a') || roomClassLower.includes('vip_a') || roomClassLower.includes('suite');
+  // Kuota porsi: VIP A ke atas (termasuk VVIP & Suite, mengikuti kelas titipan/efektif) dapat 2 porsi untuk siang & sore
+  const roomClassLower = (displayPatient.effectiveClass || displayPatient.roomClass || '').toLowerCase();
+  const isVip = roomClassLower.includes('vip a') || roomClassLower.includes('vip_a') || roomClassLower.includes('vvip') || roomClassLower.includes('suite');
   
   const maxQtyPagi = 2;
   const maxQtySiang = isVip ? 2 : 1;
@@ -191,59 +228,70 @@ export default function MenuPortal() {
     setSelectedCardId(null);
   };
 
-  // Ubah porsi menu ekstra (prefix 'ekstra_')
-  const handleEkstraQuantityChange = (item, val) => {
+  // Ubah porsi menu ekstra untuk target day terpilih ('HARI_INI' atau 'BESOK')
+  const handleEkstraQuantityChange = (item, val, targetDay) => {
     const itemId = `ekstra_${item.id}`;
-    const currentQty = quantities[itemId]?.length || 0;
+    const currentQty = (quantities[itemId] || []).filter(c => c === targetDay).length;
     
     if (val > currentQty) {
       const isSiang = item.mealTime?.toUpperCase() === 'SIANG';
-      const isHariIniLocked = isSiang ? isExtraSiangLockedTime : isExtraSoreLockedTime;
-      
-      // Jika kedua jadwal (Hari Ini dan Besok) sudah lewat batas cut-off
-      if (isHariIniLocked && isExtraBesokLockedTime) {
-        setValidationAlert(`Batas waktu pemesanan menu ekstra untuk ${item.name} telah habis.`);
-        return;
+      if (targetDay === 'HARI_INI') {
+        if (isSiang && isExtraSiangLockedTime) {
+          setValidationAlert(`Batas waktu pemesanan makan siang hari ini telah habis (${appConfig.CUTOFF_EXTRA_SIANG_TEXT}).`);
+          return;
+        }
+        if (!isSiang && isExtraSoreLockedTime) {
+          setValidationAlert(`Batas waktu pemesanan makan sore hari ini telah habis (${appConfig.CUTOFF_EXTRA_SORE_TEXT}).`);
+          return;
+        }
+      } else if (targetDay === 'BESOK') {
+        if (isExtraBesokLockedTime) {
+          setValidationAlert(`Batas waktu pemesanan menu ekstra untuk besok telah habis (${appConfig.CUTOFF_MAIN_TEXT}).`);
+          return;
+        }
       }
 
-      // Buka modal pemilihan jadwal (Hari Ini vs Besok)
-      setSelectedEkstraItem(item);
-      setEkstraModalOpen(true);
+      setQuantities(prev => ({
+        ...prev,
+        [itemId]: [...(prev[itemId] || []), targetDay]
+      }));
     } else if (val < currentQty) {
       setQuantities(prev => {
         const arr = prev[itemId] || [];
+        const lastIdx = arr.lastIndexOf(targetDay);
+        if (lastIdx === -1) return prev;
+        const nextArr = [...arr];
+        nextArr.splice(lastIdx, 1);
+        if (nextArr.length === 0) {
+          const next = { ...prev };
+          delete next[itemId];
+          return next;
+        }
         return {
           ...prev,
-          [itemId]: arr.slice(0, -1)
+          [itemId]: nextArr
         };
       });
     }
   };
 
-  // Simpan jadwal penyajian menu ekstra (Hari Ini / Besok) dari modal
-  const handleEkstraModalSave = (targetDay) => {
-    if (!selectedEkstraItem) return;
-    const itemId = `ekstra_${selectedEkstraItem.id}`;
-    setQuantities(prev => ({
-      ...prev,
-      [itemId]: [...(prev[itemId] || []), targetDay]
-    }));
-    setEkstraModalOpen(false);
-    setSelectedEkstraItem(null);
-  };
+  // Menu Utama selalu berasal dari siklus besok (T+1)
+  const menuPagi = tomorrowMenuItems.filter(item => item.mealTime?.toUpperCase() === 'PAGI');
+  const menuSiang = tomorrowMenuItems.filter(item => item.mealTime?.toUpperCase() === 'SIANG');
+  const menuSore = tomorrowMenuItems.filter(item => item.mealTime?.toUpperCase() === 'SORE');
 
-  // Filter menu per waktu makan
-  const menuPagi = menuItems.filter(item => item.mealTime?.toUpperCase() === 'PAGI');
-  const menuSiang = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SIANG');
-  const menuSore = menuItems.filter(item => item.mealTime?.toUpperCase() === 'SORE');
+  // Menu Ekstra berasal dari siklus yang dipilih pasien (Hari Ini vs Besok)
+  const currentEkstraPool = extraTargetDay === 'HARI_INI' ? todayMenuItems : tomorrowMenuItems;
+  const ekstraSiang = currentEkstraPool.filter(item => item.mealTime?.toUpperCase() === 'SIANG');
+  const ekstraSore = currentEkstraPool.filter(item => item.mealTime?.toUpperCase() === 'SORE');
 
   // Filter pencarian menu ekstra
-  const filteredEkstraSiang = menuSiang.filter(item => 
+  const filteredEkstraSiang = ekstraSiang.filter(item => 
     item.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
     item.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
-  const filteredEkstraSore = menuSore.filter(item => 
+  const filteredEkstraSore = ekstraSore.filter(item => 
     item.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
     item.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -286,8 +334,8 @@ export default function MenuPortal() {
     );
   };
 
-  // Render daftar Menu Ekstra berbayar 
-  const renderEkstraGrid = (items) => {
+  // Render daftar Menu Ekstra berbayar
+  const renderEkstraGrid = (items, isMealLocked = false) => {
     if (loading) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Memuat menu ekstra...</div>;
     if (error) return <div className="p-3 text-sm text-danger-500 italic bg-danger-50 rounded-lg border border-danger-100 mt-2">Gagal memuat menu.</div>;
     if (items.length === 0) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Data menu ekstra belum tersedia.</div>;
@@ -296,22 +344,24 @@ export default function MenuPortal() {
       <div className="flex sm:grid sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-3 lg:gap-4 overflow-x-auto pb-4 pt-2 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {items.map(item => {
           const itemId = `ekstra_${item.id}`;
-          const currentQty = quantities[itemId]?.length || 0;
+          const currentQty = (quantities[itemId] || []).filter(c => c === extraTargetDay).length;
+          const maxQty = isMealLocked ? currentQty : Infinity;
 
           return (
-            <div key={`ekstra-wrap-${item.id}`} className="min-w-[160px] w-[45vw] sm:w-auto sm:min-w-0 snap-start shrink-0 flex">
+            <div key={`ekstra-wrap-${extraTargetDay}-${item.id}`} className="min-w-[160px] w-[45vw] sm:w-auto sm:min-w-0 snap-start shrink-0 flex">
               <div className="w-full">
-                  <MenuCard 
-                    key={`ekstra-card-${item.id}`}
-                    type="extra"
-                    subtitle={item.paketName || 'Paket'}
-                    title={item.name}
-                    description={item.description}
-                    price="Rp 15.000"
-                    quantity={currentQty}
-                    onQuantityChange={(val) => handleEkstraQuantityChange(item, val)}
-                    image={item.image || item.imageUrl}
-                  />
+                <MenuCard 
+                  key={`ekstra-card-${extraTargetDay}-${item.id}`}
+                  type="extra"
+                  subtitle={item.paketName || 'Paket'}
+                  title={item.name}
+                  description={item.description}
+                  price="Rp 15.000"
+                  quantity={currentQty}
+                  maxQuantity={maxQty}
+                  onQuantityChange={(val) => handleEkstraQuantityChange(item, val, extraTargetDay)}
+                  image={item.image || item.imageUrl}
+                />
               </div>
             </div>
           );
@@ -334,12 +384,14 @@ export default function MenuPortal() {
     }
 
     let invalidLock = null;
+    const pool = (allMenuItems && allMenuItems.length > 0) ? allMenuItems : [...tomorrowMenuItems, ...todayMenuItems];
+
     Object.entries(quantities).forEach(([key, consumers]) => {
       if (!consumers || consumers.length === 0) return;
       
       if (key.startsWith('ekstra_')) {
         const baseKey = key.replace('ekstra_', '');
-        const item = menuItems.find(m => String(m.id) === String(baseKey));
+        const item = pool.find(m => String(m.id) === String(baseKey));
         if (item) {
           const mealTime = item.mealTime?.toUpperCase();
           const hasHariIni = consumers.includes('HARI_INI');
@@ -367,7 +419,7 @@ export default function MenuPortal() {
       return;
     }
 
-    navigate('/cart', { state: { quantities, menuItems, hasOrderedMain } });
+    navigate('/cart', { state: { quantities, menuItems: pool, hasOrderedMain } });
   };
 
   return (
@@ -376,7 +428,6 @@ export default function MenuPortal() {
 
       <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-neutral-100">
         <HeaderMobile 
-          onLogout={handleLogout}
           title={
             <div className="flex flex-col gap-1">
               <span className="font-bold text-neutral-900 leading-tight">Menu Gizi</span>
@@ -408,6 +459,7 @@ export default function MenuPortal() {
           </Alert>
         )}
 
+        {/* 1. Bagian Menu Utama (Siklus Besok T+1) */}
         {hasOrderedMain || isMainMenuLockedTime ? (
           <div className="bg-white shadow-xs border border-neutral-200 border-l-[4px] border-l-primary-600 rounded-xl p-4 flex items-center gap-3 my-4">
             <div className="bg-primary-50 p-2 rounded-full">
@@ -419,9 +471,14 @@ export default function MenuPortal() {
           </div>
         ) : (
           <div className="space-y-4 pt-2">
-            <div className="flex items-center gap-2 mb-3.5">
-              <UtensilsCrossed size={20} className="text-primary-500" />
-              <h2 className="text-lg md:text-xl font-bold text-neutral-900">Menu Utama</h2>
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <UtensilsCrossed size={20} className="text-primary-500" />
+                <h2 className="text-lg md:text-xl font-bold text-neutral-900">Menu Utama</h2>
+              </div>
+              <span className="text-xs font-medium text-neutral-500 bg-neutral-100 px-2.5 py-0.5 rounded-full">
+                Penyajian Besok
+              </span>
             </div>
 
             <Accordion 
@@ -466,52 +523,148 @@ export default function MenuPortal() {
           </div>
         )}
 
-        {/* Bagian menu ekstra berbayar */}
+        {/* 2. Bagian Menu Ekstra Berbayar */}
         <div className="space-y-4 pt-4">
-          <div className="flex items-center gap-2 mb-3.5">
-            <ShoppingCart size={20} className="text-primary-500" />
-            <h2 className="text-lg md:text-xl font-bold text-neutral-900">Ekstra</h2>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <ShoppingCart size={20} className="text-primary-500" />
+              <h2 className="text-lg md:text-xl font-bold text-neutral-900">Ekstra</h2>
+            </div>
+            {!isExtraAllClosed && isExtraTodayFullyClosed && (
+              <span className="text-xs font-medium text-neutral-500 bg-neutral-100 px-2.5 py-0.5 rounded-full">
+                Penyajian Besok
+              </span>
+            )}
           </div>
 
-          <SearchBar 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-
-          {isExtraBesokLockedTime ? (
-            <div className="bg-white shadow-sm border border-neutral-200 border-l-[4px] border-l-warning-600 rounded-xl p-4 flex items-center gap-3 mt-2 mb-4">
-              <div className="bg-warning-50 p-2 rounded-full">
-                <AlertCircle size={20} className="text-warning-600" />
+          {isExtraAllClosed ? (
+            <div className="bg-white shadow-xs border border-neutral-200 border-l-[4px] border-l-primary-600 rounded-xl p-4 flex items-center gap-3 my-2">
+              <div className="bg-primary-50 p-2 rounded-full">
+                <Info size={20} className="text-primary-600" />
               </div>
-              <span className="text-sm font-bold text-neutral-700">Batas waktu pemesanan menu ekstra telah habis ({appConfig.CUTOFF_MAIN_TEXT})</span>
+              <span className="text-sm font-bold text-neutral-700">
+                Batas waktu pemesanan menu ekstra habis ({appConfig.CUTOFF_MAIN_TEXT})
+              </span>
             </div>
           ) : (
             <>
+              {/* Selector Jadwal Penyajian Ekstra: Hanya tampil jika Hari Ini MASIH BUKA */}
+              {!isExtraTodayFullyClosed && (
+                <div className="space-y-2">
+                  <div className="flex bg-neutral-100/90 p-1 rounded-xl gap-1 border border-neutral-200/70">
+                    {/* Tab Hari Ini */}
+                    <button
+                      type="button"
+                      onClick={() => setExtraTargetDay('HARI_INI')}
+                      className={`flex-1 py-2.5 px-3 rounded-lg text-center transition-all cursor-pointer border-0 outline-none flex flex-col items-center justify-center gap-0.5 ${
+                        extraTargetDay === 'HARI_INI'
+                          ? 'bg-white text-primary-700 shadow-xs font-bold'
+                          : 'text-neutral-500 hover:text-neutral-800 font-medium'
+                      }`}
+                    >
+                      <span className="text-sm leading-tight">Hari Ini</span>
+                      <span className="text-[11px] font-normal opacity-75 leading-tight">
+                        {formatDateDisplay(todayObj)}
+                      </span>
+                    </button>
+
+                    {/* Tab Besok */}
+                    <button
+                      type="button"
+                      onClick={() => setExtraTargetDay('BESOK')}
+                      className={`flex-1 py-2.5 px-3 rounded-lg text-center transition-all cursor-pointer border-0 outline-none flex flex-col items-center justify-center gap-0.5 ${
+                        extraTargetDay === 'BESOK'
+                          ? 'bg-white text-primary-700 shadow-xs font-bold'
+                          : 'text-neutral-500 hover:text-neutral-800 font-medium'
+                      }`}
+                    >
+                      <span className="text-sm leading-tight">Besok</span>
+                      <span className="text-[11px] font-normal opacity-75 leading-tight">
+                        {formatDateDisplay(tomorrowObj)}
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Keterangan Batas Waktu Ringkas */}
+                  {extraTargetDay === 'HARI_INI' ? (
+                    isExtraSiangLockedTime ? (
+                      <div className="flex items-center gap-2 text-xs text-warning-800 bg-warning-50/80 border border-warning-200 px-3 py-2 rounded-xl">
+                        <AlertCircle size={15} className="text-warning-600 shrink-0" />
+                        <span>Makan Siang telah ditutup ({appConfig.CUTOFF_EXTRA_SIANG_TEXT}). Makan Sore buka hingga {appConfig.CUTOFF_EXTRA_SORE_TEXT}.</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 text-xs text-neutral-500 px-1 pt-0.5">
+                        <Info size={14} className="text-primary-600 shrink-0" />
+                        <span>Batas order Hari Ini: Siang maks {appConfig.CUTOFF_EXTRA_SIANG_TEXT}, Sore maks {appConfig.CUTOFF_EXTRA_SORE_TEXT}.</span>
+                      </div>
+                    )
+                  ) : (
+                    <div className="flex items-center gap-1.5 text-xs text-neutral-500 px-1 pt-0.5">
+                      <Info size={14} className="text-primary-600 shrink-0" />
+                      <span>Batas order menu ekstra untuk penyajian esok hari pukul {appConfig.CUTOFF_MAIN_TEXT}.</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Jika Hari Ini sudah tutup total (antara 14:00 - 15:00), tampilkan info ringkas bahwa yang tersedia hanya Besok */}
+              {isExtraTodayFullyClosed && (
+                <div className="flex items-center gap-2 text-xs text-neutral-600 bg-neutral-50 border border-neutral-200 px-3 py-2 rounded-xl">
+                  <Info size={15} className="text-primary-600 shrink-0" />
+                  <span>Pemesanan ekstra hari ini telah berakhir. Saat ini melayani pemesanan untuk <strong>penyajian besok</strong> (maksimal pukul {appConfig.CUTOFF_MAIN_TEXT}).</span>
+                </div>
+              )}
+
+              <SearchBar 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={`Cari menu ekstra ${extraTargetDay === 'HARI_INI' ? 'hari ini' : 'besok'}...`}
+              />
+
               <Accordion 
                 title="Makan Siang" 
                 iconBg="bg-warning-50"
                 iconColor="text-warning-700"
-                defaultExpanded={true}
+                defaultExpanded={extraTargetDay === 'HARI_INI' ? !isExtraSiangLockedTime : true}
                 icon={
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
                 }
               >
-                {renderEkstraGrid(filteredEkstraSiang)}
+                {extraTargetDay === 'HARI_INI' && isExtraSiangLockedTime ? (
+                  <div className="p-3 text-xs text-neutral-500 italic bg-neutral-50 rounded-lg border border-neutral-200 mt-2">
+                    Batas pemesanan makan siang hari ini telah ditutup ({appConfig.CUTOFF_EXTRA_SIANG_TEXT}).
+                  </div>
+                ) : (
+                  renderEkstraGrid(
+                    filteredEkstraSiang,
+                    extraTargetDay === 'HARI_INI' ? isExtraSiangLockedTime : isExtraBesokLockedTime
+                  )
+                )}
               </Accordion>
 
               <Accordion 
                 title="Makan Sore" 
                 iconBg="bg-neutral-700"
                 iconColor="text-white"
+                defaultExpanded={extraTargetDay === 'HARI_INI' ? isExtraSiangLockedTime && !isExtraSoreLockedTime : false}
                 icon={
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                   </svg>
                 }
               >
-                {renderEkstraGrid(filteredEkstraSore)}
+                {extraTargetDay === 'HARI_INI' && isExtraSoreLockedTime ? (
+                  <div className="p-3 text-xs text-neutral-500 italic bg-neutral-50 rounded-lg border border-neutral-200 mt-2">
+                    Batas pemesanan makan sore hari ini telah ditutup ({appConfig.CUTOFF_EXTRA_SORE_TEXT}).
+                  </div>
+                ) : (
+                  renderEkstraGrid(
+                    filteredEkstraSore,
+                    extraTargetDay === 'HARI_INI' ? isExtraSoreLockedTime : isExtraBesokLockedTime
+                  )
+                )}
               </Accordion>
             </>
           )}
@@ -519,14 +672,14 @@ export default function MenuPortal() {
 
       </div>
 
-      {/* Hitung peran konsumen (Pasien/Pendamping) yang sudah dipilih pada sesi makan yang sama */}
+      {/* Hitung peran konsumen (Pasien/Pendamping) yang sudah dipilih pada sesi makan yang sama (Menu Utama) */}
       {(() => {
         let takenRoles = [];
         if (selectedCardId && includeModalOpen) {
-          const selectedItem = menuItems.find(m => m.id === selectedCardId);
+          const selectedItem = tomorrowMenuItems.find(m => m.id === selectedCardId);
           if (selectedItem) {
             const mealTime = selectedItem.mealTime;
-            const sameMealItems = menuItems.filter(m => m.mealTime === mealTime);
+            const sameMealItems = tomorrowMenuItems.filter(m => m.mealTime === mealTime);
             sameMealItems.forEach(m => {
               const roles = quantities[m.id] || [];
               takenRoles = [...takenRoles, ...roles];
@@ -535,34 +688,16 @@ export default function MenuPortal() {
         }
         
         return (
-          <>
-            <IncludeModal 
-              isOpen={includeModalOpen}
-              onClose={() => {
-                setIncludeModalOpen(false);
-                setSelectedCardId(null);
-              }}
-              itemData={selectedCardId ? menuItems.find(m => m.id === selectedCardId) : null}
-              onSave={handleIncludeModalSave}
-              takenRoles={takenRoles}
-            />
-
-            <EkstraModal 
-              isOpen={ekstraModalOpen}
-              onClose={() => {
-                setEkstraModalOpen(false);
-                setSelectedEkstraItem(null);
-              }}
-              itemData={selectedEkstraItem}
-              onSave={handleEkstraModalSave}
-              isHariIniDisabled={
-                selectedEkstraItem 
-                  ? (selectedEkstraItem.mealTime?.toUpperCase() === 'SIANG' ? isExtraSiangLockedTime : isExtraSoreLockedTime)
-                  : false
-              }
-              isBesokDisabled={isExtraBesokLockedTime}
-            />
-          </>
+          <IncludeModal 
+            isOpen={includeModalOpen}
+            onClose={() => {
+              setIncludeModalOpen(false);
+              setSelectedCardId(null);
+            }}
+            itemData={selectedCardId ? tomorrowMenuItems.find(m => m.id === selectedCardId) : null}
+            onSave={handleIncludeModalSave}
+            takenRoles={takenRoles}
+          />
         );
       })()}
 

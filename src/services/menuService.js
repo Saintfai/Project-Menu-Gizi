@@ -46,6 +46,43 @@ function normalizeMenuItem(item) {
   };
 }
 
+const MEAL_ORDER = {
+  PAGI: 1,
+  SIANG: 2,
+  SORE: 3,
+};
+
+/**
+ * Mengurutkan daftar menu secara konsisten berdasarkan:
+ * 1. Nomor Siklus (1 - 11)
+ * 2. Waktu Makan (PAGI -> SIANG -> SORE)
+ * 3. Nama Paket secara berurutan (Paket A -> Paket B -> Paket C -> dst.)
+ * 4. ID Menu (sebagai tie-breaker)
+ *
+ * Hal ini mencegah urutan kartu berpindah (misal Paket C mendahului Paket B)
+ * ketika baris di database PostgreSQL baru saja di-edit oleh admin.
+ *
+ * @param {Array<object>} items - Daftar menu ternormalisasi
+ * @returns {Array<object>} Daftar menu yang telah terurut rapi
+ */
+function sortMenuItems(items) {
+  if (!Array.isArray(items)) return [];
+  return [...items].sort((a, b) => {
+    const cycleDiff = (Number(a.cycleId) || 0) - (Number(b.cycleId) || 0);
+    if (cycleDiff !== 0) return cycleDiff;
+
+    const mealDiff = (MEAL_ORDER[a.mealTime] || 99) - (MEAL_ORDER[b.mealTime] || 99);
+    if (mealDiff !== 0) return mealDiff;
+
+    const paketA = String(a.paketName || '').trim();
+    const paketB = String(b.paketName || '').trim();
+    const paketCompare = paketA.localeCompare(paketB, 'id', { numeric: true, sensitivity: 'base' });
+    if (paketCompare !== 0) return paketCompare;
+
+    return (Number(a.id) || 0) - (Number(b.id) || 0);
+  });
+}
+
 /**
  * Mengambil menu siklus yang sedang aktif untuk jadwal penyajian besok (T+1) langsung dari
  * endpoint cepat RS Edelweiss (/webhook/menu-gizi-cycle).
@@ -57,7 +94,7 @@ export async function getActiveCycleMenuFast() {
   try {
     const data = await apiGet('/webhook/menu-gizi-cycle');
     if (Array.isArray(data) && data.length > 0) {
-      return data.map(normalizeMenuItem);
+      return sortMenuItems(data.map(normalizeMenuItem).filter(Boolean));
     }
   } catch (err) {
     console.warn('[menuService] Gagal mengambil menu-gizi-cycle, fallback ke getAllMenuItems:', err.message);
@@ -71,7 +108,7 @@ export async function getActiveCycleMenuFast() {
  * Mengambil menu siklus yang sedang aktif untuk jadwal penyajian besok (T+1) dari API RS Edelweiss.
  * Memastikan siklus menu yang dilihat pasien dan admin selalu SAMA PERSIS.
  * 
- * @param {number|string} [cycleId] - Nomor siklus (opsional, jika kosong default mengikuti jadwal T+1)
+ * @param {number|string} [cycleId] - Nomor siklus (opsional, jika kosong default mengikuti jadwal T+1 esok hari)
  * @returns {Promise<Array<object>>} Daftar hidangan menu pada siklus aktif
  */
 export async function getActiveCycleMenu(cycleId) {
@@ -82,8 +119,29 @@ export async function getActiveCycleMenu(cycleId) {
   return getMenuItemsByCycle(targetCycle);
 }
 
+/**
+ * Mengambil hidangan menu untuk siklus hari ini (T).
+ * 
+ * @returns {Promise<Array<object>>} Daftar hidangan menu siklus hari ini
+ */
+export async function getTodayCycleMenu() {
+  const todayCycle = getMenuCycleByDate(new Date());
+  return getMenuItemsByCycle(todayCycle);
+}
+
+/**
+ * Mengambil hidangan menu untuk siklus esok hari (T+1).
+ * 
+ * @returns {Promise<Array<object>>} Daftar hidangan menu siklus esok hari
+ */
+export async function getTomorrowCycleMenu() {
+  const tomorrowCycle = getMenuCycleByDate();
+  return getMenuItemsByCycle(tomorrowCycle);
+}
+
 let menuItemsCache = null;
 let menuItemsCacheTime = 0;
+let menuItemsInFlight = null;
 const CACHE_TTL_MS = 60000; // 60 detik
 
 /**
@@ -95,11 +153,13 @@ const CACHE_TTL_MS = 60000; // 60 detik
 export function clearMenuCache() {
   menuItemsCache = null;
   menuItemsCacheTime = 0;
+  menuItemsInFlight = null;
 }
 
 /**
  * Mengambil seluruh hidangan menu (seluruh 11 siklus) dari API RS Edelweiss.
- * Dilengkapi cache in-memory (TTL 60 detik) untuk mencegah pemanggilan berulang yang lambat.
+ * Dilengkapi cache in-memory (TTL 60 detik) dan deduplikasi request paralel
+ * untuk mencegah pemanggilan berulang yang lambat.
  * 
  * @param {boolean} [forceRefresh=false] - Jika true, abaikan cache dan ambil ulang dari server
  * @returns {Promise<Array<object>>} Daftar seluruh hidangan menu
@@ -110,14 +170,26 @@ export async function getAllMenuItems(forceRefresh = false) {
     return menuItemsCache;
   }
 
-  const data = await apiGet('/webhook/menu-gizi');
-  if (!Array.isArray(data)) {
-    return menuItemsCache || [];
+  if (!forceRefresh && menuItemsInFlight) {
+    return menuItemsInFlight;
   }
-  const normalized = data.map(normalizeMenuItem);
-  menuItemsCache = normalized;
-  menuItemsCacheTime = now;
-  return normalized;
+
+  menuItemsInFlight = (async () => {
+    try {
+      const data = await apiGet('/webhook/menu-gizi');
+      if (!Array.isArray(data)) {
+        return menuItemsCache || [];
+      }
+      const normalized = sortMenuItems(data.map(normalizeMenuItem).filter(Boolean));
+      menuItemsCache = normalized;
+      menuItemsCacheTime = Date.now();
+      return normalized;
+    } finally {
+      menuItemsInFlight = null;
+    }
+  })();
+
+  return menuItemsInFlight;
 }
 
 /**
@@ -249,6 +321,8 @@ export async function deleteMenuItem() {
 export default {
   getActiveCycleMenu,
   getActiveCycleMenuFast,
+  getTodayCycleMenu,
+  getTomorrowCycleMenu,
   getAllMenuItems,
   getMenuItemsByCycle,
   getMenuCycles,

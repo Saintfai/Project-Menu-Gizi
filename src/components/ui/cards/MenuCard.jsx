@@ -12,11 +12,13 @@ export const MenuCard = ({
   description, 
   price, 
   quantity = 0, 
-  maxQuantity = 2, 
+  maxQuantity, 
   sessionMaxQuantity, 
   onQuantityChange, 
   className = '' 
 }) => {
+  const resolvedMaxQuantity = maxQuantity ?? (type === 'paket' ? 2 : Infinity);
+
   return (
     <div className={`flex flex-col bg-white rounded-xl border border-neutral-200/90 overflow-hidden shadow-sm hover:shadow-md transition-shadow h-full ${className}`}>
       {/* Image Container */}
@@ -52,14 +54,14 @@ export const MenuCard = ({
               <Stepper 
                 value={quantity} 
                 min={0} 
-                max={maxQuantity} 
+                max={resolvedMaxQuantity} 
                 onChange={onQuantityChange} 
                 className="w-full"
               />
               <div className="min-h-[20px] mt-1.5 flex items-center justify-center text-center">
-                {quantity >= maxQuantity && maxQuantity !== Infinity && (
+                {quantity >= resolvedMaxQuantity && resolvedMaxQuantity !== Infinity && (
                   <p className="text-xs text-danger-600 font-semibold leading-tight">
-                    {maxQuantity === 0 ? `Kuota ${sessionMaxQuantity || ''} porsi terpenuhi` : `Maksimal ${maxQuantity} porsi`}
+                    {resolvedMaxQuantity === 0 ? `Kuota ${sessionMaxQuantity || ''} porsi terpenuhi` : `Maksimal ${resolvedMaxQuantity} porsi`}
                   </p>
                 )}
               </div>
@@ -88,10 +90,17 @@ export const MenuCard = ({
               <Stepper 
                 value={quantity} 
                 min={0} 
-                max={Infinity} 
+                max={resolvedMaxQuantity} 
                 onChange={onQuantityChange} 
                 className="w-full"
               />
+              {resolvedMaxQuantity === 0 && (
+                <div className="min-h-[20px] mt-1.5 flex items-center justify-center text-center">
+                  <p className="text-xs text-danger-600 font-semibold leading-tight">
+                    Batas waktu lewat
+                  </p>
+                </div>
+              )}
             </div>
           </>
         )}
