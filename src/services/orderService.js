@@ -34,6 +34,7 @@ function normalizeOrder(raw) {
     noreg: raw.noreg || raw.no_reg || raw.no_regis || raw.no_registrasi || null,
     no_reg: raw.noreg || raw.no_reg || raw.no_regis || raw.no_registrasi || null,
     no_regis: raw.noreg || raw.no_reg || raw.no_regis || raw.no_registrasi || null,
+    no_registrasi: raw.noreg || raw.no_reg || raw.no_regis || raw.no_registrasi || null,
     patientName: raw.consumer_name || 'Pasien',
     consumer_name: raw.consumer_name,
     consumer: raw.consumer || 'pasien',
@@ -640,46 +641,113 @@ export async function autoGenerateOrdersForKelas() {
  * Digunakan untuk kasus pasien yang registrasi setelah jam 15:00 WIB (lewat cut-off Paket Utama),
  * di mana backend RS otomatis membuat order kosong (tanpa menu) untuk besok (T+1).
  * 
- * Fungsi ini mengirim POST dengan patient_id (No. RM) ke endpoint /webhook/sync-data-tera,
+ * Fungsi ini mengirim nomor registrasi (no_regis / noreg) ke endpoint sync-data-tera,
  * yang memicu backend n8n untuk membuat/memperbarui pesanan di database berdasarkan data SIMRS.
  * Setelah sinkronisasi, data baru akan otomatis tampil di Dashboard melalui polling 30 detik.
  * 
- * @param {string|number} patientId - Nomor RM / patient_id pasien yang akan di-sync
- * @param {number} [maxRetries=3] - Maksimal jumlah percobaan pengiriman ulang
- * @returns {Promise<{ success: boolean, patientId: string, message: string }>} Status sinkronisasi
+ * @param {string|number|object} noRegis - Nomor registrasi pasien (no_regis / noreg) atau objek baris pesanan
+ * @param {number|object} [optionsOrRetries=3] - Jumlah retry atau objek opsi { patientId, maxRetries }
+ * @returns {Promise<{ success: boolean, noRegis: string, patientId?: string, message: string, data?: any }>} Status sinkronisasi
  */
-export async function syncPatientOrder(patientId, maxRetries = 3) {
-  if (!patientId) {
-    throw new Error('Nomor RM pasien wajib diisi untuk sinkronisasi.');
+export async function syncPatientOrder(noRegis, optionsOrRetries = 3) {
+  let regNo = '';
+  let patientId = '';
+  let maxRetries = 3;
+
+  if (typeof optionsOrRetries === 'number') {
+    maxRetries = optionsOrRetries;
+  } else if (typeof optionsOrRetries === 'object' && optionsOrRetries !== null) {
+    maxRetries = optionsOrRetries.maxRetries || 3;
+    patientId = optionsOrRetries.patientId || optionsOrRetries.patient_id || optionsOrRetries.pid || '';
+  }
+
+  if (typeof noRegis === 'object' && noRegis !== null) {
+    regNo = noRegis.no_regis || noRegis.noReg || noRegis.noreg || noRegis.no_reg || noRegis.no_registrasi || '';
+    if (!patientId) {
+      patientId = noRegis.patientId || noRegis.patient_id || noRegis.rmNumber || '';
+    }
+  } else {
+    regNo = String(noRegis || '').trim();
+  }
+
+  const cleanRegNo = String(regNo || patientId).trim();
+  if (!cleanRegNo) {
+    throw new Error('Nomor registrasi pasien wajib diisi untuk sinkronisasi.');
   }
 
   const cleanPid = String(patientId).trim();
 
+  // Parameter query URL (mengirim nomor registrasi ke backend n8n/SIMRS)
+  const queryParams = {
+    no_regis: cleanRegNo,
+    noreg: cleanRegNo,
+    no_reg: cleanRegNo,
+    no_registrasi: cleanRegNo,
+  };
+  if (cleanPid) {
+    queryParams.patient_id = cleanPid;
+    queryParams.pid = cleanPid;
+  }
+
+  // FormData jika endpoint di backend menggunakan POST
   const formData = new FormData();
-  formData.append('patient_id', cleanPid);
-  formData.append('pid', cleanPid);
+  formData.append('no_regis', cleanRegNo);
+  formData.append('noreg', cleanRegNo);
+  formData.append('no_reg', cleanRegNo);
+  formData.append('no_registrasi', cleanRegNo);
+  if (cleanPid) {
+    formData.append('patient_id', cleanPid);
+    formData.append('pid', cleanPid);
+  }
+
+  // Daftar kandidat endpoint (utamakan production /webhook/sync-data-tera, fallback ke /webhook-test/sync-data-tera)
+  const endpointCandidates = [
+    '/webhook/sync-data-tera',
+  ];
 
   let lastError = null;
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const response = await apiPostFormData('/webhook/sync-data-tera', formData);
-      return {
-        success: true,
-        patientId: cleanPid,
-        message: `Data pasien ${cleanPid} berhasil disinkronisasi dengan SIMRS.`,
-        data: response,
-      };
-    } catch (err) {
-      lastError = err;
-      console.warn(`[orderService] Sync percobaan ${attempt}/${maxRetries} gagal untuk pasien ${cleanPid}:`, err.message);
-      if (attempt < maxRetries) {
-        await new Promise(res => setTimeout(res, attempt * 800));
+    for (const ep of endpointCandidates) {
+      try {
+        // Coba GET terlebih dahulu karena webhook n8n dikonfigurasi via HTTP GET
+        const response = await apiGet(ep, queryParams);
+        return {
+          success: true,
+          noRegis: cleanRegNo,
+          patientId: cleanPid || cleanRegNo,
+          message: `Data registrasi ${cleanRegNo} berhasil disinkronisasi dengan SIMRS.`,
+          data: response,
+        };
+      } catch (err) {
+        lastError = err;
+
+        // Jika endpoint ternyata mengharapkan POST
+        const errMsg = String(err?.message || '').toLowerCase();
+        if (errMsg.includes('post') || errMsg.includes('405') || err.status === 405) {
+          try {
+            const postResponse = await apiPostFormData(ep, formData);
+            return {
+              success: true,
+              noRegis: cleanRegNo,
+              patientId: cleanPid || cleanRegNo,
+              message: `Data registrasi ${cleanRegNo} berhasil disinkronisasi dengan SIMRS.`,
+              data: postResponse,
+            };
+          } catch (postErr) {
+            lastError = postErr;
+          }
+        }
       }
+    }
+
+    console.warn(`[orderService] Sync percobaan ${attempt}/${maxRetries} gagal untuk registrasi ${cleanRegNo}:`, lastError?.message);
+    if (attempt < maxRetries) {
+      await new Promise(res => setTimeout(res, attempt * 800));
     }
   }
 
   throw new Error(
-    `Gagal menyinkronisasi data pasien ${cleanPid} setelah ${maxRetries} percobaan. ` +
+    `Gagal menyinkronisasi data registrasi ${cleanRegNo} setelah ${maxRetries} percobaan. ` +
     `Pesan error: ${lastError?.message || 'Unknown error'}. ` +
     `Silakan coba lagi atau hubungi tim IT.`
   );

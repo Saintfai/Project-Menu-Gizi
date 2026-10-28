@@ -425,31 +425,34 @@ export default function Dashboard() {
 
   // Sinkronisasi data pesanan pasien baru (registrasi lewat 15:00) via API sync-data-tera
   const handleSyncPatient = useCallback(async (row) => {
+    const noRegis = row.no_regis || row.noReg || row.noreg || row.no_reg || row.no_registrasi;
     const patientId = row.patientId || row.rmNumber;
-    if (!patientId) {
-      toast.error('Nomor RM pasien tidak ditemukan.');
+    const syncKey = noRegis || patientId;
+
+    if (!syncKey) {
+      toast.error('Nomor registrasi pasien tidak ditemukan.');
       return;
     }
 
-    const patientLabel = row.patientName ? `${row.patientName} (${patientId})` : patientId;
-    const toastId = toast.loading(`Menyinkronisasi pesanan ${patientLabel} dengan SIMRS...`);
+    const patientLabel = row.patientName ? `${row.patientName} (${syncKey})` : syncKey;
+    const toastId = toast.loading(`Menyinkronisasi registrasi ${patientLabel} dengan SIMRS...`);
 
-    setSyncingPatientIds((prev) => new Set(prev).add(patientId));
+    setSyncingPatientIds((prev) => new Set(prev).add(syncKey));
     try {
-      const result = await syncPatientOrder(patientId);
+      const result = await syncPatientOrder(row);
       toast.success(result.message || `Pesanan ${patientLabel} berhasil disinkronisasi!`, { id: toastId });
       // Fetch ulang data pesanan dari server agar tabel langsung terupdate
       await fetchOrderData({ force: true, isSilent: false });
     } catch (err) {
-      console.error('Gagal sinkronisasi data pasien:', err);
+      console.error('Gagal sinkronisasi data registrasi:', err);
       toast.error(
-        err.message || `Gagal menyinkronisasi data pesanan ${patientLabel} dengan SIMRS.`,
+        err.message || `Gagal menyinkronisasi data registrasi ${patientLabel} dengan SIMRS.`,
         { id: toastId, duration: 6000 }
       );
     } finally {
       setSyncingPatientIds((prev) => {
         const next = new Set(prev);
-        next.delete(patientId);
+        next.delete(syncKey);
         return next;
       });
     }

@@ -436,29 +436,50 @@ describe('orderService - getOrders normalization', () => {
   });
 
   describe('syncPatientOrder() - Sinkronisasi Pasien Baru SIMRS', () => {
-    it('berhasil memanggil webhook sync-data-tera dengan FormData patient_id', async () => {
-      apiClient.apiPostFormData.mockResolvedValueOnce({
+    it('berhasil memanggil webhook sync-data-tera dengan parameter no_regis', async () => {
+      apiClient.apiGet.mockResolvedValueOnce({
         status: 'success',
-        message: 'Patient synchronized',
+        message: 'Registration synchronized',
       });
 
-      const res = await syncPatientOrder('146027');
+      const res = await syncPatientOrder('2610140210');
       expect(res.success).toBe(true);
-      expect(res.patientId).toBe('146027');
-      expect(apiClient.apiPostFormData).toHaveBeenCalledWith(
+      expect(res.noRegis).toBe('2610140210');
+      expect(apiClient.apiGet).toHaveBeenCalledWith(
         '/webhook/sync-data-tera',
-        expect.any(FormData)
+        expect.objectContaining({
+          no_regis: '2610140210',
+          noreg: '2610140210',
+        })
       );
     });
 
-    it('melempar error jika patientId tidak diisi', async () => {
-      await expect(syncPatientOrder('')).rejects.toThrow('Nomor RM pasien wajib diisi');
+    it('mendukung pemanggilan dengan objek row yang memiliki no_regis dan patientId', async () => {
+      apiClient.apiGet.mockResolvedValueOnce({
+        status: 'success',
+      });
+
+      const row = {
+        no_regis: '2610140210',
+        patientId: '146027',
+        patientName: 'muncang',
+      };
+
+      const res = await syncPatientOrder(row);
+      expect(res.success).toBe(true);
+      expect(res.noRegis).toBe('2610140210');
+      expect(res.patientId).toBe('146027');
+    });
+
+    it('melempar error jika nomor registrasi kosong', async () => {
+      await expect(syncPatientOrder('')).rejects.toThrow('Nomor registrasi pasien wajib diisi');
+      await expect(syncPatientOrder(null)).rejects.toThrow('Nomor registrasi pasien wajib diisi');
     });
 
     it('melempar error jika semua percobaan retry gagal', async () => {
-      apiClient.apiPostFormData.mockRejectedValue(new Error('Network error 500'));
+      apiClient.apiGet.mockRejectedValue(new Error('Network error 500'));
 
-      await expect(syncPatientOrder('146027', 1)).rejects.toThrow('Gagal menyinkronisasi data pasien 146027');
+      await expect(syncPatientOrder('2610140210', 1)).rejects.toThrow('Gagal menyinkronisasi data registrasi 2610140210');
     });
   });
 });
