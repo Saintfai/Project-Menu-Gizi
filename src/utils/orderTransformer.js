@@ -141,7 +141,7 @@ export function groupOrdersForTable(rawOrders = []) {
     if (!grouped[key]) {
       const allergyRaw = order.patient?.allergies ?? order.allergies ?? order.allergyNote ?? null;
       const isAllergic = typeof order.hasAllergy === 'boolean' ? order.hasAllergy : hasRealAllergy(allergyRaw);
-      const noReg = order.noReg || order.noreg || order.no_regis || order.no_reg || order.patient?.noReg || order.patient?.noreg || null;
+      const noReg = order.noReg || order.noreg || order.no_regis || order.no_reg || order.no_registrasi || order.patient?.noReg || order.patient?.noreg || order.patient?.no_regis || order.patient?.no_registrasi || null;
 
       grouped[key] = {
         id: key,
@@ -149,6 +149,9 @@ export function groupOrdersForTable(rawOrders = []) {
         patientId: order.patientId || order.patient_id || order.rmNumber || order.rm_number,
         noReg: noReg,
         noreg: noReg,
+        no_reg: noReg,
+        no_regis: noReg,
+        no_registrasi: noReg,
         patientName: order.patient?.name || order.patientName || order.pasienRM || 'Pasien',
         rmNumber: order.patient?.rmNumber || order.rmNumber || 'RM-000',
         pasienRM: `${order.patient?.name || order.patientName || 'Pasien'} (${order.patient?.rmNumber || order.rmNumber || 'RM-000'})`,
@@ -218,6 +221,9 @@ export function groupOrdersForTable(rawOrders = []) {
       patientId: group.patientId || group.rmNumber,
       noReg: group.noReg,
       noreg: group.noreg,
+      no_reg: group.noReg,
+      no_regis: group.noReg,
+      no_registrasi: group.noReg,
       pasienRM: group.pasienRM,
       patientName: group.patientName,
       rmNumber: group.rmNumber,

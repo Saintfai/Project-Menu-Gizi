@@ -222,19 +222,19 @@ export const OrdersTable = ({
                             type="button"
                             onClick={() => onSyncClick(row)}
                             className={`p-1.5 rounded-md transition-all ${
-                              syncingPatientIds.has(row.patientId || row.rmNumber)
+                              syncingPatientIds.has(row.no_regis || row.noReg || row.noreg || row.patientId || row.rmNumber)
                                 ? 'text-amber-600 bg-amber-50 border border-amber-300 cursor-wait'
                                 : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 cursor-pointer border border-emerald-200 hover:border-emerald-300'
                             }`}
-                            disabled={syncingPatientIds.has(row.patientId || row.rmNumber)}
+                            disabled={syncingPatientIds.has(row.no_regis || row.noReg || row.noreg || row.patientId || row.rmNumber)}
                             aria-label={`Sinkronisasi data pesanan ${displayName}`}
                             title={
-                              syncingPatientIds.has(row.patientId || row.rmNumber)
+                              syncingPatientIds.has(row.no_regis || row.noReg || row.noreg || row.patientId || row.rmNumber)
                                 ? 'Sedang menyinkronisasi...'
                                 : 'Sync data pesanan dengan SIMRS'
                             }
                           >
-                            <RefreshCw className={`w-4 h-4 ${syncingPatientIds.has(row.patientId || row.rmNumber) ? 'animate-spin' : ''}`} />
+                            <RefreshCw className={`w-4 h-4 ${syncingPatientIds.has(row.no_regis || row.noReg || row.noreg || row.patientId || row.rmNumber) ? 'animate-spin' : ''}`} />
                           </button>
                         )}
                       </div>
