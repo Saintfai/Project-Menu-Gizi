@@ -382,7 +382,7 @@ export default function Cart() {
 
       // 4. Buat kode pesanan unik & format tanggal saji (Besok & Hari Ini)
       const orderItemsToInsert = [];
-      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      const dateStr = getTodayServingDate().replace(/-/g, '');
       const randomStr = Math.floor(1000 + Math.random() * 9000);
       const orderCode = `ORD-${dateStr}-${effectivePatient.rmNumber || effectivePatient.id}-${randomStr}`;
 

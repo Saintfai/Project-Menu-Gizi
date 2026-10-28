@@ -32,8 +32,12 @@ export default function MenuPortal() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Batas cut-off time diambil dari appConfig (Single Source of Truth)
-  const currentHour = getCurrentWIBHour();
+  // Batas cut-off time diambil dari appConfig (Single Source of Truth) & auto-refresh tiap 1 menit
+  const [currentHour, setCurrentHour] = useState(() => getCurrentWIBHour());
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentHour(getCurrentWIBHour()), 60000);
+    return () => clearInterval(timer);
+  }, []);
   const isMainMenuLockedTime = appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_MAIN;
   const isExtraSiangLockedTime = appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_EXTRA_SIANG;
   const isExtraSoreLockedTime = appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_EXTRA_SORE;
@@ -41,15 +45,18 @@ export default function MenuPortal() {
   const isExtraTodayFullyClosed = isExtraSiangLockedTime && isExtraSoreLockedTime;
   const isExtraAllClosed = isExtraTodayFullyClosed && isExtraBesokLockedTime;
 
-  // Siklus & Objek Tanggal Hari Ini dan Besok
+  // Siklus & Objek Tanggal Hari Ini dan Besok (WIB UTC+7)
   const tomorrowCycle = useMemo(() => getTomorrowMenuCycle(), []);
   const todayCycle = useMemo(() => getTodayMenuCycle(), []);
-  const todayObj = useMemo(() => new Date(), []);
+  const todayObj = useMemo(() => {
+    const now = new Date();
+    return new Date(now.getTime() + now.getTimezoneOffset() * 60000 + 3600000 * 7);
+  }, []);
   const tomorrowObj = useMemo(() => {
-    const d = new Date();
+    const d = new Date(todayObj);
     d.setDate(d.getDate() + 1);
     return d;
-  }, []);
+  }, [todayObj]);
 
   // Proteksi: alihkan ke login jika data pasien kosong
   useEffect(() => {
@@ -476,9 +483,6 @@ export default function MenuPortal() {
                 <UtensilsCrossed size={20} className="text-primary-500" />
                 <h2 className="text-lg md:text-xl font-bold text-neutral-900">Menu Utama</h2>
               </div>
-              <span className="text-xs font-medium text-neutral-500 bg-neutral-100 px-2.5 py-0.5 rounded-full">
-                Penyajian Besok
-              </span>
             </div>
 
             <Accordion 

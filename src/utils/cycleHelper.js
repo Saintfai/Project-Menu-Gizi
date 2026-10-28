@@ -16,10 +16,16 @@
  * @param {Date | string} [dateInput] - Tanggal yang dihitung (default: T+1 esok hari)
  * @returns {number} Nomor siklus aktif (1 sampai 11)
  */
+function getWIBNow() {
+  const now = new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  return new Date(utc + 3600000 * 7);
+}
+
 export function getMenuCycleByDate(dateInput) {
   let targetDate;
   if (!dateInput) {
-    targetDate = new Date();
+    targetDate = getWIBNow();
     targetDate.setDate(targetDate.getDate() + 1);
   } else {
     targetDate = new Date(dateInput);
@@ -43,7 +49,7 @@ export function getMenuCycleByDate(dateInput) {
  * @returns {string} Tanggal esok hari dalam format YYYY-MM-DD
  */
 export function getTomorrowServingDate() {
-  const tomorrow = new Date();
+  const tomorrow = getWIBNow();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const pad = (n) => String(n).padStart(2, '0');
   return `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}`;
@@ -55,7 +61,7 @@ export function getTomorrowServingDate() {
  * @returns {string} Tanggal hari ini format YYYY-MM-DD
  */
 export function getTodayServingDate() {
-  const today = new Date();
+  const today = getWIBNow();
   const pad = (n) => String(n).padStart(2, '0');
   return `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
 }
@@ -66,7 +72,7 @@ export function getTodayServingDate() {
  * @returns {number} Nomor siklus hari ini (1 - 11)
  */
 export function getTodayMenuCycle() {
-  return getMenuCycleByDate(new Date());
+  return getMenuCycleByDate(getWIBNow());
 }
 
 /**
