@@ -554,35 +554,41 @@ export default function MenuPortal() {
               {/* Selector Jadwal Penyajian Ekstra: Hanya tampil jika Hari Ini MASIH BUKA */}
               {!isExtraTodayFullyClosed && (
                 <div className="space-y-2">
-                  <div className="flex bg-neutral-100/90 p-1 rounded-xl gap-1 border border-neutral-200/70">
-                    {/* Tab Hari Ini */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Card Hari Ini */}
                     <button
                       type="button"
+                      aria-pressed={extraTargetDay === 'HARI_INI'}
                       onClick={() => setExtraTargetDay('HARI_INI')}
-                      className={`flex-1 py-2.5 px-3 rounded-lg text-center transition-all cursor-pointer border-0 outline-none flex flex-col items-center justify-center gap-0.5 ${
+                      className={`rounded-xl border-solid text-center transition-all duration-150 cursor-pointer outline-none flex flex-col items-center justify-center gap-0.5 ${
                         extraTargetDay === 'HARI_INI'
-                          ? 'bg-white text-primary-700 shadow-xs font-bold'
-                          : 'text-neutral-500 hover:text-neutral-800 font-medium'
+                          ? 'py-[10px] px-[14px] bg-primary-50 hover:bg-primary-50 border-2 border-primary-600 shadow-[0_2px_8px_rgba(0,93,167,0.14)]'
+                          : 'py-[11px] px-[15px] bg-white hover:bg-white border border-neutral-200 hover:border-primary-300 shadow-xs'
                       }`}
                     >
-                      <span className="text-sm leading-tight">Hari Ini</span>
-                      <span className="text-[11px] font-normal opacity-75 leading-tight">
+                      <span className="text-sm font-bold text-primary-700 leading-tight">
+                        Hari Ini
+                      </span>
+                      <span className="text-[11px] font-medium text-primary-600 leading-tight">
                         {formatDateDisplay(todayObj)}
                       </span>
                     </button>
 
-                    {/* Tab Besok */}
+                    {/* Card Besok */}
                     <button
                       type="button"
+                      aria-pressed={extraTargetDay === 'BESOK'}
                       onClick={() => setExtraTargetDay('BESOK')}
-                      className={`flex-1 py-2.5 px-3 rounded-lg text-center transition-all cursor-pointer border-0 outline-none flex flex-col items-center justify-center gap-0.5 ${
+                      className={`rounded-xl border-solid text-center transition-all duration-150 cursor-pointer outline-none flex flex-col items-center justify-center gap-0.5 ${
                         extraTargetDay === 'BESOK'
-                          ? 'bg-white text-primary-700 shadow-xs font-bold'
-                          : 'text-neutral-500 hover:text-neutral-800 font-medium'
+                          ? 'py-[10px] px-[14px] bg-primary-50 hover:bg-primary-50 border-2 border-primary-600 shadow-[0_2px_8px_rgba(0,93,167,0.14)]'
+                          : 'py-[11px] px-[15px] bg-white hover:bg-white border border-neutral-200 hover:border-primary-300 shadow-xs'
                       }`}
                     >
-                      <span className="text-sm leading-tight">Besok</span>
-                      <span className="text-[11px] font-normal opacity-75 leading-tight">
+                      <span className="text-sm font-bold text-primary-700 leading-tight">
+                        Besok
+                      </span>
+                      <span className="text-[11px] font-medium text-primary-600 leading-tight">
                         {formatDateDisplay(tomorrowObj)}
                       </span>
                     </button>
