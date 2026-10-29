@@ -260,6 +260,13 @@ export function groupOrdersForTable(rawOrders = []) {
       );
       bentukMakananText = bentukSet.size > 0 ? Array.from(bentukSet).join(', ') : '-';
     }
+
+    // Prioritaskan diet dari data pasien (API get-patient / SIMRS)
+    const patientDiet = allItems.find(i => i.patientDiet)?.patientDiet
+      || allItems.find(i => i.patient?.diet)?.patient?.diet
+      || allItems.find(i => i.diet && i.diet !== '-')?.diet
+      || null;
+    const dietText = patientDiet ? String(patientDiet).trim() : '-';
     const combinedNotesList = allItems
       .map(i => i.notes || i.catatan)
       .filter(Boolean);
@@ -296,6 +303,8 @@ export function groupOrdersForTable(rawOrders = []) {
       tanggalBesok: tanggalBesokStr,
       tanggalBesokStr: tanggalBesokStr,
       bentukMakananText,
+      dietText,
+      diet: dietText,
       hasCatatan: groupHasCatatan,
       catatan: combinedNotes || null,
       notes: combinedNotes || null,

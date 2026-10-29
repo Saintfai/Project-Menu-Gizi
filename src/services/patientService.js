@@ -154,6 +154,7 @@ export function normalizePatient(raw) {
     effectiveClass: effectiveClass,
     roomName: raw.kamar || '-',
     bentukMakanan: raw.bentuk_makan || null,
+    diet: raw.diet && String(raw.diet).trim() !== '' && String(raw.diet).trim() !== '-' ? String(raw.diet).trim() : null,
     dobReconciled: !!raw._dobReconciled,
     isVerified: true,
   };
@@ -478,12 +479,15 @@ export async function enrichOrdersWithPatientAllergies(orders = []) {
     if (info) {
       const allergyText = info.allergies || 'Tidak Ada';
       const patientBentukMakanan = info.patient?.bentukMakanan || null;
+      const patientDiet = info.patient?.diet || null;
       const patientNoReg = info.patient?.noReg || order.noReg || order.noreg || null;
       return {
         ...order,
         allergies: allergyText,
         allergyNote: allergyText,
         patientBentukMakanan,
+        patientDiet,
+        diet: patientDiet || (order.diet && order.diet !== '-' ? order.diet : null),
         noReg: patientNoReg,
         noreg: patientNoReg,
         patient: {
@@ -494,6 +498,7 @@ export async function enrichOrdersWithPatientAllergies(orders = []) {
           noreg: patientNoReg,
           allergies: allergyText,
           bentukMakanan: patientBentukMakanan,
+          diet: patientDiet,
         },
       };
     }

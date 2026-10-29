@@ -150,7 +150,7 @@ export const OrdersTable = ({
   return (
     <div className={`w-full bg-white mb-8 overflow-hidden ${className}`} style={{ border: '1px solid #9ca3af' }}>
       <div className="overflow-x-auto w-full">
-        <table className="w-full text-left border-collapse min-w-[1000px]">
+        <table className="w-full text-left border-collapse min-w-[1100px]">
           <thead className="bg-primary-50">
             <tr>
               <th className="px-3 py-3 text-xs font-bold text-neutral-900 text-center w-12" style={{ border: '1px solid #9ca3af' }}>NO</th>
@@ -161,13 +161,14 @@ export const OrdersTable = ({
               <th className="px-3 py-3 text-xs font-bold text-neutral-900" style={{ border: '1px solid #9ca3af' }}>MAKAN SIANG</th>
               <th className="px-3 py-3 text-xs font-bold text-neutral-900" style={{ border: '1px solid #9ca3af' }}>MAKAN SORE</th>
               <th className="px-3 py-3 text-xs font-bold text-neutral-900 text-left w-32" style={{ border: '1px solid #9ca3af' }}>BENTUK MAKANAN</th>
+              <th className="px-3 py-3 text-xs font-bold text-neutral-900 text-left w-36" style={{ border: '1px solid #9ca3af' }}>DIET</th>
               <th className="px-3 py-3 text-xs font-bold text-neutral-900 text-center w-20" style={{ border: '1px solid #9ca3af' }}>CATATAN</th>
             </tr>
           </thead>
           <tbody>
             {totalItems === 0 ? (
               <tr>
-                <td colSpan={9} className="px-4 py-12 text-center text-sm text-neutral-500 bg-white" style={{ border: '1px solid #9ca3af' }}>
+                <td colSpan={10} className="px-4 py-12 text-center text-sm text-neutral-500 bg-white" style={{ border: '1px solid #9ca3af' }}>
                   Belum ada data pesanan masuk untuk jadwal penyajian ini.
                 </td>
               </tr>
@@ -216,6 +217,9 @@ export const OrdersTable = ({
                     </td>
                     <td className="px-3 py-2.5 text-left align-top" style={{ border: '1px solid #9ca3af' }}>
                       <span className="font-medium text-xs text-neutral-700">{row.bentukMakananText || '-'}</span>
+                    </td>
+                    <td className="px-3 py-2.5 text-left align-top" style={{ border: '1px solid #9ca3af' }}>
+                      <span className="font-medium text-xs text-neutral-700">{row.dietText || row.diet || '-'}</span>
                     </td>
                     <td className="px-3 py-2.5 text-center align-top" style={{ border: '1px solid #9ca3af' }}>
                       <div className="flex items-center justify-center gap-1.5">
