@@ -124,7 +124,43 @@ export function hasRealAllergy(allergies) {
 }
 
 /**
- * Mengelompokkan data mentah pesanan (flat order records) menjadi 1 baris terintegrasi per sesi checkout.
+ * Menormalisasi berbagai format tanggal (ISO string, YYYY-MM-DD, DD/MM/YYYY, Date object)
+ * ke format standar YYYY-MM-DD sesuai zona waktu lokal/WIB.
+ * 
+ * @param {string | Date | null | undefined} dateVal - Nilai tanggal input
+ * @returns {string} Tanggal dalam format YYYY-MM-DD atau string kosong
+ */
+export function normalizeDateToYYYYMMDD(dateVal) {
+  if (!dateVal) return '';
+
+  // Jika sudah string murni YYYY-MM-DD (tanpa jam/zona waktu)
+  if (typeof dateVal === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateVal.trim())) {
+    return dateVal.trim();
+  }
+
+  // Jika format DD/MM/YYYY atau DD-MM-YYYY
+  if (typeof dateVal === 'string' && /^\d{2}[/-]\d{2}[/-]\d{4}$/.test(dateVal.trim())) {
+    const parts = dateVal.trim().split(/[/-]/);
+    return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+  }
+
+  // Jika ISO string atau objek Date: parse dengan Date object lokal
+  const d = new Date(dateVal);
+  if (!isNaN(d.getTime())) {
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
+  // Fallback regex jika ada substring YYYY-MM-DD
+  if (typeof dateVal === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateVal)) {
+    return dateVal.slice(0, 10);
+  }
+
+  return '';
+}
+
+/**
+ * Mengelompokkan data mentah pesanan (flat order records) menjadi 1 baris terintegrasi per sesi checkout dan tanggal saji.
  * Digunakan untuk menyajikan tabel rekapitulasi Dapur Gizi sesuai PRD 3.8.
  * 
  * @param {Array<object>} [rawOrders=[]] - Daftar order mentah dari database
@@ -133,11 +169,16 @@ export function hasRealAllergy(allergies) {
 export function groupOrdersForTable(rawOrders = []) {
   if (!rawOrders || rawOrders.length === 0) return [];
 
-
   const grouped = {};
 
   rawOrders.forEach(order => {
-    const key = order.orderCode || `${order.patientId || order.pasienRM}_${order.servingDate || 'T1'}`;
+    const rawServingDate = order.servingDate || order.serving_date || order.createdAt || order.created_at;
+    const dateStr = normalizeDateToYYYYMMDD(rawServingDate);
+
+    // Pisahkan grup berdasarkan orderCode dan tanggal saji (agar pesanan hari ini dan besok terpisah mandiri)
+    const baseCode = order.orderCode || order.orderId || order.patientId || order.pasienRM || 'ORD';
+    const key = dateStr ? `${baseCode}_${dateStr}` : baseCode;
+
     if (!grouped[key]) {
       const allergyRaw = order.patient?.allergies ?? order.allergies ?? order.allergyNote ?? null;
       const isAllergic = typeof order.hasAllergy === 'boolean' ? order.hasAllergy : hasRealAllergy(allergyRaw);
@@ -145,7 +186,7 @@ export function groupOrdersForTable(rawOrders = []) {
 
       grouped[key] = {
         id: key,
-        orderCode: order.orderCode || key,
+        orderCode: order.orderCode || baseCode,
         patientId: order.patientId || order.patient_id || order.rmNumber || order.rm_number,
         noReg: noReg,
         noreg: noReg,
@@ -161,7 +202,7 @@ export function groupOrdersForTable(rawOrders = []) {
         notes: order.notes || order.catatan || null,
         hasCatatan: Boolean(order.notes || order.catatan),
         createdAt: order.createdAt || new Date(),
-        servingDate: order.servingDate || new Date(Date.now() + 86400000),
+        servingDate: order.servingDate || order.serving_date || (dateStr || new Date(Date.now() + 86400000)),
         itemsPagi: [],
         itemsSiang: [],
         itemsSore: [],
@@ -182,7 +223,10 @@ export function groupOrdersForTable(rawOrders = []) {
     const dServing = new Date(group.servingDate);
 
     const pad = (n) => String(n).padStart(2, '0');
-    const tanggalBesokStr = `${pad(dServing.getDate())}/${pad(dServing.getMonth() + 1)}/${dServing.getFullYear()}`;
+    let tanggalBesokStr = '-';
+    if (!isNaN(dServing.getTime())) {
+      tanggalBesokStr = `${pad(dServing.getDate())}/${pad(dServing.getMonth() + 1)}/${dServing.getFullYear()}`;
+    }
 
     const makanPagi = formatMealColumn(group.itemsPagi);
     const makanSiang = formatMealColumn(group.itemsSiang);
@@ -203,7 +247,7 @@ export function groupOrdersForTable(rawOrders = []) {
       const bentukSet = new Set(
         allItems
           .map(i => i.bentukMakanan)
-          .filter(b => b && b.toLowerCase() !== 'biasa')
+          .filter(b => b && typeof b === 'string' && b.toLowerCase() !== 'biasa')
       );
       bentukMakananText = bentukSet.size > 0 ? Array.from(bentukSet).join(', ') : '-';
     }
@@ -230,6 +274,8 @@ export function groupOrdersForTable(rawOrders = []) {
       kamar: group.kamar,
       hasAllergy: group.hasAllergy,
       allergyNote: group.allergyNote,
+      servingDate: group.servingDate,
+      createdAt: group.createdAt,
       itemsPagi: group.itemsPagi,
       itemsSiang: group.itemsSiang,
       itemsSore: group.itemsSore,
@@ -239,6 +285,7 @@ export function groupOrdersForTable(rawOrders = []) {
       makanMalam: makanSore, // alias for backwards compatibility
       tanggalWaktuPengantaran: tanggalBesokStr,
       tanggalBesok: tanggalBesokStr,
+      tanggalBesokStr: tanggalBesokStr,
       bentukMakananText,
       hasCatatan: groupHasCatatan,
       catatan: combinedNotes || null,

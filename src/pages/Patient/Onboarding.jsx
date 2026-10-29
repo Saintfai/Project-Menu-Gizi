@@ -23,7 +23,7 @@ import { hasRealAllergy } from '../../utils/orderTransformer';
 export default function Onboarding() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { patient } = usePatient();
+  const { patient, logoutPatient } = usePatient();
 
   // Kembali ke login jika belum ada data pasien di context
   useEffect(() => {
@@ -62,6 +62,7 @@ export default function Onboarding() {
             <button 
               type="button"
               onClick={() => {
+                logoutPatient();
                 if (location.state?.showMultiple) {
                    navigate('/login', { state: location.state });
                 } else {

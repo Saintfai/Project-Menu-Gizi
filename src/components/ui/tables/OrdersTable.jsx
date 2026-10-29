@@ -162,8 +162,9 @@ export const OrdersTable = ({
               </tr>
             ) : (
               paginatedData.map((row, index) => {
-                const displayRm = row.rmNumber || (row.pasienRM?.match(/\(([^)]+)\)/)?.[1]) || (row.pasienRM?.startsWith('RM') ? row.pasienRM : '-');
-                const displayName = row.patientName || row.pasienRM?.replace(/\s*\([^)]*\)/, '') || row.pasienRM || '-';
+                const strPasienRM = typeof row.pasienRM === 'string' ? row.pasienRM : String(row.pasienRM || '');
+                const displayRm = String(row.rmNumber || (strPasienRM.match(/\(([^)]+)\)/)?.[1]) || (strPasienRM.startsWith('RM') ? strPasienRM : '-'));
+                const displayName = String(row.patientName || strPasienRM.replace(/\s*\([^)]*\)/, '') || strPasienRM || '-');
                 const rowNumber = startIndex + index + 1;
 
                 return (

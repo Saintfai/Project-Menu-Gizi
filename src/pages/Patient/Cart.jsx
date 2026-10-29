@@ -4,9 +4,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Send, User, Users, Sun, Cloud, Moon, ShoppingBag, Loader2, Info, AlertCircle } from 'lucide-react';
 import HeaderMobile from '../../components/ui/layout/HeaderMobile';
 import { usePatient } from '../../context/PatientContext';
-import { createOrders, getOrders, checkPatientHasOrderedMain, getTomorrowServingDate, getTodayServingDate } from '../../services/orderService';
+import { createOrders, checkPatientHasOrderedMain, getTomorrowServingDate, getTodayServingDate } from '../../services/orderService';
 import { getPatientByRm } from '../../services/patientService';
-import { getActiveCycleMenu } from '../../services/menuService';
+import { getAllMenuItems } from '../../services/menuService';
 import PageTransition from '../../components/PageTransition';
 import { validateNote } from '../../utils/inputValidator';
 import { secureSessionStorage } from '../../utils/secureStorage';
@@ -25,8 +25,13 @@ export default function Cart() {
   const navigate = useNavigate();
   const location = useLocation();
   const { patient, updatePatientInfo } = usePatient();
+  const currentPatientKey = patient?.id || patient?.rmNumber ? String(patient.id || patient.rmNumber) : null;
   const [note, setNote] = useState(() => {
-    return secureSessionStorage.getItem('patient_cart_note') || '';
+    const savedOwner = secureSessionStorage.getItem('patient_cart_owner');
+    if (savedOwner && currentPatientKey && savedOwner === currentPatientKey) {
+      return secureSessionStorage.getItem('patient_cart_note') || '';
+    }
+    return '';
   });
 
   const [showModal, setShowModal] = useState(false);
@@ -66,25 +71,33 @@ export default function Cart() {
 
   // Simpan catatan ke session storage agar tidak hilang saat reload
   React.useEffect(() => {
-    secureSessionStorage.setItem('patient_cart_note', note);
-  }, [note]);
+    if (currentPatientKey) {
+      secureSessionStorage.setItem('patient_cart_note', note);
+      secureSessionStorage.setItem('patient_cart_owner', currentPatientKey);
+    }
+  }, [note, currentPatientKey]);
 
   // Ambil pilihan menu dari state navigasi atau pulihkan dari session storage terenkripsi
   const [quantities] = useState(() => {
     const locQuantities = location.state?.quantities;
     if (locQuantities && Object.keys(locQuantities).length > 0) {
       secureSessionStorage.setItem('patient_cart_quantities', locQuantities);
+      if (currentPatientKey) secureSessionStorage.setItem('patient_cart_owner', currentPatientKey);
       return locQuantities;
     }
-    return secureSessionStorage.getItem('patient_cart_quantities', true) || {};
+    const savedOwner = secureSessionStorage.getItem('patient_cart_owner');
+    if (savedOwner && currentPatientKey && savedOwner === currentPatientKey) {
+      return secureSessionStorage.getItem('patient_cart_quantities', true) || {};
+    }
+    return {};
   });
 
   const [menuItems, setMenuItems] = useState(location.state?.menuItems || []);
 
-  // Muat ulang menu siklus aktif jika menuItems belum terisi (misal saat halaman di-refresh)
+  // Muat ulang menu lengkap jika menuItems belum terisi (misal saat halaman di-refresh)
   React.useEffect(() => {
     if (menuItems.length === 0) {
-      getActiveCycleMenu().then(data => {
+      getAllMenuItems().then(data => {
         if (data && data.length > 0) {
           setMenuItems(data);
         }
@@ -317,7 +330,7 @@ export default function Cart() {
       const hasPasienItems = Object.values(orderData.pasien).some(arr => arr.length > 0);
       const hasPendampingItems = Object.values(orderData.pendamping).some(arr => arr.length > 0);
 
-      if (hasPasienItems || hasPendampingItems) {
+      if ((hasPasienItems || hasPendampingItems) && !pendingRetryItems) {
         if (appConfig.DEMO_MODE ? false : currentHour >= appConfig.CUTOFF_MAIN) {
           invalidLock = `Menu Utama (maks ${appConfig.CUTOFF_MAIN_TEXT})`;
         }
@@ -368,7 +381,7 @@ export default function Cart() {
 
       // 4. Buat kode pesanan unik & format tanggal saji (Besok & Hari Ini)
       const orderItemsToInsert = [];
-      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      const dateStr = getTodayServingDate().replace(/-/g, '');
       const randomStr = Math.floor(1000 + Math.random() * 9000);
       const orderCode = `ORD-${dateStr}-${effectivePatient.rmNumber || effectivePatient.id}-${randomStr}`;
 
@@ -381,9 +394,9 @@ export default function Cart() {
       const todayServingDateFormatted = `${tdYear}-${tdMonth}-${tdDate} 12:00:00`;
 
       // 5. Validasi Batas Kuota Porsi Berdasarkan Kelas Kamar Pasien
-      if (hasPasienItems || hasPendampingItems) {
+      if ((hasPasienItems || hasPendampingItems) && !pendingRetryItems) {
         const roomClassLower = (effectivePatient.effectiveClass || effectivePatient.roomClass || '').toLowerCase();
-        const isVipA = roomClassLower.includes('vip a') || roomClassLower.includes('vip_a') || roomClassLower.includes('suite');
+        const isVipA = roomClassLower.includes('vip a') || roomClassLower.includes('vip_a') || roomClassLower.includes('vvip') || roomClassLower.includes('suite');
         const maxPortions = {
           PAGI: 2,
           SIANG: isVipA ? 2 : 1,
@@ -408,7 +421,7 @@ export default function Cart() {
       }
 
       // 6. Pastikan menu utama belum pernah dipesan hari ini untuk besok (cek pesanan ganda di server)
-      if (hasPasienItems || hasPendampingItems) {
+      if ((hasPasienItems || hasPendampingItems) && !pendingRetryItems) {
         try {
           const hasAlreadyOrdered = await checkPatientHasOrderedMain(
             effectivePatient.id || effectivePatient.rmNumber,
@@ -505,6 +518,7 @@ export default function Cart() {
       // 9. Bersihkan data sementara dan buka halaman sukses
       secureSessionStorage.removeItem('patient_cart_note');
       secureSessionStorage.removeItem('patient_cart');
+      secureSessionStorage.removeItem('patient_cart_owner');
       secureSessionStorage.removeItem('patient_cart_quantities');
       setPendingRetryItems(null);
 

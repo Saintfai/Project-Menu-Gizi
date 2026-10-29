@@ -8,10 +8,12 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { checkMainMealCutoff, getCurrentWIBHour } from '../cutoffValidator';
+import appConfig from '../../config/appConfig';
 
 describe('Batas Waktu Cut-Off Pemesanan (PRD 3.2 & 3.3)', () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    appConfig.DEMO_MODE = false;
   });
 
   afterEach(() => {

@@ -16,7 +16,7 @@ import RekapCard from '../../components/ui/cards/RekapCard';
 import { OrdersTable } from '../../components/ui/tables/OrdersTable';
 import NoteDetailModal from '../../components/ui/modals/NoteDetailModal';
 import ComponentEditModal from '../../components/ui/modals/ComponentEditModal';
-import { groupOrdersForTable } from '../../utils/orderTransformer';
+import { groupOrdersForTable, normalizeDateToYYYYMMDD } from '../../utils/orderTransformer';
 import { getTodayOrders, getOrders, deleteOrderItem, enrichOrdersWithPatientAllergies, clearPatientCache, syncPatientOrder } from '../../services/orderService';
 import { getTotalActivePatients } from '../../services/patientService';
 import { getActiveCycleMenu } from '../../services/menuService';
@@ -37,7 +37,7 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('ALL');
+  const [selectedFilter, setSelectedFilter] = useState('TODAY');
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedNoteData, setSelectedNoteData] = useState(null);
@@ -80,10 +80,19 @@ export default function Dashboard() {
     return d;
   }, [currentDate]);
 
+  const todayStr = useMemo(() => toDateInputString(currentDate), [currentDate]);
   const tomorrowStr = useMemo(() => toDateInputString(tomorrowObj), [tomorrowObj]);
 
-  // Nomor siklus menu berjalan (1 s.d. 11) berdasarkan tanggal esok hari (T+1)
-  const cycleNumber = useMemo(() => {
+  // Nomor siklus menu hari ini dan besok
+  const todayCycleNumber = useMemo(() => {
+    const day = currentDate.getDate();
+    let num = day % 10;
+    if (num === 0) num = 10;
+    if (day === 31) num = 11;
+    return num;
+  }, [currentDate]);
+
+  const tomorrowCycleNumber = useMemo(() => {
     const day = tomorrowObj.getDate();
     let num = day % 10;
     if (num === 0) num = 10;
@@ -91,12 +100,24 @@ export default function Dashboard() {
     return num;
   }, [tomorrowObj]);
 
+  // Utilitas normalisasi tanggal order/row ke format YYYY-MM-DD
+  const getOrderDateStr = useCallback((item) => {
+    if (!item) return '';
+    const dateVal = item.servingDate || item.serving_date || item.createdAt || item.created_at;
+    return normalizeDateToYYYYMMDD(dateVal);
+  }, []);
+
+  const isViewingToday = selectedFilter === 'TODAY';
+  const activeCycleNumber = isViewingToday ? todayCycleNumber : tomorrowCycleNumber;
+  const activeDateObj = isViewingToday ? currentDate : tomorrowObj;
+  const activeDateStr = isViewingToday ? todayStr : tomorrowStr;
+
   const [cycleMenuItems, setCycleMenuItems] = useState([]);
 
-  // Ambil referensi hidangan menu siklus aktif T+1
+  // Ambil referensi hidangan menu siklus aktif sesuai tanggal yang sedang dipantau
   useEffect(() => {
     let isMounted = true;
-    getActiveCycleMenu(cycleNumber)
+    getActiveCycleMenu(activeCycleNumber)
       .then((items) => {
         if (isMounted && Array.isArray(items)) {
           setCycleMenuItems(items);
@@ -109,7 +130,7 @@ export default function Dashboard() {
     return () => {
       isMounted = false;
     };
-  }, [cycleNumber]);
+  }, [activeCycleNumber]);
 
   // Lookup map dari paketName & mealTime ke nama hidangan aktual (cth: 'PAGI_PAKET A' -> 'Nasi Liwet Solo')
   const cycleMenuLookup = useMemo(() => {
@@ -132,7 +153,7 @@ export default function Dashboard() {
     setCurrentPage(1);
   }, [searchQuery, selectedFilter, pageSize]);
 
-  // Ambil data pesanan rawat inap untuk T+1 dari API sistem RS secara bertahap (progressive loading)
+  // Ambil data pesanan rawat inap dari API sistem RS secara bertahap (progressive loading)
   const fetchOrderData = useCallback(async (options = {}) => {
     const isSilent = Boolean(options.isSilent);
     const isForce = Boolean(options.force);
@@ -147,24 +168,35 @@ export default function Dashboard() {
       }
       setError(null);
 
-      // Langkah 1 (Cepat): Ambil pesanan T+1 via getTodayOrders() (hanya item jadwal aktif)
-      let data = [];
+      // Langkah 1: Ambil seluruh pesanan dari /webhook/all-order-item via getOrders()
+      // Memuat riwayat lengkap termasuk pesanan baru hari ini & besok
+      let allData = [];
       try {
-        data = await getTodayOrders({ withPatientAllergies: false });
-      } catch (errToday) {
-        console.warn('Gagal getTodayOrders, fallback ke getOrders:', errToday.message);
-        data = await getOrders({ 
-          servingDate: tomorrowStr, 
-          withPatientAllergies: false 
-        });
+        allData = await getOrders({ withPatientAllergies: false });
+      } catch (errAll) {
+        console.warn('Gagal getOrders all:', errAll.message);
       }
 
-      if (!data || data.length === 0) {
-        data = await getOrders({ 
-          servingDate: tomorrowStr, 
-          withPatientAllergies: false 
-        });
+      // Langkah 2: Ambil juga dari endpoint /webhook/order-item-hari
+      let todayData = [];
+      try {
+        todayData = await getTodayOrders({ withPatientAllergies: false });
+      } catch (errToday) {
+        console.warn('Gagal getTodayOrders:', errToday.message);
       }
+
+      // Gabungkan dan deduplikasi data pesanan berdasarkan item.id atau kunci unik
+      const combinedMap = new Map();
+      [...(allData || []), ...(todayData || [])].forEach(item => {
+        if (!item) return;
+        const key = item.id 
+          ? String(item.id) 
+          : `${item.patientId || item.rmNumber}_${item.mealTime}_${item.menuName}_${item.servingDate || item.createdAt}`;
+        combinedMap.set(key, item);
+      });
+
+      let data = Array.from(combinedMap.values());
+
       setRawOrders(data || []);
 
       // Ambil sensus total pasien rawat inap aktif dari endpoint /webhook/total-pasien-aktif
@@ -183,7 +215,7 @@ export default function Dashboard() {
         setLoading(false);
       }
 
-      // Langkah 2 (Background): Perkaya data pesanan dengan riwayat alergi pasien di latar belakang
+      // Langkah 3 (Background): Perkaya data pesanan dengan riwayat alergi pasien di latar belakang
       if (data && data.length > 0) {
         enrichOrdersWithPatientAllergies(data)
           .then((enriched) => {
@@ -203,7 +235,7 @@ export default function Dashboard() {
         setLoading(false);
       }
     }
-  }, [tomorrowStr]);
+  }, []);
 
   useEffect(() => {
     fetchOrderData();
@@ -234,24 +266,29 @@ export default function Dashboard() {
     return () => clearInterval(timer);
   }, [fetchOrderData]);
 
-  // Filter pesanan khusus untuk jadwal penyajian besok (T+1)
+  // Filter pesanan harian untuk 4 kartu ringkasan sesuai tanggal aktif (Hari Ini vs Besok)
   const filteredDailyOrders = useMemo(() => {
+    if (!Array.isArray(rawOrders)) return [];
     return rawOrders.filter((order) => {
-      const dateVal = order.servingDate || order.createdAt;
-      if (!dateVal) return false;
-      
-      const d = new Date(dateVal);
-      const localStr = !isNaN(d.getTime()) ? toDateInputString(d) : '';
-      const isoPrefix = typeof dateVal === 'string' ? dateVal.slice(0, 10) : '';
-
-      return localStr === tomorrowStr || isoPrefix === tomorrowStr;
+      const dStr = getOrderDateStr(order);
+      return dStr === activeDateStr;
     });
-  }, [rawOrders, tomorrowStr]);
+  }, [rawOrders, activeDateStr, getOrderDateStr]);
+
+  // Kumpulan pesanan untuk tabel sesuai tanggal aktif
+  const tableDailyOrders = useMemo(() => {
+    if (!Array.isArray(rawOrders)) return [];
+    return rawOrders.filter((order) => {
+      const dStr = getOrderDateStr(order);
+      return dStr === activeDateStr;
+    });
+  }, [rawOrders, activeDateStr, getOrderDateStr]);
 
   // Transform data mentah harian ke 1 baris per pasien/orderCode
   const tableData = useMemo(() => {
-    return groupOrdersForTable(filteredDailyOrders);
-  }, [filteredDailyOrders]);
+    if (!Array.isArray(tableDailyOrders)) return [];
+    return groupOrdersForTable(tableDailyOrders);
+  }, [tableDailyOrders]);
 
   // Hitung ringkasan 4 kartu secara otomatis dari filtered daily orders
   const stats = useMemo(() => {
@@ -284,11 +321,11 @@ export default function Dashboard() {
       if (isEkstra) {
         ekstraTotal += qty;
         ekstraNames.add(menuLabel || 'Menu Ekstra');
-      }
-
-      if (mealStats[targetMeal]) {
-        mealStats[targetMeal].total += qty;
-        mealStats[targetMeal].packages[menuLabel] = (mealStats[targetMeal].packages[menuLabel] || 0) + qty;
+      } else {
+        if (mealStats[targetMeal]) {
+          mealStats[targetMeal].total += qty;
+          mealStats[targetMeal].packages[menuLabel] = (mealStats[targetMeal].packages[menuLabel] || 0) + qty;
+        }
       }
     });
 
@@ -328,7 +365,7 @@ export default function Dashboard() {
   }, [filteredDailyOrders, cycleMenuItems, cycleMenuLookup]);
 
   
-  // Filter data tabel berdasarkan pencarian kata kunci dan filter kategori
+  // Filter data tabel berdasarkan pencarian kata kunci dan filter kategori/tanggal
   const filteredData = useMemo(() => {
     return tableData.filter((row) => {
       
@@ -350,7 +387,14 @@ export default function Dashboard() {
 
       if (!matchesSearch) return false;
 
-      
+      const rowDateStr = getOrderDateStr(row);
+
+      if (selectedFilter === 'TODAY') {
+        return rowDateStr === todayStr;
+      }
+      if (selectedFilter === 'TOMORROW') {
+        return rowDateStr === tomorrowStr;
+      }
       if (selectedFilter === 'ALLERGY') return row.hasAllergy;
       if (selectedFilter === 'NOTE') return row.hasCatatan;
       if (selectedFilter === 'VIP') {
@@ -365,7 +409,7 @@ export default function Dashboard() {
 
       return true;
     });
-  }, [tableData, searchQuery, selectedFilter]);
+  }, [tableData, searchQuery, selectedFilter, todayStr, tomorrowStr, getOrderDateStr]);
 
   // Buka modal rincian catatan pesanan pasien
   const handleOpenNote = (rowData) => {
@@ -447,6 +491,7 @@ export default function Dashboard() {
 
   // Format tanggal penyajian ke teks formal bahasa Indonesia
   const formatServingDateDisplay = (d) => {
+    if (!d || !(d instanceof Date) || isNaN(d.getTime())) return '-';
     const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
     return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
@@ -463,14 +508,14 @@ export default function Dashboard() {
             Rekapitulasi Pesanan Pasien
           </h1>
           <p className="text-sm text-neutral-500 mt-1 mb-3">
-            Monitoring dan rekapitulasi distribusi paket menu gizi rawat inap untuk jadwal penyajian besok (T+1).
+            Monitoring dan rekapitulasi distribusi paket menu gizi rawat inap.
           </p>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200">
             <span className="w-1.5 h-1.5 rounded-full bg-primary-600 animate-pulse"></span>
-            Siklus Hari {cycleNumber}
+            Siklus Hari {activeCycleNumber}
           </span>
           <div 
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200"
@@ -482,8 +527,10 @@ export default function Dashboard() {
             <span>Kelas: {kelasCount} Pasien</span>
           </div>
           <div className="px-3 py-1.5 rounded-lg text-xs font-bold bg-neutral-100 text-neutral-700 border border-neutral-200 flex flex-col items-end">
-            <span className="text-[10px] text-neutral-500 leading-none">Penyajian T+1</span>
-            <span>{formatServingDateDisplay(tomorrowObj)}</span>
+            <span className="text-[10px] text-neutral-500 leading-none">
+              {isViewingToday ? 'Penyajian Hari-H' : 'Penyajian T+1'}
+            </span>
+            <span>{formatServingDateDisplay(activeDateObj)}</span>
           </div>
           <button
             type="button"
@@ -572,14 +619,15 @@ export default function Dashboard() {
               />
             </div>
 
-            {/* Dropdown filter kategori */}
-            <div className="relative w-full sm:w-36">
+            {/* Dropdown filter kategori & tanggal */}
+            <div className="relative w-full sm:w-44">
               <select
                 value={selectedFilter}
                 onChange={(e) => setSelectedFilter(e.target.value)}
                 className="w-full h-9 appearance-none bg-white border border-neutral-300 rounded-lg pl-3 pr-7 text-xs font-semibold text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer shadow-xs"
               >
-                <option value="ALL">Semua</option>
+                <option value="TODAY">Pesanan Hari Ini</option>
+                <option value="TOMORROW">Pesanan Besok</option>
                 <option value="ALLERGY">Ada Alergi</option>
                 <option value="NOTE">Ada Catatan</option>
                 <option value="VIP">VIP</option>
@@ -642,7 +690,7 @@ export default function Dashboard() {
         onClose={handleCloseComponentModal}
         onSaved={handleSavedComponentModal}
         selectedMeal={selectedComponentMeal}
-        cycleNumber={cycleNumber}
+        cycleNumber={activeCycleNumber}
       />
     </div>
     </PageTransition>
