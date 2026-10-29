@@ -229,9 +229,9 @@ export default function MenuPortal() {
 
   // Render daftar Menu Utama (dengan sisa kuota sesi dinamis)
   const renderMenuGrid = (items, maxSessionQty) => {
-    if (loading) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Memuat menu...</div>;
-    if (error) return <div className="p-3 text-sm text-danger-500 italic bg-danger-50 rounded-lg border border-danger-100 mt-2">Gagal memuat menu.</div>;
-    if (items.length === 0) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Data menu belum tersedia.</div>;
+    if (loading) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Menyiapkan menu...</div>;
+    if (error) return <div className="p-3 text-sm text-danger-500 italic bg-danger-50 rounded-lg border border-danger-100 mt-2">Gagal memuat menu. Silakan muat ulang halaman.</div>;
+    if (items.length === 0) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Menu belum tersedia.</div>;
 
     const totalUsedQty = items.reduce((sum, item) => sum + (quantities[item.id]?.length || 0), 0);
     const remainingQty = maxSessionQty - totalUsedQty;
@@ -267,9 +267,9 @@ export default function MenuPortal() {
 
   // Render daftar Menu Ekstra berbayar 
   const renderEkstraGrid = (items) => {
-    if (loading) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Memuat menu ekstra...</div>;
-    if (error) return <div className="p-3 text-sm text-danger-500 italic bg-danger-50 rounded-lg border border-danger-100 mt-2">Gagal memuat menu.</div>;
-    if (items.length === 0) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Data menu ekstra belum tersedia.</div>;
+    if (loading) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Menyiapkan menu ekstra...</div>;
+    if (error) return <div className="p-3 text-sm text-danger-500 italic bg-danger-50 rounded-lg border border-danger-100 mt-2">Gagal memuat menu. Silakan muat ulang halaman.</div>;
+    if (items.length === 0) return <div className="p-3 text-sm text-neutral-500 italic bg-white rounded-lg border border-neutral-100 mt-2">Menu ekstra belum tersedia.</div>;
 
     return (
       <div className="flex sm:grid sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-3 lg:gap-4 overflow-x-auto pb-4 pt-2 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">

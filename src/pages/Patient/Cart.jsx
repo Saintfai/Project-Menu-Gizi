@@ -31,7 +31,6 @@ export default function Cart() {
 
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitProgress, setSubmitProgress] = useState('');
   const [pendingRetryItems, setPendingRetryItems] = useState(null); // Item yang gagal terkirim (untuk retry)
   const [errorModalState, setErrorModalState] = useState({ isOpen: false, title: '', message: '' });
 
@@ -421,7 +420,7 @@ export default function Cart() {
             setErrorModalState({
               isOpen: true,
               title: 'Menu Sudah Dipesan',
-              message: 'Menu utama untuk penyajian esok hari sudah terdaftar di database server. Anda hanya dapat memesan menu utama 1 kali per hari.'
+              message: 'Menu utama untuk penyajian esok hari sudah terdaftar. Anda hanya dapat memesan menu utama 1 kali per hari.'
             });
             setIsSubmitting(false);
             setShowModal(false);
@@ -432,7 +431,7 @@ export default function Cart() {
           setErrorModalState({
             isOpen: true,
             title: 'Gagal Memverifikasi',
-            message: 'Terjadi kesalahan saat memverifikasi status pesanan Anda ke database server. Silakan coba lagi.'
+            message: 'Terjadi kesalahan saat memverifikasi status pesanan Anda. Silakan coba lagi.'
           });
           setIsSubmitting(false);
           setShowModal(false);
@@ -501,13 +500,7 @@ export default function Cart() {
       const itemsToSubmit = pendingRetryItems || orderItemsToInsert;
 
       // 8. Kirim pesanan ke database server
-      await createOrders(itemsToSubmit, ({ current, total, phase }) => {
-        if (phase === 'verifying') {
-          setSubmitProgress('Memverifikasi pesanan di server...');
-        } else {
-          setSubmitProgress(`Mengirim item ${current} dari ${total}...`);
-        }
-      });
+      await createOrders(itemsToSubmit);
 
       // 9. Bersihkan data sementara dan buka halaman sukses
       secureSessionStorage.removeItem('patient_cart_note');
@@ -534,27 +527,26 @@ export default function Cart() {
         // Server menerima POST (200 OK) tapi data tidak muncul di database
         setErrorModalState({
           isOpen: true,
-          title: 'Pesanan Belum Terverifikasi',
-          message: error.message
+          title: 'Pesanan Belum Terkonfirmasi',
+          message: 'Pesanan Anda sudah dikirim, namun belum dapat kami konfirmasi. Silakan tunggu beberapa saat, atau hubungi petugas gizi jika pesanan tidak muncul.'
         });
       } else if (error.failedItems && error.failedItems.length > 0) {
         setPendingRetryItems(error.failedItems);
         setErrorModalState({
           isOpen: true,
           title: 'Sebagian Pesanan Gagal Terkirim',
-          message: `${error.message} Silakan klik tombol 'Coba Lagi' untuk mengirimkan sisa item pesanan tanpa mengulang dari awal.`
+          message: `Sebagian item pesanan Anda belum berhasil dikirim. Silakan klik tombol 'Coba Lagi' untuk melanjutkan tanpa mengulang dari awal.`
         });
       } else {
         setErrorModalState({
           isOpen: true,
           title: 'Pesanan Gagal',
-          message: `Terjadi kesalahan saat menyimpan pesanan: ${error.message || 'Silakan coba lagi.'}`
+          message: `Terjadi kesalahan saat menyimpan pesanan. Silakan coba lagi atau hubungi petugas gizi.`
         });
       }
     } finally {
       setIsSubmitting(false);
       setShowModal(false);
-      setSubmitProgress('');
     }
   };
 
@@ -594,7 +586,7 @@ export default function Cart() {
             <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-start gap-3">
               <AlertCircle size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
               <div className="text-xs text-amber-800 leading-relaxed">
-                <span className="font-bold">Menu Utama Sudah Dipesan di Database:</span> Anda telah melakukan pemesanan Paket Utama untuk jadwal esok hari. Sesuai aturan sesi tunggal, menu utama tidak dapat dipesan kembali.
+                <span className="font-bold">Menu Utama Sudah Dipesan:</span> Anda telah melakukan pemesanan Paket Utama untuk jadwal esok hari. Sesuai aturan sesi tunggal, menu utama tidak dapat dipesan kembali.
               </div>
             </div>
           )}
@@ -724,11 +716,11 @@ export default function Cart() {
         </div>
 
         {/* 9. Modal popup konfirmasi kirim pesanan */}
-        {showModal && typeof document !== 'undefined' && createPortal(
+        {showModal && !isSubmitting && typeof document !== 'undefined' && createPortal(
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden">
             <div 
               className="fixed inset-0 bg-neutral-900/20 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
-              onClick={() => !isSubmitting && setShowModal(false)}
+              onClick={() => setShowModal(false)}
               aria-hidden="true"
             />
             <div className="relative z-10 bg-white w-full max-w-[320px] rounded-2xl p-6 text-center shadow-xl animate-in fade-in zoom-in-95 duration-200">
@@ -747,26 +739,33 @@ export default function Cart() {
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => handleConfirm()}
-                  disabled={isSubmitting}
-                  className="w-full bg-primary-600 text-white font-semibold py-3 rounded-full text-sm hover:bg-primary-700 transition-colors outline-none focus:outline-none border-none ring-0 disabled:opacity-70 flex items-center justify-center cursor-pointer"
+                  className="w-full bg-primary-600 text-white font-semibold py-3 rounded-full text-sm hover:bg-primary-700 transition-colors outline-none focus:outline-none border-none ring-0 flex items-center justify-center cursor-pointer"
                 >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin mr-2" />
-                      {submitProgress || 'Memproses...'}
-                    </>
-                  ) : (
-                    'Ya, Kirim Sekarang'
-                  )}
+                  Ya, Kirim Sekarang
                 </button>
 
                 <button
                   onClick={() => setShowModal(false)}
-                  disabled={isSubmitting}
-                  className="w-full bg-white text-primary-600 font-semibold py-3 rounded-full text-sm border border-solid border-primary-600 hover:bg-neutral-50 transition-colors outline-none focus:outline-none ring-0 disabled:opacity-50 cursor-pointer"
+                  className="w-full bg-white text-primary-600 font-semibold py-3 rounded-full text-sm border border-solid border-primary-600 hover:bg-neutral-50 transition-colors outline-none focus:outline-none ring-0 cursor-pointer"
                 >
                   Periksa Kembali
                 </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+        {/* 9b. Full-screen loading overlay saat pesanan sedang diproses */}
+        {isSubmitting && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="flex flex-col items-center gap-5 text-center px-8">
+              <div className="w-16 h-16 bg-primary-50 rounded-full flex items-center justify-center">
+                <Loader2 size={32} className="text-primary-600 animate-spin" />
+              </div>
+              <div>
+                <p className="font-bold text-neutral-900 text-base mb-1">Memproses Pesanan</p>
+                <p className="text-sm text-neutral-500">Mohon tunggu, jangan tutup halaman ini.</p>
               </div>
             </div>
           </div>,
