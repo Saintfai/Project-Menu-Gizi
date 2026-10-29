@@ -37,7 +37,7 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('TODAY');
+  const [selectedFilter, setSelectedFilter] = useState('TOMORROW');
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedNoteData, setSelectedNoteData] = useState(null);
@@ -626,8 +626,8 @@ export default function Dashboard() {
                 onChange={(e) => setSelectedFilter(e.target.value)}
                 className="w-full h-9 appearance-none bg-white border border-neutral-300 rounded-lg pl-3 pr-7 text-xs font-semibold text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer shadow-xs"
               >
-                <option value="TODAY">Pesanan Hari Ini</option>
-                <option value="TOMORROW">Pesanan Besok</option>
+                <option value="TODAY">Hari Ini</option>
+                <option value="TOMORROW">Besok</option>
                 <option value="ALLERGY">Ada Alergi</option>
                 <option value="NOTE">Ada Catatan</option>
                 <option value="VIP">VIP</option>
