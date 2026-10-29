@@ -92,8 +92,19 @@ export const OrdersTable = ({
       return <span className="text-neutral-400 font-normal">-</span>;
     }
 
-    const includeItems = items.filter(i => (i.type || 'INCLUDE').toUpperCase() === 'INCLUDE');
-    const excludeItems = items.filter(i => (i.type || '').toUpperCase() === 'EXCLUDE');
+    // Filter item yang tidak memiliki menu nyata (placeholder kosong)
+    const validItems = items.filter(item => {
+      const rawName = item.menuName || item.paketName || item.name || '';
+      const name = typeof rawName === 'string' ? rawName.trim() : String(rawName).trim();
+      return name !== '' && name !== '-';
+    });
+
+    if (validItems.length === 0) {
+      return <span className="text-neutral-400 font-normal">-</span>;
+    }
+
+    const includeItems = validItems.filter(i => (i.type || 'INCLUDE').toUpperCase() === 'INCLUDE');
+    const excludeItems = validItems.filter(i => (i.type || '').toUpperCase() === 'EXCLUDE');
 
     const formatGroup = (group, isExclude) => {
       if (group.length === 0) return null;
