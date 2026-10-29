@@ -38,6 +38,78 @@ export function formatDobForApi(dob) {
 }
 
 /**
+ * Menambahkan 1 hari kalender secara murni (UTC) pada string tanggal format DD-MM-YYYY.
+ * Digunakan untuk membantu verifikasi selisih pergeseran tanggal lahir dari response API.
+ *
+ * @param {string} ddMmYyyy - Tanggal dalam format DD-MM-YYYY
+ * @returns {string|null} Tanggal H+1 dalam format DD-MM-YYYY atau null jika format tidak sesuai
+ */
+function addOneCalendarDay(ddMmYyyy) {
+  if (!ddMmYyyy || typeof ddMmYyyy !== 'string') return null;
+  const match = ddMmYyyy.trim().match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if (!match) return null;
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+  const nextUtc = new Date(Date.UTC(year, month - 1, day + 1));
+  if (isNaN(nextUtc.getTime())) return null;
+  const d = String(nextUtc.getUTCDate()).padStart(2, '0');
+  const m = String(nextUtc.getUTCMonth() + 1).padStart(2, '0');
+  const y = nextUtc.getUTCFullYear();
+  return `${d}-${m}-${y}`;
+}
+
+/**
+ * Rekonsiliasi tanggal lahir pasien jika terjadi pergeseran -1 hari akibat konversi zona waktu historis dari API.
+ * Memverifikasi kandidat tanggal langsung ke endpoint database RS agar tetap akurat sesuai data asli pasien.
+ *
+ * @param {object} raw - Data mentah pasien dari /webhook/get-patient
+ * @returns {Promise<object>} Data pasien dengan tanggal_lahir terverifikasi
+ */
+async function reconcileHistoricalDob(raw) {
+  if (!raw || !raw.tanggal_lahir || !raw.nama_pasien || !raw.no_rm) return raw;
+  const dobStr = formatDobForApi(raw.tanggal_lahir);
+  const match = dobStr.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if (!match) return raw;
+
+  const birthYear = Number(match[3]);
+  if (isNaN(birthYear) || birthYear >= 1964) {
+    return { ...raw, _dobReconciled: true };
+  }
+
+  const candidateDob = addOneCalendarDay(dobStr);
+  if (!candidateDob) return raw;
+
+  try {
+    let verifyRes = await apiGet('/webhook/get-patient-date-birth', {
+      nama: String(raw.nama_pasien).trim(),
+      tanggal_lahir: candidateDob,
+    });
+    if (typeof verifyRes === 'string' && verifyRes.trim().startsWith('[')) {
+      try {
+        verifyRes = JSON.parse(verifyRes);
+      } catch {
+        // Abaikan jika bukan JSON valid
+      }
+    }
+    const verifyList = Array.isArray(verifyRes)
+      ? verifyRes
+      : (verifyRes && typeof verifyRes === 'object' ? [verifyRes] : []);
+    const targetRm = normalizeRM(raw.no_rm);
+    const isVerifiedMatch = verifyList.some(
+      (item) => item && item.no_rm && normalizeRM(item.no_rm) === targetRm
+    );
+    if (isVerifiedMatch) {
+      return { ...raw, tanggal_lahir: candidateDob, _dobReconciled: true };
+    }
+    return { ...raw, _dobReconciled: true };
+  } catch {
+    // Jika verifikasi gagal/offline, pertahankan data asli tanpa memblokir proses login
+  }
+  return raw;
+}
+
+/**
  * Standarisasi objek data pasien dari API RS ke format internal aplikasi.
  * Menangani aturan kelas titipan (jika ada titipan, kuota porsi mengikuti kelas titipan).
  * 
@@ -82,6 +154,7 @@ export function normalizePatient(raw) {
     effectiveClass: effectiveClass,
     roomName: raw.kamar || '-',
     bentukMakanan: raw.bentuk_makan || null,
+    dobReconciled: !!raw._dobReconciled,
     isVerified: true,
   };
 }
@@ -185,6 +258,9 @@ export async function getPatientByRm(rmNumber, options = { vipOnly: true }) {
     throw new Error('Data pasien tidak ditemukan.');
   }
 
+  // Verifikasi konsistensi tanggal lahir pasien agar tidak bergeser akibat konversi zona waktu historis
+  validPatients = await Promise.all(validPatients.map(reconcileHistoricalDob));
+
   if (validPatients.length === 1) {
     return {
       type: 'single',
@@ -247,6 +323,13 @@ export async function getPatientByNameAndDob(name, dob, options = { vipOnly: tru
   if (validPatients.length === 0) {
     throw new Error('Data pasien tidak ditemukan.');
   }
+
+  // Gunakan formattedDob yang telah terverifikasi cocok di database agar tanggal lahir tetap konsisten
+  validPatients = validPatients.map((item) => ({
+    ...item,
+    tanggal_lahir: formattedDob,
+    _dobReconciled: true,
+  }));
 
   if (validPatients.length === 1) {
     return {

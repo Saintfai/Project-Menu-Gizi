@@ -173,6 +173,43 @@ describe('patientService - VIP only access', () => {
       expect(res.type).toBe('single');
       expect(res.patient.name).toBe('PASIEN VIP');
     });
+
+    it('mempertahankan tanggal lahir tahun kabisat & tahun lama pada pencarian Nama & Tgl Lahir maupun No. RM', async () => {
+      // 1. Login via Nama & Tanggal Lahir (ketika response JSON API menggeser -1 hari menjadi 28-02-1948)
+      apiClient.apiGet.mockResolvedValueOnce([
+        {
+          no_rm: '48762',
+          nama_pasien: 'IRFAN WIJAYA',
+          tanggal_lahir: '28-02-1948',
+          kelas: 'VIP C',
+        },
+      ]);
+
+      const resByDob = await getPatientByNameAndDob('IRFAN WIJAYA', '1948-02-29');
+      expect(resByDob.patient.dob).toBe('29-02-1948');
+
+      // 2. Login via No. RM (rekonsiliasi otomatis H+1 ke endpoint get-patient-date-birth)
+      apiClient.apiGet
+        .mockResolvedValueOnce([
+          {
+            no_rm: '48762',
+            nama_pasien: 'IRFAN WIJAYA',
+            tanggal_lahir: '28-02-1948',
+            kelas: 'VIP C',
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            no_rm: '48762',
+            nama_pasien: 'IRFAN WIJAYA',
+            tanggal_lahir: '28-02-1948',
+            kelas: 'VIP C',
+          },
+        ]);
+
+      const resByRm = await getPatientByRm('48762');
+      expect(resByRm.patient.dob).toBe('29-02-1948');
+    });
   });
 
   describe('patient allergies caching and clearPatientCache', () => {
