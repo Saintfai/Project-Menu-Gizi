@@ -436,8 +436,8 @@ describe('orderService - getOrders normalization', () => {
   });
 
   describe('syncPatientOrder() - Sinkronisasi Pasien Baru SIMRS', () => {
-    it('berhasil memanggil webhook sync-data-tera dengan parameter no_regis', async () => {
-      apiClient.apiGet.mockResolvedValueOnce({
+    it('berhasil memanggil webhook sync-data-tera via POST dengan parameter no_regis dan FormData', async () => {
+      apiClient.apiPostFormData.mockResolvedValueOnce({
         status: 'success',
         message: 'Registration synchronized',
       });
@@ -445,17 +445,14 @@ describe('orderService - getOrders normalization', () => {
       const res = await syncPatientOrder('2610140210');
       expect(res.success).toBe(true);
       expect(res.noRegis).toBe('2610140210');
-      expect(apiClient.apiGet).toHaveBeenCalledWith(
-        '/webhook/sync-data-tera',
-        expect.objectContaining({
-          no_regis: '2610140210',
-          noreg: '2610140210',
-        })
+      expect(apiClient.apiPostFormData).toHaveBeenCalledWith(
+        expect.stringContaining('/webhook/sync-data-tera'),
+        expect.any(FormData)
       );
     });
 
     it('mendukung pemanggilan dengan objek row yang memiliki no_regis dan patientId', async () => {
-      apiClient.apiGet.mockResolvedValueOnce({
+      apiClient.apiPostFormData.mockResolvedValueOnce({
         status: 'success',
       });
 
@@ -476,11 +473,31 @@ describe('orderService - getOrders normalization', () => {
       await expect(syncPatientOrder(null)).rejects.toThrow('Nomor registrasi pasien wajib diisi');
     });
 
-    it('melempar error jika semua percobaan retry gagal', async () => {
-      apiClient.apiGet.mockRejectedValue(new Error('Network error 500'));
+    it('melempar error jika semua percobaan retry gagal (network/server error 500)', async () => {
+      const err = new Error('Network error 500');
+      err.status = 500;
+      apiClient.apiPostFormData.mockRejectedValue(err);
 
       await expect(syncPatientOrder('2610140210', 1)).rejects.toThrow('Gagal menyinkronisasi data registrasi 2610140210');
     });
+
+    it('mengembalikan sukses dengan data null jika TERA melempar 404 (data belum ada di TERA)', async () => {
+      const err = new Error('Data tidak ditemukan');
+      err.status = 404;
+      apiClient.apiPostFormData.mockRejectedValue(err);
+
+      const res = await syncPatientOrder('2610140210');
+      expect(res.success).toBe(true);
+      expect(res.data).toBeNull();
+      expect(res.message).toContain('belum tersedia');
+    });
+
+    it('mengembalikan sukses jika TERA mengembalikan 200 dengan body kosong (webhook n8n trigger response)', async () => {
+      apiClient.apiPostFormData.mockResolvedValueOnce('');
+
+      const res = await syncPatientOrder('2610140210');
+      expect(res.success).toBe(true);
+      expect(res.message).toContain('berhasil');
+    });
   });
 });
-

@@ -255,6 +255,29 @@ describe('Transformasi & Format Rekapitulasi Dapur Gizi (PRD 3.8)', () => {
       expect(res[0].makanSiang).toBe('-');
       expect(res[0].makanSore).toBe('-');
     });
+
+    it('menandai isEmptyOrder = true dan makanPagi = "-" jika item memiliki mealTime tetapi menuName dan paketName kosong (sync placeholder)', () => {
+      const syncPlaceholderOrder = [
+        {
+          orderCode: 'ORD-48727-SYNC01',
+          patientId: 48730,
+          roomNumber: 'VIP C - 4.4',
+          classType: 'VIP C',
+          mealTime: 'PAGI',
+          menuName: '',
+          paketName: '',
+          quantity: 1,
+          servingDate: '2026-10-30',
+        },
+      ];
+
+      const res = groupOrdersForTable(syncPlaceholderOrder);
+      expect(res).toHaveLength(1);
+      expect(res[0].makanPagi).toBe('-');
+      expect(res[0].makanSiang).toBe('-');
+      expect(res[0].makanSore).toBe('-');
+      expect(res[0].isEmptyOrder).toBe(true);
+    });
   });
 
   describe('isEmptyOrder() - Deteksi Pesanan Kosong Pasien Masuk Lewat Jam 15:00', () => {

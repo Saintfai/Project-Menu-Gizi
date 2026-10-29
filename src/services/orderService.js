@@ -47,7 +47,7 @@ function normalizeOrder(raw) {
     meal_time: raw.meal_time,
     menuName: raw.menu_name || '',
     menu_name: raw.menu_name,
-    paketName: raw.paket_name || 'Paket A',
+    paketName: raw.paket_name || '',
     paket_name: raw.paket_name,
     bentukMakanan: raw.bentuk_makanan || '-',
     bentuk_makanan: raw.bentuk_makanan,
@@ -677,19 +677,18 @@ export async function syncPatientOrder(noRegis, optionsOrRetries = 3) {
 
   const cleanPid = String(patientId).trim();
 
-  // Parameter query URL (mengirim nomor registrasi ke backend n8n/SIMRS)
-  const queryParams = {
-    no_regis: cleanRegNo,
-    noreg: cleanRegNo,
-    no_reg: cleanRegNo,
-    no_registrasi: cleanRegNo,
-  };
+  // Query parameter pada URL
+  const searchParams = new URLSearchParams();
+  searchParams.append('no_regis', cleanRegNo);
+  searchParams.append('noreg', cleanRegNo);
+  searchParams.append('no_reg', cleanRegNo);
+  searchParams.append('no_registrasi', cleanRegNo);
   if (cleanPid) {
-    queryParams.patient_id = cleanPid;
-    queryParams.pid = cleanPid;
+    searchParams.append('patient_id', cleanPid);
+    searchParams.append('pid', cleanPid);
   }
 
-  // FormData jika endpoint di backend menggunakan POST
+  // FormData untuk body POST
   const formData = new FormData();
   formData.append('no_regis', cleanRegNo);
   formData.append('noreg', cleanRegNo);
@@ -700,7 +699,7 @@ export async function syncPatientOrder(noRegis, optionsOrRetries = 3) {
     formData.append('pid', cleanPid);
   }
 
-  // Daftar kandidat endpoint (utamakan production /webhook/sync-data-tera, fallback ke /webhook-test/sync-data-tera)
+  // Endpoint webhook sinkronisasi SIMRS (n8n dikonfigurasi via HTTP POST)
   const endpointCandidates = [
     '/webhook/sync-data-tera',
   ];
@@ -709,40 +708,41 @@ export async function syncPatientOrder(noRegis, optionsOrRetries = 3) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     for (const ep of endpointCandidates) {
       try {
-        // Coba GET terlebih dahulu karena webhook n8n dikonfigurasi via HTTP GET
-        const response = await apiGet(ep, queryParams);
+        // Kirim via HTTP POST langsung ke webhook (endpoint n8n sync-data-tera hanya menerima POST)
+        const targetUrl = `${ep}?${searchParams.toString()}`;
+        const response = await apiPostFormData(targetUrl, formData);
+
+        // Jika respons kosong / 200 OK tanpa body
         return {
           success: true,
           noRegis: cleanRegNo,
           patientId: cleanPid || cleanRegNo,
           message: `Data registrasi ${cleanRegNo} berhasil disinkronisasi dengan SIMRS.`,
-          data: response,
+          data: response || null,
         };
       } catch (err) {
         lastError = err;
 
-        // Jika endpoint ternyata mengharapkan POST
-        const errMsg = String(err?.message || '').toLowerCase();
-        if (errMsg.includes('post') || errMsg.includes('405') || err.status === 405) {
-          try {
-            const postResponse = await apiPostFormData(ep, formData);
-            return {
-              success: true,
-              noRegis: cleanRegNo,
-              patientId: cleanPid || cleanRegNo,
-              message: `Data registrasi ${cleanRegNo} berhasil disinkronisasi dengan SIMRS.`,
-              data: postResponse,
-            };
-          } catch (postErr) {
-            lastError = postErr;
-          }
+        // Jika error adalah 404/400 atau data belum ada di TERA (bukan network/server error 500)
+        const status = err?.status || 0;
+        const msg = String(err?.message || '').toLowerCase();
+        const isNotFound = status === 404 || status === 400 || msg.includes('tidak ditemukan') || msg.includes('not found') || msg.includes('no data');
+
+        if (isNotFound) {
+          return {
+            success: true,
+            noRegis: cleanRegNo,
+            patientId: cleanPid || cleanRegNo,
+            message: `Sinkronisasi registrasi ${cleanRegNo} berhasil. Data pesanan belum tersedia di SIMRS.`,
+            data: null,
+          };
+        }
+
+        console.warn(`[orderService] Sync percobaan ${attempt}/${maxRetries} gagal untuk registrasi ${cleanRegNo}:`, err?.message);
+        if (attempt < maxRetries) {
+          await new Promise(res => setTimeout(res, attempt * 800));
         }
       }
-    }
-
-    console.warn(`[orderService] Sync percobaan ${attempt}/${maxRetries} gagal untuk registrasi ${cleanRegNo}:`, lastError?.message);
-    if (attempt < maxRetries) {
-      await new Promise(res => setTimeout(res, attempt * 800));
     }
   }
 

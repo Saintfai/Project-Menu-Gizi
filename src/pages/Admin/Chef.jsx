@@ -22,23 +22,18 @@ export default function Chef() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentDate] = useState(() => new Date());
-  const [selectedDateMode, setSelectedDateMode] = useState('tomorrow'); // 'today' | 'tomorrow'
+
   const [selectedMealTime, setSelectedMealTime] = useState('Semua');
   const [chefDailyNote, setChefDailyNote] = useState('');
   const [isChefNoteModalOpen, setIsChefNoteModalOpen] = useState(false);
 
-  // Tanggal Hari Ini (T) dan Esok Hari (T+1)
-  const todayObj = useMemo(() => new Date(currentDate), [currentDate]);
-  const tomorrowObj = useMemo(() => {
-    const d = new Date(currentDate);
-    d.setDate(d.getDate() + 1);
-    return d;
-  }, [currentDate]);
+  // Tanggal penyajian Hari Ini (T) untuk koki dapur
+  const activeServingDateObj = useMemo(() => new Date(currentDate), [currentDate]);
 
-  // Tanggal penyajian aktif yang dipilih (Hari Ini atau Besok)
-  const activeServingDateObj = useMemo(() => {
-    return selectedDateMode === 'today' ? todayObj : tomorrowObj;
-  }, [selectedDateMode, todayObj, tomorrowObj]);
+
+
+
+
 
   const activeServingDateStr = useMemo(() => toDateInputString(activeServingDateObj), [activeServingDateObj]);
 
@@ -361,31 +356,6 @@ export default function Chef() {
           </div>
           
           <div className="flex items-center gap-3 flex-wrap">
-            {/* Toggle Hari Ini vs Besok (T+1) */}
-            <div className="inline-flex rounded-lg border border-neutral-200 bg-neutral-100 p-0.5">
-              <button
-                type="button"
-                onClick={() => setSelectedDateMode('today')}
-                className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                  selectedDateMode === 'today'
-                    ? 'bg-white text-primary-700 shadow-xs'
-                    : 'text-neutral-600 hover:text-neutral-900'
-                }`}
-              >
-                Hari Ini
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedDateMode('tomorrow')}
-                className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                  selectedDateMode === 'tomorrow'
-                    ? 'bg-white text-primary-700 shadow-xs'
-                    : 'text-neutral-600 hover:text-neutral-900'
-                }`}
-              >
-                Besok (T+1)
-              </button>
-            </div>
 
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200">
               <span className="w-1.5 h-1.5 rounded-full bg-primary-600 animate-pulse"></span>
@@ -393,7 +363,7 @@ export default function Chef() {
             </span>
             <div className="px-3 py-1.5 rounded-lg text-xs font-bold bg-neutral-100 text-neutral-700 border border-neutral-200 flex flex-col items-end">
               <span className="text-[10px] text-neutral-500 leading-none">
-                {selectedDateMode === 'today' ? 'Penyajian Hari Ini (T)' : 'Penyajian Besok (T+1)'}
+                Penyajian Hari Ini (T)
               </span>
               <span>{formatServingDateDisplay(activeServingDateObj)}</span>
             </div>
@@ -446,8 +416,8 @@ export default function Chef() {
                 <h3 className="text-lg font-bold text-neutral-700">Belum Ada Data Produksi</h3>
                 <p className="text-sm text-neutral-500 max-w-sm">
                   {selectedMealTime === 'Semua' 
-                    ? `Belum ada pesanan yang terdaftar untuk jadwal penyajian ${selectedDateMode === 'today' ? 'hari ini' : 'besok hari'}.`
-                    : `Belum ada pesanan untuk waktu Makan ${selectedMealTime.charAt(0) + selectedMealTime.slice(1).toLowerCase()} ${selectedDateMode === 'today' ? 'hari ini' : 'besok hari'}.`}
+                    ? `Belum ada pesanan yang terdaftar untuk jadwal penyajian hari ini.`
+                    : `Belum ada pesanan untuk waktu Makan ${selectedMealTime.charAt(0) + selectedMealTime.slice(1).toLowerCase()} hari ini.`}
                 </p>
               </div>
             ) : (
@@ -545,7 +515,7 @@ export default function Chef() {
                   </div>
                 ) : (
                   <div className="py-6 text-center text-xs text-neutral-500">
-                    Belum ada catatan rangkuman dapur untuk jadwal {selectedDateMode === 'today' ? 'Hari Ini' : 'Besok'}.
+                    Belum ada catatan rangkuman dapur untuk jadwal Hari Ini.
                   </div>
                 )}
               </div>
