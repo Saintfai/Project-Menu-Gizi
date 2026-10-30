@@ -1,5 +1,10 @@
-const BASE_URL = 'https://dev-flow.edelweiss.id';
-const cred = Buffer.from('menu-gizi:KamiParaPejuang123!').toString('base64');
+import dotenv from 'dotenv';
+dotenv.config();
+
+const BASE_URL = (process.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
+const USERNAME = process.env.VITE_API_USERNAME || '';
+const PASSWORD = process.env.VITE_API_PASSWORD || '';
+const cred = Buffer.from(`${USERNAME}:${PASSWORD}`).toString('base64');
 const headers = { 'Authorization': `Basic ${cred}` };
 
 async function run() {

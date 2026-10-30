@@ -3,9 +3,9 @@
  * Mendukung Basic Auth, query params, FormData, dan error handling terstandar.
  */
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://dev-flow.edelweiss.id';
-const USERNAME = import.meta.env.VITE_API_USERNAME || 'menu-gizi';
-const PASSWORD = import.meta.env.VITE_API_PASSWORD || 'KamiParaPejuang123!';
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
+const USERNAME = import.meta.env.VITE_API_USERNAME || '';
+const PASSWORD = import.meta.env.VITE_API_PASSWORD || '';
 
 /**
  * Menghasilkan token header Basic Authentication.
@@ -14,6 +14,7 @@ const PASSWORD = import.meta.env.VITE_API_PASSWORD || 'KamiParaPejuang123!';
  * @returns {string} String header authorization (contoh: 'Basic dXNlcjpwYXNz')
  */
 function getBasicAuthHeader() {
+  if (!USERNAME || !PASSWORD) return null;
   const credentials = `${USERNAME}:${PASSWORD}`;
   try {
     const encoded = typeof btoa !== 'undefined'
@@ -44,8 +45,9 @@ export async function apiFetch(endpoint, options = {}) {
   const url = `${BASE_URL}${cleanEndpoint}`;
 
   const headers = new Headers(options.headers || {});
-  if (!headers.has('Authorization')) {
-    headers.set('Authorization', getBasicAuthHeader());
+  const authHeader = getBasicAuthHeader();
+  if (authHeader && !headers.has('Authorization')) {
+    headers.set('Authorization', authHeader);
   }
   if (!headers.has('Cache-Control')) {
     headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
