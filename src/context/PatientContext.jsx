@@ -13,10 +13,12 @@ export function PatientProvider({ children }) {
     if (savedPatient) {
       setPatient(savedPatient);
 
-      // Auto-rehydrate noReg jika sesi yang tersimpan sebelumnya belum memiliki noReg
+      // Auto-rehydrate jika sesi yang tersimpan belum lengkap atau tanggal lahir belum disinkronkan ulang
       const hasReg = savedPatient.noReg || savedPatient.noreg || savedPatient.no_reg || savedPatient.no_regis;
+      const dobYearMatch = String(savedPatient.dob || '').match(/(\d{4})/);
+      const needsDobReconcile = dobYearMatch && Number(dobYearMatch[1]) < 1964 && !savedPatient.dobReconciled;
       const rmId = savedPatient.rmNumber || savedPatient.id;
-      if (!hasReg && rmId) {
+      if ((!hasReg || needsDobReconcile) && rmId) {
         getPatientByRm(rmId)
           .then((res) => {
             if (res?.patient) {
@@ -28,7 +30,7 @@ export function PatientProvider({ children }) {
             }
           })
           .catch((err) => {
-            console.warn('[PatientContext] Auto re-hydrate noReg warning:', err.message);
+            console.warn('[PatientContext] Auto re-hydrate warning:', err.message);
           });
       }
     }

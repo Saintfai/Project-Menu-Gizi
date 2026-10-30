@@ -383,7 +383,9 @@ export default function Dashboard() {
         (row.kamar && row.kamar.toLowerCase().includes(query)) ||
         (row.makanPagi && row.makanPagi.toLowerCase().includes(query)) ||
         (row.makanSiang && row.makanSiang.toLowerCase().includes(query)) ||
-        ((row.makanSore || row.makanMalam) && (row.makanSore || row.makanMalam).toLowerCase().includes(query));
+        ((row.makanSore || row.makanMalam) && (row.makanSore || row.makanMalam).toLowerCase().includes(query)) ||
+        (row.diet && row.diet.toLowerCase().includes(query)) ||
+        (row.bentukMakananText && row.bentukMakananText.toLowerCase().includes(query));
 
       if (!matchesSearch) return false;
 

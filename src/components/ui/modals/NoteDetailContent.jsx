@@ -30,6 +30,17 @@ export const NoteDetailContent = ({ data }) => {
             </div>
           </div>
         )}
+        {data.diet && data.diet !== '-' && (
+          <div className="bg-primary-50 border border-primary-200 p-2.5 rounded text-primary-800 flex gap-2 items-start mt-2">
+            <svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <div className="text-[10px] font-bold uppercase mb-0.5 text-primary-700">Diet Klinis Pasien (SIMRS)</div>
+              <div className="text-xs font-semibold text-primary-900">{data.diet}</div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="bg-amber-50/70 border border-amber-200 p-3 rounded-lg text-amber-900">
